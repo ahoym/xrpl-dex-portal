@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import type { OrderBookEntry } from "@/lib/types";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
+
+/** Client-side depth options. Server returns up to DEFAULT_ORDERBOOK_LIMIT (50); hard max is MAX_API_LIMIT (400). */
+const DEPTH_OPTIONS = [10, 25, 50] as const;
 
 interface OrderBookProps {
   orderBook: { buy: OrderBookEntry[]; sell: OrderBookEntry[] } | null;
@@ -10,7 +14,6 @@ interface OrderBookProps {
   baseIssuer?: string;
   quoteCurrency: string;
   accountAddress?: string;
-  onRefresh: () => void;
   onSelectOrder?: (price: string, amount: string, tab: "buy" | "sell") => void;
 }
 
@@ -21,9 +24,10 @@ export function OrderBook({
   baseIssuer,
   quoteCurrency,
   accountAddress,
-  onRefresh,
   onSelectOrder,
 }: OrderBookProps) {
+  const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[0]);
+
   const allOffers = [
     ...(orderBook?.buy ?? []),
     ...(orderBook?.sell ?? []),
@@ -51,25 +55,28 @@ export function OrderBook({
     });
   bids.sort((a, b) => b.price - a.price);
 
-  const askCumulative: number[] = new Array(asks.length);
-  for (let i = asks.length - 1, cum = 0; i >= 0; i--) {
-    cum += asks[i].amount;
+  const visibleAsks = asks.slice(-depth);
+  const visibleBids = bids.slice(0, depth);
+
+  const askCumulative: number[] = new Array(visibleAsks.length);
+  for (let i = visibleAsks.length - 1, cum = 0; i >= 0; i--) {
+    cum += visibleAsks[i].amount;
     askCumulative[i] = cum;
   }
-  const bidCumulative: number[] = new Array(bids.length);
-  for (let i = 0, cum = 0; i < bids.length; i++) {
-    cum += bids[i].amount;
+  const bidCumulative: number[] = new Array(visibleBids.length);
+  for (let i = 0, cum = 0; i < visibleBids.length; i++) {
+    cum += visibleBids[i].amount;
     bidCumulative[i] = cum;
   }
 
   const maxAmount = Math.max(
-    ...asks.map((a) => a.amount),
-    ...bids.map((b) => b.amount),
+    ...visibleAsks.map((a) => a.amount),
+    ...visibleBids.map((b) => b.amount),
     0,
   );
 
-  const bestAsk = asks.length > 0 ? asks[asks.length - 1].price : null;
-  const bestBid = bids.length > 0 ? bids[0].price : null;
+  const bestAsk = visibleAsks.length > 0 ? visibleAsks[visibleAsks.length - 1].price : null;
+  const bestBid = visibleBids.length > 0 ? visibleBids[0].price : null;
   const spread = bestAsk !== null && bestBid !== null ? bestAsk - bestBid : null;
   const mid = bestAsk !== null && bestBid !== null ? (bestAsk + bestBid) / 2 : null;
 
@@ -79,13 +86,15 @@ export function OrderBook({
         <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           Order Book
         </h3>
-        <button
-          onClick={onRefresh}
-          disabled={loading}
-          className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+        <select
+          value={depth}
+          onChange={(e) => setDepth(Number(e.target.value))}
+          className="rounded border border-zinc-200 bg-white px-2 py-0.5 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
         >
-          {loading ? "Loading..." : "Refresh"}
-        </button>
+          {DEPTH_OPTIONS.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
       </div>
 
       <div className="mt-3">
@@ -99,12 +108,12 @@ export function OrderBook({
         <div className="mb-1 mt-2.5 text-[10px] font-bold uppercase tracking-widest text-red-400 dark:text-red-500">
           Asks
         </div>
-        {asks.length === 0 ? (
+        {visibleAsks.length === 0 ? (
           <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
             No asks
           </p>
         ) : (
-          asks.map((a, i) => {
+          visibleAsks.map((a, i) => {
             const isOwn = accountAddress !== undefined && a.account === accountAddress;
             const clickable = !isOwn && onSelectOrder;
             const barPct = maxAmount > 0 ? (a.amount / maxAmount) * 100 : 0;
@@ -163,12 +172,12 @@ export function OrderBook({
         <div className="mb-1 mt-2.5 text-[10px] font-bold uppercase tracking-widest text-green-500 dark:text-green-500">
           Bids
         </div>
-        {bids.length === 0 ? (
+        {visibleBids.length === 0 ? (
           <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
             No bids
           </p>
         ) : (
-          bids.map((b, i) => {
+          visibleBids.map((b, i) => {
             const isOwn = accountAddress !== undefined && b.account === accountAddress;
             const clickable = !isOwn && onSelectOrder;
             const barPct = maxAmount > 0 ? (b.amount / maxAmount) * 100 : 0;
