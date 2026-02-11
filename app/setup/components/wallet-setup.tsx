@@ -12,9 +12,10 @@ interface WalletSetupProps {
   wallet: WalletInfo | null;
   network: PersistedState["network"];
   onSetWallet: (wallet: WalletInfo | null) => void;
+  children?: React.ReactNode;
 }
 
-export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) {
+export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSetupProps) {
   const { loading: generating, error: generateError, generate } = useWalletGeneration();
   const [importSeed, setImportSeed] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
             <span className="font-mono text-xs">{wallet.publicKey}</span>
           </p>
         </div>
+        {children}
         <button
           onClick={() => {
             if (window.confirm("Remove wallet? This cannot be undone.")) {

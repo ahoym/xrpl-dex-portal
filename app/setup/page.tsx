@@ -34,19 +34,21 @@ export default function SetupPage() {
           wallet={state.wallet}
           network={state.network}
           onSetWallet={setWallet}
-        />
+        >
+          {state.wallet && (
+            <BalanceDisplay address={state.wallet.address} refreshKey={refreshKey} />
+          )}
+        </WalletSetup>
 
         {state.wallet && (
-          <>
-            <BalanceDisplay address={state.wallet.address} refreshKey={refreshKey} />
-            <TrustLineManagement
-              wallet={state.wallet}
-              network={state.network}
-              refreshKey={refreshKey}
-              onRefresh={() => setRefreshKey((k) => k + 1)}
-            />
-          </>
+          <TrustLineManagement
+            wallet={state.wallet}
+            network={state.network}
+            refreshKey={refreshKey}
+            onRefresh={() => setRefreshKey((k) => k + 1)}
+          />
         )}
+
       </div>
 
       <div className="mt-8 space-y-5">
