@@ -234,7 +234,7 @@ export function TransferModal({
               >
                 {contacts.map((c, i) => (
                   <option key={i} value={i}>
-                    {c.label} ({c.address.slice(0, 8)}...{c.destinationTag !== undefined ? ` tag:${c.destinationTag}` : ""})
+                    {c.label} ({c.address}{c.destinationTag !== undefined ? ` tag:${c.destinationTag}` : ""})
                   </option>
                 ))}
               </select>
