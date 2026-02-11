@@ -30,8 +30,6 @@ export default function SetupPage() {
       <h1 className="text-2xl font-bold">XRPL DEX Portal</h1>
 
       <div className="mt-6 space-y-6">
-        <SecurityWarning network={state.network} />
-
         <WalletSetup
           wallet={state.wallet}
           network={state.network}
@@ -51,7 +49,8 @@ export default function SetupPage() {
         )}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 space-y-6">
+        <SecurityWarning network={state.network} />
         <DataManagement
           state={state}
           contacts={contacts}
