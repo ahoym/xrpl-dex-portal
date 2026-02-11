@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Merge new trades into cache, dedup by hash, sort by time desc, cap at limit
-    const key = cacheKey(network, baseCurrency, baseIssuer, quoteCurrency, quoteIssuer);
+    const key = cacheKey(network ?? "", baseCurrency, baseIssuer, quoteCurrency, quoteIssuer);
     const cached = tradesCache.get(key) ?? [];
     const seen = new Set<string>();
     const merged: Trade[] = [];
