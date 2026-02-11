@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { useTradingData } from "@/lib/hooks/use-trading-data";
 import { CustomCurrencyForm } from "./components/custom-currency-form";
@@ -12,13 +12,26 @@ import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
 export default function TradePage() {
   const { state, hydrated } = useAppState();
 
-  const [sellingValue, setSellingValue] = useState(`${Assets.RLUSD}|${WELL_KNOWN_CURRENCIES[state.network]?.RLUSD ?? ""}`);
-  const [buyingValue, setBuyingValue] = useState(`${Assets.XRP}|`);
+  const [sellingValue, setSellingValue] = useState("");
+  const [buyingValue, setBuyingValue] = useState("");
   const [customCurrencies, setCustomCurrencies] = useState<
     { currency: string; issuer: string }[]
   >([]);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Set default pair based on network — RLUSD/XRP when available, XRP otherwise
+  useEffect(() => {
+    if (!hydrated) return;
+    const rlusdIssuer = WELL_KNOWN_CURRENCIES[state.network]?.RLUSD;
+    if (rlusdIssuer) {
+      setSellingValue(`${Assets.RLUSD}|${rlusdIssuer}`);
+      setBuyingValue(`${Assets.XRP}|`);
+    } else {
+      setSellingValue(`${Assets.XRP}|`);
+      setBuyingValue("");
+    }
+  }, [hydrated, state.network]);
 
   const onRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 

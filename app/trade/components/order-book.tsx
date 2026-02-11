@@ -26,7 +26,7 @@ export function OrderBook({
   accountAddress,
   onSelectOrder,
 }: OrderBookProps) {
-  const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[0]);
+  const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[1]);
 
   const allOffers = [
     ...(orderBook?.buy ?? []),

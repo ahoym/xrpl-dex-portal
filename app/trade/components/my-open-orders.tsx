@@ -39,7 +39,7 @@ export function MyOpenOrders({
   cancellingSeq,
   onCancel,
 }: MyOpenOrdersProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className={cardClass}>
@@ -51,7 +51,7 @@ export function MyOpenOrders({
         <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           My Open Orders
           {pairSelected && !loading && (
-            <span className="ml-1.5 text-sm font-normal text-zinc-400 dark:text-zinc-500">
+            <span className="ml-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               ({offers.length})
             </span>
           )}
