@@ -123,11 +123,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return Response.json({
-      base: { currency: baseCurrency, issuer: baseIssuer },
-      quote: { currency: quoteCurrency, issuer: quoteIssuer },
-      trades,
-    });
+    return Response.json(
+      {
+        base: { currency: baseCurrency, issuer: baseIssuer },
+        quote: { currency: quoteCurrency, issuer: quoteIssuer },
+        trades,
+      },
+      {
+        headers: {
+          "Cache-Control": "s-maxage=3, stale-while-revalidate=6",
+        },
+      },
+    );
   } catch (err) {
     return apiErrorResponse(err, "Failed to fetch recent trades");
   }

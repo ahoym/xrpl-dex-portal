@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppState } from "./use-app-state";
 import { useBalances } from "./use-balances";
+import { usePageVisible } from "./use-page-visible";
 import type { OrderBookAmount, OrderBookEntry } from "@/lib/types";
 import type { RecentTrade } from "@/app/trade/components/recent-trades";
 import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
+
+const POLL_INTERVAL_MS = 3_000;
 
 export interface CurrencyOption {
   currency: string;
@@ -46,6 +49,9 @@ export function useTradingData({
 }: UseTradingDataOptions) {
   const { state: { network } } = useAppState();
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
+  const visible = usePageVisible();
+  const pollingOrderBook = useRef(false);
+  const pollingTrades = useRef(false);
 
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [loadingOrderBook, setLoadingOrderBook] = useState(false);
@@ -107,8 +113,8 @@ export function useTradingData({
 
   // Fetch order book
   const fetchOrderBook = useCallback(
-    async (selling: CurrencyOption, buying: CurrencyOption, net: string) => {
-      setLoadingOrderBook(true);
+    async (selling: CurrencyOption, buying: CurrencyOption, net: string, silent = false) => {
+      if (!silent) setLoadingOrderBook(true);
       try {
         const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
@@ -118,23 +124,32 @@ export function useTradingData({
         const data = await res.json();
         if (res.ok) {
           setOrderBook({ buy: data.buy ?? [], sell: data.sell ?? [] });
-        } else {
+        } else if (!silent) {
           setOrderBook(null);
         }
       } catch {
-        setOrderBook(null);
+        if (!silent) setOrderBook(null);
       } finally {
-        setLoadingOrderBook(false);
+        if (!silent) setLoadingOrderBook(false);
       }
     },
     [],
   );
 
   useEffect(() => {
-    if (sellingCurrency && buyingCurrency) {
-      fetchOrderBook(sellingCurrency, buyingCurrency, network);
-    }
-  }, [sellingCurrency, buyingCurrency, network, refreshKey, fetchOrderBook]);
+    if (!sellingCurrency || !buyingCurrency) return;
+    fetchOrderBook(sellingCurrency, buyingCurrency, network);
+
+    if (!visible) return;
+    const id = setInterval(() => {
+      if (pollingOrderBook.current) return;
+      pollingOrderBook.current = true;
+      fetchOrderBook(sellingCurrency, buyingCurrency, network, true).finally(() => {
+        pollingOrderBook.current = false;
+      });
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [sellingCurrency, buyingCurrency, network, refreshKey, visible, fetchOrderBook]);
 
   // Fetch account offers
   const fetchAccountOffers = useCallback(
@@ -165,8 +180,8 @@ export function useTradingData({
 
   // Fetch recent trades
   const fetchRecentTrades = useCallback(
-    async (selling: CurrencyOption, buying: CurrencyOption, net: string) => {
-      setLoadingTrades(true);
+    async (selling: CurrencyOption, buying: CurrencyOption, net: string, silent = false) => {
+      if (!silent) setLoadingTrades(true);
       try {
         const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
@@ -176,23 +191,32 @@ export function useTradingData({
         const data = await res.json();
         if (res.ok) {
           setRecentTrades(data.trades ?? []);
-        } else {
+        } else if (!silent) {
           setRecentTrades([]);
         }
       } catch {
-        setRecentTrades([]);
+        if (!silent) setRecentTrades([]);
       } finally {
-        setLoadingTrades(false);
+        if (!silent) setLoadingTrades(false);
       }
     },
     [],
   );
 
   useEffect(() => {
-    if (sellingCurrency && buyingCurrency) {
-      fetchRecentTrades(sellingCurrency, buyingCurrency, network);
-    }
-  }, [sellingCurrency, buyingCurrency, network, refreshKey, fetchRecentTrades]);
+    if (!sellingCurrency || !buyingCurrency) return;
+    fetchRecentTrades(sellingCurrency, buyingCurrency, network);
+
+    if (!visible) return;
+    const id = setInterval(() => {
+      if (pollingTrades.current) return;
+      pollingTrades.current = true;
+      fetchRecentTrades(sellingCurrency, buyingCurrency, network, true).finally(() => {
+        pollingTrades.current = false;
+      });
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [sellingCurrency, buyingCurrency, network, refreshKey, visible, fetchRecentTrades]);
 
   return {
     balances,

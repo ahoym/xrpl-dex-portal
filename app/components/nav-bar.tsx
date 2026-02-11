@@ -7,8 +7,8 @@ import { NetworkSelector } from './network-selector';
 
 const links = [
   { href: '/setup', label: 'Setup' },
-  { href: '/transact', label: 'Transfer' },
   { href: '/trade', label: 'Trade' },
+  { href: '/transact', label: 'Transfer' },
 ];
 
 export function NavBar() {

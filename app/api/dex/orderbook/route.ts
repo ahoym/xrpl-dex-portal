@@ -45,12 +45,19 @@ export async function GET(request: NextRequest) {
     const normalizeMany = (offers: typeof orderbook.buy) =>
       offers.map(normalizeOffer);
 
-    return Response.json({
-      base: { currency: baseCurrency, issuer: baseIssuer },
-      quote: { currency: quoteCurrency, issuer: quoteIssuer },
-      buy: normalizeMany(orderbook.buy),
-      sell: normalizeMany(orderbook.sell),
-    });
+    return Response.json(
+      {
+        base: { currency: baseCurrency, issuer: baseIssuer },
+        quote: { currency: quoteCurrency, issuer: quoteIssuer },
+        buy: normalizeMany(orderbook.buy),
+        sell: normalizeMany(orderbook.sell),
+      },
+      {
+        headers: {
+          "Cache-Control": "s-maxage=3, stale-while-revalidate=6",
+        },
+      },
+    );
   } catch (err) {
     return apiErrorResponse(err, "Failed to fetch order book");
   }
