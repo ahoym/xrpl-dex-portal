@@ -75,7 +75,10 @@ export function TrustLineManagement({
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Trust Lines</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Trust Lines</h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Wallet must be funded with XRP before adding trust lines</p>
+        </div>
         <button
           onClick={onRefresh}
           disabled={loading}

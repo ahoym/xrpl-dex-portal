@@ -176,9 +176,12 @@ export function TradeGrid({
             />
           ) : !focusedWallet ? (
             <div className="py-8 text-center">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <a
+                href="/setup"
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
                 Set up a wallet to place orders
-              </p>
+              </a>
             </div>
           ) : (
             <div className="py-8 text-center">
