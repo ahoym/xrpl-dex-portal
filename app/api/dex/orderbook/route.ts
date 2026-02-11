@@ -6,6 +6,7 @@ import { getNetworkParam, validateCurrencyPair, apiErrorResponse } from "@/lib/a
 import { DEFAULT_ORDERBOOK_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
 import { Assets } from "@/lib/assets";
 import { normalizeOffer } from "@/lib/xrpl/normalize-offer";
+import { aggregateDepth } from "@/lib/xrpl/aggregate-depth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,14 +29,18 @@ export async function GET(request: NextRequest) {
       ? { currency: Assets.XRP }
       : { currency: encodeXrplCurrency(quoteCurrency), issuer: quoteIssuer! };
 
-    const orderbook = await client.getOrderbook(currency1, currency2, { limit });
+    const orderbook = await client.getOrderbook(currency1, currency2, { limit: MAX_API_LIMIT });
+    const allBuy = orderbook.buy.map(normalizeOffer);
+    const allSell = orderbook.sell.map(normalizeOffer);
+    const agg = aggregateDepth(allBuy, allSell, limit);
 
     return Response.json(
       {
         base: { currency: baseCurrency, issuer: baseIssuer },
         quote: { currency: quoteCurrency, issuer: quoteIssuer },
-        buy: orderbook.buy.map(normalizeOffer),
-        sell: orderbook.sell.map(normalizeOffer),
+        buy: agg.buy,
+        sell: agg.sell,
+        depth: agg.depth,
       },
       {
         headers: {

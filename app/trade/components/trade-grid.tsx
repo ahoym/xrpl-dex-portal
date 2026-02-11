@@ -8,7 +8,7 @@ import { RecentTrades } from "./recent-trades";
 import { BalancesPanel } from "./balances-panel";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import type { TradeFormPrefill } from "./trade-form";
-import type { WalletInfo, BalanceEntry } from "@/lib/types";
+import type { WalletInfo, BalanceEntry, DepthSummary } from "@/lib/types";
 import type { CurrencyOption, OrderBookData, AccountOffer } from "@/lib/hooks/use-trading-data";
 import type { RecentTrade } from "./recent-trades";
 import { cardClass } from "@/lib/ui/ui";
@@ -27,6 +27,9 @@ interface TradeGridProps {
   loadingBalances: boolean;
   network: string;
   onRefresh: () => void;
+  depth: number;
+  onDepthChange: (d: number) => void;
+  depthSummary: DepthSummary | null;
 }
 
 export function TradeGrid({
@@ -43,6 +46,9 @@ export function TradeGrid({
   loadingBalances,
   network,
   onRefresh,
+  depth,
+  onDepthChange,
+  depthSummary,
 }: TradeGridProps) {
   const [cancellingSeq, setCancellingSeq] = useState<number | null>(null);
   const [prefill, setPrefill] = useState<TradeFormPrefill | undefined>(undefined);
@@ -132,6 +138,9 @@ export function TradeGrid({
               baseIssuer={sellingCurrency!.issuer}
               quoteCurrency={buyingCurrency!.currency}
               accountAddress={focusedWallet?.address}
+              depth={depth}
+              onDepthChange={onDepthChange}
+              depthSummary={depthSummary}
               onSelectOrder={(price, amount, tab) => {
                 prefillKeyRef.current += 1;
                 setPrefill({ price, amount, tab, key: prefillKeyRef.current });

@@ -8,6 +8,7 @@ import { CurrencyPairSelector } from "./components/currency-pair-selector";
 import { TradeGrid } from "./components/trade-grid";
 import { LoadingScreen } from "../components/loading-screen";
 import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
+import { DEPTH_OPTIONS } from "./components/order-book";
 
 export default function TradePage() {
   const { state, hydrated } = useAppState();
@@ -19,6 +20,7 @@ export default function TradePage() {
   >([]);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[1]);
 
   // Set default pair based on network — RLUSD/XRP when available, XRP otherwise
   useEffect(() => {
@@ -50,12 +52,14 @@ export default function TradePage() {
     loadingOffers,
     recentTrades,
     loadingTrades,
+    depthSummary,
   } = useTradingData({
     address: focusedWallet?.address,
     sellingValue,
     buyingValue,
     refreshKey,
     customCurrencies,
+    depth,
   });
 
   if (!hydrated) {
@@ -98,6 +102,9 @@ export default function TradePage() {
         loadingBalances={loadingBalances}
         network={state.network}
         onRefresh={onRefresh}
+        depth={depth}
+        onDepthChange={setDepth}
+        depthSummary={depthSummary}
       />
 
     </div>

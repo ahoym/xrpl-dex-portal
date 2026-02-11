@@ -41,3 +41,10 @@ export interface OrderBookEntry {
   quality: string;
   sequence: number;
 }
+
+export interface DepthSummary {
+  bidVolume: string;   // total bid volume in quote currency
+  bidLevels: number;   // number of bid levels in full scan
+  askVolume: string;   // total ask volume in base currency
+  askLevels: number;   // number of ask levels in full scan
+}

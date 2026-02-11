@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppState } from "./use-app-state";
 import { useBalances } from "./use-balances";
 import { usePageVisible } from "./use-page-visible";
-import type { OrderBookAmount, OrderBookEntry } from "@/lib/types";
+import type { OrderBookAmount, OrderBookEntry, DepthSummary } from "@/lib/types";
 import type { RecentTrade } from "@/app/trade/components/recent-trades";
 import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
@@ -38,6 +38,7 @@ interface UseTradingDataOptions {
   buyingValue: string;
   refreshKey: number;
   customCurrencies: { currency: string; issuer: string }[];
+  depth: number;
 }
 
 export function useTradingData({
@@ -46,6 +47,7 @@ export function useTradingData({
   buyingValue,
   refreshKey,
   customCurrencies,
+  depth,
 }: UseTradingDataOptions) {
   const { state: { network } } = useAppState();
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
@@ -58,6 +60,7 @@ export function useTradingData({
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [recentTrades, setRecentTrades] = useState<RecentTrade[]>([]);
   const [loadingTrades, setLoadingTrades] = useState(false);
+  const [depthSummary, setDepthSummary] = useState<DepthSummary | null>(null);
 
   // Build currency options from balances + well-known + custom
   const currencyOptions = useMemo<CurrencyOption[]>(() => {
@@ -118,7 +121,7 @@ export function useTradingData({
         setLoadingTrades(true);
       }
       try {
-        const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net });
+        const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net, limit: String(depth) });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
         if (buying.issuer) params.set("quote_issuer", buying.issuer);
 
@@ -129,6 +132,11 @@ export function useTradingData({
             setOrderBook({ buy: data.orderbook.buy ?? [], sell: data.orderbook.sell ?? [] });
           } else if (!silent) {
             setOrderBook(null);
+          }
+          if (data.depth != null) {
+            setDepthSummary(data.depth);
+          } else if (!silent) {
+            setDepthSummary(null);
           }
           if (data.trades != null) {
             setRecentTrades(data.trades);
@@ -151,7 +159,7 @@ export function useTradingData({
         }
       }
     },
-    [],
+    [depth],
   );
 
   useEffect(() => {
@@ -167,7 +175,7 @@ export function useTradingData({
       });
     }, POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [sellingCurrency, buyingCurrency, network, refreshKey, visible, fetchMarketData]);
+  }, [sellingCurrency, buyingCurrency, network, depth, refreshKey, visible, fetchMarketData]);
 
   // Fetch account offers
   const fetchAccountOffers = useCallback(
@@ -208,5 +216,6 @@ export function useTradingData({
     loadingOffers,
     recentTrades,
     loadingTrades,
+    depthSummary,
   };
 }

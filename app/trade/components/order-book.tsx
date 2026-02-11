@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import BigNumber from "bignumber.js";
-import type { OrderBookEntry } from "@/lib/types";
+import type { OrderBookEntry, DepthSummary } from "@/lib/types";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 
-/** Client-side depth options. Server returns up to DEFAULT_ORDERBOOK_LIMIT (50); hard max is MAX_API_LIMIT (400). */
-const DEPTH_OPTIONS = [10, 25, 50] as const;
+/** Depth options for the order book display. Server always scans 400 levels for aggregation. */
+export const DEPTH_OPTIONS = [10, 25, 50] as const;
+
+function formatCompact(value: string): string {
+  const n = new BigNumber(value);
+  if (n.gte(1_000_000_000)) return `${n.div(1_000_000_000).toFixed(1)}B`;
+  if (n.gte(1_000_000)) return `${n.div(1_000_000).toFixed(1)}M`;
+  if (n.gte(1_000)) return `${n.div(1_000).toFixed(1)}K`;
+  return n.toFixed(2);
+}
 
 interface OrderBookProps {
   orderBook: { buy: OrderBookEntry[]; sell: OrderBookEntry[] } | null;
@@ -15,6 +22,9 @@ interface OrderBookProps {
   baseIssuer?: string;
   quoteCurrency: string;
   accountAddress?: string;
+  depth: number;
+  onDepthChange: (d: number) => void;
+  depthSummary: DepthSummary | null;
   onSelectOrder?: (price: string, amount: string, tab: "buy" | "sell") => void;
 }
 
@@ -25,9 +35,11 @@ export function OrderBook({
   baseIssuer,
   quoteCurrency,
   accountAddress,
+  depth,
+  onDepthChange,
+  depthSummary,
   onSelectOrder,
 }: OrderBookProps) {
-  const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[1]);
 
   const allOffers = [
     ...(orderBook?.buy ?? []),
@@ -56,8 +68,8 @@ export function OrderBook({
     });
   bids.sort((a, b) => b.price.comparedTo(a.price) ?? 0);
 
-  const visibleAsks = asks.slice(-depth);
-  const visibleBids = bids.slice(0, depth);
+  const visibleAsks = asks;
+  const visibleBids = bids;
 
   const askCumulative: BigNumber[] = [];
   for (let i = visibleAsks.length - 1, cum = new BigNumber(0); i >= 0; i--) {
@@ -89,7 +101,7 @@ export function OrderBook({
         </h3>
         <select
           value={depth}
-          onChange={(e) => setDepth(Number(e.target.value))}
+          onChange={(e) => onDepthChange(Number(e.target.value))}
           className="rounded border border-zinc-200 bg-white px-2 py-0.5 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
         >
           {DEPTH_OPTIONS.map((d) => (
@@ -97,6 +109,14 @@ export function OrderBook({
           ))}
         </select>
       </div>
+
+      {depthSummary && (
+        <p className="mt-1.5 text-[11px] text-zinc-400 dark:text-zinc-500">
+          {depthSummary.bidLevels} bids · {formatCompact(depthSummary.bidVolume)} {quoteCurrency} depth
+          <span className="mx-1.5 text-zinc-300 dark:text-zinc-600">|</span>
+          {depthSummary.askLevels} asks · {formatCompact(depthSummary.askVolume)} {baseCurrency} depth
+        </p>
+      )}
 
       <div className="mt-3">
         <div className="grid grid-cols-4 border-b border-zinc-200 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">

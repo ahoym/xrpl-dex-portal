@@ -7,6 +7,7 @@ import { DEFAULT_ORDERBOOK_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
 import { Assets } from "@/lib/assets";
 import { normalizeOffer } from "@/lib/xrpl/normalize-offer";
 import { fetchAndCacheTrades } from "@/lib/xrpl/trades";
+import { aggregateDepth } from "@/lib/xrpl/aggregate-depth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,12 +34,14 @@ export async function GET(request: NextRequest) {
     // Each in its own try/catch so a failure in one doesn't block the other.
 
     let orderbook: { buy: ReturnType<typeof normalizeOffer>[]; sell: ReturnType<typeof normalizeOffer>[] } | null = null;
+    let depth: ReturnType<typeof aggregateDepth>["depth"] | null = null;
     try {
-      const ob = await client.getOrderbook(currency1, currency2, { limit });
-      orderbook = {
-        buy: ob.buy.map(normalizeOffer),
-        sell: ob.sell.map(normalizeOffer),
-      };
+      const ob = await client.getOrderbook(currency1, currency2, { limit: MAX_API_LIMIT });
+      const allBuy = ob.buy.map(normalizeOffer);
+      const allSell = ob.sell.map(normalizeOffer);
+      const agg = aggregateDepth(allBuy, allSell, limit);
+      orderbook = { buy: agg.buy, sell: agg.sell };
+      depth = agg.depth;
     } catch {
       // orderbook stays null — partial failure
     }
@@ -62,6 +65,7 @@ export async function GET(request: NextRequest) {
         base: { currency: baseCurrency, issuer: baseIssuer },
         quote: { currency: quoteCurrency, issuer: quoteIssuer },
         orderbook,
+        depth,
         trades,
       },
       {
