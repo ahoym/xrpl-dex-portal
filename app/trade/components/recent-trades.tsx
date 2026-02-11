@@ -28,6 +28,16 @@ function formatTime(iso: string): string {
   }
 }
 
+function formatDateTime(iso: string): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString();
+  } catch {
+    return "";
+  }
+}
+
 export function RecentTrades({
   trades,
   loading,
@@ -94,7 +104,12 @@ export function RecentTrades({
                     {parseFloat(trade.quoteAmount).toFixed(4)}
                   </td>
                   <td className="py-1.5 text-right text-zinc-500 dark:text-zinc-400">
-                    {formatTime(trade.time)}
+                    <span className="group relative cursor-default">
+                      {formatTime(trade.time)}
+                      <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded bg-zinc-800 px-2 py-1 text-xs text-white shadow-lg group-hover:block dark:bg-zinc-700">
+                        {formatDateTime(trade.time)}
+                      </span>
+                    </span>
                   </td>
                 </tr>
               ))}
