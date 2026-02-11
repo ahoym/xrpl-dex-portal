@@ -50,8 +50,8 @@ export default function TradePage() {
   }
 
   return (
-    <div className="px-4 py-8">
-      <h1 className="text-2xl font-bold">Trade</h1>
+    <div className="mx-auto max-w-7xl px-4 py-6">
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Trade</h1>
 
       <CurrencyPairSelector
         sellingValue={sellingValue}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cardClass } from "@/lib/ui/ui";
 
 interface EmptyWalletsProps {
   title: string;
@@ -7,14 +8,14 @@ interface EmptyWalletsProps {
 
 export function EmptyWallets({ title, maxWidth = "max-w-6xl" }: EmptyWalletsProps) {
   return (
-    <div className={`mx-auto ${maxWidth} px-4 py-8`}>
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <div className="mt-8 rounded-lg border border-zinc-200 bg-zinc-50 p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+    <div className={`mx-auto ${maxWidth} px-4 py-6`}>
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">{title}</h1>
+      <div className={`mt-8 ${cardClass} py-12 text-center`}>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           No wallet configured. Set up a wallet on the{" "}
           <Link
             href="/setup"
-            className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             Setup page
           </Link>{" "}

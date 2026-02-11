@@ -173,18 +173,18 @@ export function TradeForm({
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
         Place Order
       </h3>
 
-      <div className="mt-2 flex gap-2">
+      <div className="mt-3 flex gap-1.5">
         <button
           type="button"
           onClick={() => setTab("buy")}
-          className={`rounded-md px-3 py-1 text-xs font-medium ${
+          className={`flex-1 px-3 py-2 text-sm font-semibold ${
             tab === "buy"
-              ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-              : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+              ? "bg-green-600 text-white shadow-sm dark:bg-green-700"
+              : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
           }`}
         >
           Buy {sellingCurrency.currency}
@@ -192,10 +192,10 @@ export function TradeForm({
         <button
           type="button"
           onClick={() => setTab("sell")}
-          className={`rounded-md px-3 py-1 text-xs font-medium ${
+          className={`flex-1 px-3 py-2 text-sm font-semibold ${
             tab === "sell"
-              ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
-              : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+              ? "bg-red-600 text-white shadow-sm dark:bg-red-700"
+              : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
           }`}
         >
           Sell {sellingCurrency.currency}
@@ -203,11 +203,11 @@ export function TradeForm({
       </div>
 
       {success ? (
-        <div className="mt-4 rounded-md bg-green-50 p-3 text-center text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        <div className="mt-4 bg-green-50 p-4 text-center text-sm font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
           Order placed successfully!
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-3 space-y-3">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <div>
             <label className={labelClass}>
               Amount ({sellingCurrency.currency})
@@ -242,17 +242,17 @@ export function TradeForm({
             <label className={labelClass}>
               Total ({buyingCurrency.currency})
             </label>
-            <div className="mt-1 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300">
+            <div className="mt-1 border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-mono text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300">
               {total || "—"}
             </div>
           </div>
 
           {amount && price && total && (
-            <div className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+            <div className="bg-zinc-100 px-3 py-2.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
               {tab === "buy" ? (
-                <>Pay <span className="font-semibold">{total} {buyingCurrency.currency}</span> to receive <span className="font-semibold">{amount} {sellingCurrency.currency}</span></>
+                <>Pay <span className="font-bold text-zinc-900 dark:text-zinc-100">{total} {buyingCurrency.currency}</span> to receive <span className="font-bold text-zinc-900 dark:text-zinc-100">{amount} {sellingCurrency.currency}</span></>
               ) : (
-                <>Sell <span className="font-semibold">{amount} {sellingCurrency.currency}</span> to receive <span className="font-semibold">{total} {buyingCurrency.currency}</span></>
+                <>Sell <span className="font-bold text-zinc-900 dark:text-zinc-100">{amount} {sellingCurrency.currency}</span> to receive <span className="font-bold text-zinc-900 dark:text-zinc-100">{total} {buyingCurrency.currency}</span></>
               )}
             </div>
           )}
@@ -273,7 +273,7 @@ export function TradeForm({
           </div>
 
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <label className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
               <input
                 type="checkbox"
                 checked={sellMode}
@@ -303,10 +303,10 @@ export function TradeForm({
           <button
             type="submit"
             disabled={!canSubmit}
-            className={`w-full rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50 ${
+            className={`w-full px-4 py-2.5 text-sm font-bold text-white shadow-sm disabled:opacity-50 ${
               tab === "buy"
-                ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
-                : "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+                ? "bg-green-600 hover:bg-green-500 hover:shadow-md active:scale-[0.98] dark:bg-green-700 dark:hover:bg-green-600"
+                : "bg-red-600 hover:bg-red-500 hover:shadow-md active:scale-[0.98] dark:bg-red-700 dark:hover:bg-red-600"
             }`}
           >
             {submitting

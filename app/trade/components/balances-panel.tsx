@@ -2,6 +2,7 @@
 
 import type { BalanceEntry } from "@/lib/types";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
+import { cardClass } from "@/lib/ui/ui";
 
 interface BalancesPanelProps {
   balances: BalanceEntry[];
@@ -10,24 +11,31 @@ interface BalancesPanelProps {
 
 export function BalancesPanel({ balances, loading }: BalancesPanelProps) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+    <div className={cardClass}>
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
         Balances
       </h3>
       {loading ? (
-        <p className="mt-2 text-xs text-zinc-500">Loading...</p>
+        <div className="mt-3 space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex justify-between">
+              <div className="h-4 w-16 animate-pulse bg-zinc-200 dark:bg-zinc-700" />
+              <div className="h-4 w-20 animate-pulse bg-zinc-200 dark:bg-zinc-700" />
+            </div>
+          ))}
+        </div>
       ) : balances.length === 0 ? (
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
           No balances
         </p>
       ) : (
-        <div className="mt-2 space-y-1">
+        <div className="mt-3 space-y-1.5">
           {balances.map((b, i) => {
             const cur = decodeCurrency(b.currency);
             return (
               <div
                 key={i}
-                className="flex items-center justify-between text-xs"
+                className="flex items-center justify-between px-2 py-1 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
               >
                 <span className="font-medium text-zinc-700 dark:text-zinc-300">
                   {cur}

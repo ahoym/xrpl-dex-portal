@@ -76,31 +76,31 @@ export function OrderBook({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           Order Book
         </h3>
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 dark:text-blue-400 dark:hover:text-blue-300"
+          className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
         >
           {loading ? "Loading..." : "Refresh"}
         </button>
       </div>
 
-      <div className="mt-2">
-        <div className="grid grid-cols-4 border-b border-zinc-200 pb-1 text-xs font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+      <div className="mt-3">
+        <div className="grid grid-cols-4 border-b border-zinc-200 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">
           <span>Price</span>
           <span className="text-right">{baseCurrency}</span>
           <span className="text-right">{quoteCurrency}</span>
           <span className="text-right">Depth</span>
         </div>
 
-        <div className="mb-1 mt-1.5 text-[10px] font-medium uppercase tracking-wider text-red-400 dark:text-red-500">
+        <div className="mb-1 mt-2.5 text-[10px] font-bold uppercase tracking-widest text-red-400 dark:text-red-500">
           Asks
         </div>
         {asks.length === 0 ? (
-          <p className="py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
+          <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
             No asks
           </p>
         ) : (
@@ -117,17 +117,17 @@ export function OrderBook({
                 onKeyDown={clickable ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onSelectOrder(a.price.toFixed(6), a.amount.toFixed(6), "buy"); } : undefined}
                 className={`relative grid grid-cols-4 py-0.5 text-xs font-mono ${
                   clickable
-                    ? "cursor-pointer rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                    ? "cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
                     : isOwn
-                      ? "opacity-50"
+                      ? "opacity-40"
                       : ""
                 }`}
               >
                 <div
-                  className="pointer-events-none absolute inset-y-0 right-0 bg-red-100 dark:bg-red-900/30"
+                  className="pointer-events-none absolute inset-y-0 right-0 bg-red-100/60 dark:bg-red-900/20"
                   style={{ width: `${barPct}%` }}
                 />
-                <span className="relative text-red-600 dark:text-red-400">
+                <span className="relative font-semibold text-red-600 dark:text-red-400">
                   {a.price.toFixed(6)}
                 </span>
                 <span className="relative text-right text-zinc-700 dark:text-zinc-300">
@@ -144,11 +144,11 @@ export function OrderBook({
           })
         )}
 
-        <div className="border-y border-dashed border-zinc-300 py-1.5 text-center text-xs dark:border-zinc-600">
+        <div className="my-2 border border-dashed border-zinc-200 bg-zinc-50/50 py-2 text-center text-xs dark:border-zinc-700 dark:bg-zinc-800/30">
           {spread !== null && mid !== null ? (
             <span className="text-zinc-600 dark:text-zinc-300">
-              <span className="font-medium">{mid.toFixed(6)}</span>
-              <span className="mx-1.5 text-zinc-400 dark:text-zinc-500">|</span>
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">{mid.toFixed(6)}</span>
+              <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
               <span className="text-zinc-400 dark:text-zinc-500">
                 Spread: {spread.toFixed(6)}
               </span>
@@ -160,11 +160,11 @@ export function OrderBook({
           )}
         </div>
 
-        <div className="mb-1 mt-1.5 text-[10px] font-medium uppercase tracking-wider text-green-500 dark:text-green-500">
+        <div className="mb-1 mt-2.5 text-[10px] font-bold uppercase tracking-widest text-green-500 dark:text-green-500">
           Bids
         </div>
         {bids.length === 0 ? (
-          <p className="py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
+          <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
             No bids
           </p>
         ) : (
@@ -181,17 +181,17 @@ export function OrderBook({
                 onKeyDown={clickable ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onSelectOrder(b.price.toFixed(6), b.amount.toFixed(6), "sell"); } : undefined}
                 className={`relative grid grid-cols-4 py-0.5 text-xs font-mono ${
                   clickable
-                    ? "cursor-pointer rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+                    ? "cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20"
                     : isOwn
-                      ? "opacity-50"
+                      ? "opacity-40"
                       : ""
                 }`}
               >
                 <div
-                  className="pointer-events-none absolute inset-y-0 right-0 bg-green-100 dark:bg-green-900/30"
+                  className="pointer-events-none absolute inset-y-0 right-0 bg-green-100/60 dark:bg-green-900/20"
                   style={{ width: `${barPct}%` }}
                 />
-                <span className="relative text-green-600 dark:text-green-400">
+                <span className="relative font-semibold text-green-600 dark:text-green-400">
                   {b.price.toFixed(6)}
                 </span>
                 <span className="relative text-right text-zinc-700 dark:text-zinc-300">

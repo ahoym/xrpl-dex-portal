@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Contact } from "@/lib/types";
-import { inputClass, labelClass, errorTextClass } from "@/lib/ui/ui";
+import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass } from "@/lib/ui/ui";
 
 interface ContactsManagerProps {
   contacts: Contact[];
@@ -63,13 +63,13 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className={cardClass}>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Contacts</h2>
+        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Contacts</h2>
         {!showForm && (
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             + Add Contact
           </button>
@@ -77,21 +77,21 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
       </div>
 
       {contacts.length === 0 && !showForm && (
-        <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-sm text-zinc-400 dark:text-zinc-500">
           No contacts yet. Add a contact to quickly send funds.
         </p>
       )}
 
       {contacts.length > 0 && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-4 space-y-2">
           {contacts.map((c, i) => (
             <div
               key={i}
-              className="flex items-center justify-between rounded-md border border-zinc-100 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900"
+              className="flex items-center justify-between border border-zinc-100 bg-zinc-50/50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/40"
             >
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{c.label}</p>
-                <p className="truncate font-mono text-xs text-zinc-500 dark:text-zinc-400">{c.address}</p>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{c.label}</p>
+                <p className="truncate font-mono text-xs text-zinc-400 dark:text-zinc-500">{c.address}</p>
                 {c.destinationTag !== undefined && (
                   <p className="text-xs text-zinc-400 dark:text-zinc-500">Tag: {c.destinationTag}</p>
                 )}
@@ -99,7 +99,7 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
               <div className="ml-3 flex gap-2">
                 <button
                   onClick={() => handleEdit(i)}
-                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                  className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
                 >
                   Edit
                 </button>
@@ -109,7 +109,7 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
                       onRemove(i);
                     }
                   }}
-                  className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
+                  className="px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
                 >
                   Remove
                 </button>
@@ -120,7 +120,7 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
       )}
 
       {showForm && (
-        <div className="mt-3 space-y-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-700">
+        <div className="mt-4 space-y-3 border border-zinc-200/80 bg-zinc-50/50 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800/30">
           <div>
             <label className={labelClass}>Label</label>
             <input
@@ -157,13 +157,13 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+              className={`${primaryButtonClass} px-3 py-1.5 text-xs`}
             >
               {editIndex !== null ? "Update" : "Add"}
             </button>
             <button
               onClick={resetForm}
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300"
+              className="border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 active:scale-[0.98] dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               Cancel
             </button>

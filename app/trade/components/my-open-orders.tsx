@@ -2,6 +2,7 @@
 
 import type { OrderBookAmount } from "@/lib/types";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
+import { cardClass } from "@/lib/ui/ui";
 
 interface AccountOffer {
   seq: number;
@@ -37,46 +38,50 @@ export function MyOpenOrders({
   onCancel,
 }: MyOpenOrdersProps) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+    <div className={cardClass}>
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
         My Open Orders
         {pairSelected && baseCurrency && quoteCurrency && (
-          <span className="ml-2 font-normal text-zinc-500 dark:text-zinc-400">
-            ({baseCurrency}/{quoteCurrency})
+          <span className="ml-2 text-sm font-normal text-zinc-400 dark:text-zinc-500">
+            {baseCurrency}/{quoteCurrency}
           </span>
         )}
       </h3>
       {loading ? (
-        <p className="mt-3 text-xs text-zinc-500">Loading offers...</p>
+        <div className="mt-4 space-y-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-10 animate-pulse bg-zinc-200 dark:bg-zinc-700" />
+          ))}
+        </div>
       ) : !pairSelected ? (
-        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-sm text-zinc-400 dark:text-zinc-500">
           Select a pair to see your offers
         </p>
       ) : offers.length === 0 ? (
-        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-sm text-zinc-400 dark:text-zinc-500">
           No open orders for this pair
         </p>
       ) : (
-        <div className="mt-3 space-y-2">
+        <div className="mt-4 space-y-2">
           {offers.map((offer) => {
             const getsLabel = formatOfferSide(offer.taker_gets);
             const paysLabel = formatOfferSide(offer.taker_pays);
             return (
               <div
                 key={offer.seq}
-                className="flex items-center justify-between rounded-md border border-zinc-100 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900"
+                className="flex items-center justify-between border border-zinc-100 bg-zinc-50/50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-800/40"
               >
                 <div className="text-xs text-zinc-700 dark:text-zinc-300">
-                  <span className="font-medium">Offer #{offer.seq}</span>
-                  <span className="mx-2 text-zinc-400">|</span>
+                  <span className="font-semibold">#{offer.seq}</span>
+                  <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
                   Give {getsLabel}
-                  <span className="mx-1 text-zinc-400">for</span>
+                  <span className="mx-1.5 text-zinc-400 dark:text-zinc-500">for</span>
                   {paysLabel}
                 </div>
                 <button
                   onClick={() => onCancel(offer.seq)}
                   disabled={cancellingSeq !== null}
-                  className="rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
+                  className="border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 disabled:opacity-50 active:scale-[0.98] dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
                 >
                   {cancellingSeq === offer.seq
                     ? "Cancelling..."

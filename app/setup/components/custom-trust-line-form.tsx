@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DEFAULT_TRUST_LINE_LIMIT } from "@/lib/xrpl/constants";
-import { inputClass, labelClass, errorTextClass } from "@/lib/ui/ui";
+import { inputClass, labelClass, errorTextClass, primaryButtonClass } from "@/lib/ui/ui";
 
 interface CustomTrustLineFormProps {
   recipientAddress: string;
@@ -60,7 +60,7 @@ export function CustomTrustLineForm({
   }
 
   return (
-    <div className="mt-2 space-y-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-700">
+    <div className="mt-3 space-y-3 border border-zinc-200/80 bg-zinc-50/50 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800/30">
       <div>
         <label className={labelClass}>Issuer Address</label>
         <input
@@ -95,7 +95,7 @@ export function CustomTrustLineForm({
       <button
         onClick={handleCustomTrust}
         disabled={customTrusting}
-        className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className={`${primaryButtonClass} px-3 py-1.5 text-xs`}
       >
         {customTrusting ? "Creating..." : "Create Trust Line"}
       </button>

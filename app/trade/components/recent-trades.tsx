@@ -1,5 +1,7 @@
 "use client";
 
+import { cardClass } from "@/lib/ui/ui";
+
 export interface RecentTrade {
   side: "buy" | "sell";
   price: string;
@@ -46,67 +48,71 @@ export function RecentTrades({
   quoteCurrency,
 }: RecentTradesProps) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+    <div className={cardClass}>
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
         Recent Trades
         {pairSelected && baseCurrency && quoteCurrency && (
-          <span className="ml-2 font-normal text-zinc-500 dark:text-zinc-400">
-            ({baseCurrency}/{quoteCurrency})
+          <span className="ml-2 text-sm font-normal text-zinc-400 dark:text-zinc-500">
+            {baseCurrency}/{quoteCurrency}
           </span>
         )}
       </h3>
       {loading ? (
-        <p className="mt-3 text-xs text-zinc-500">Loading trades...</p>
+        <div className="mt-4 space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-5 animate-pulse bg-zinc-200 dark:bg-zinc-700" />
+          ))}
+        </div>
       ) : !pairSelected ? (
-        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-sm text-zinc-400 dark:text-zinc-500">
           Select a pair to see recent trades
         </p>
       ) : trades.length === 0 ? (
-        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-sm text-zinc-400 dark:text-zinc-500">
           No recent trades for this pair
         </p>
       ) : (
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-4 overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-zinc-100 text-left text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                <th className="pb-1.5 pr-2 font-medium">Side</th>
-                <th className="pb-1.5 pr-2 font-medium text-right">Price</th>
-                <th className="pb-1.5 pr-2 font-medium text-right">Amount</th>
-                <th className="pb-1.5 pr-2 font-medium text-right">Total</th>
-                <th className="pb-1.5 font-medium text-right">Time</th>
+              <tr className="border-b border-zinc-200 text-left dark:border-zinc-700">
+                <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Side</th>
+                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Price</th>
+                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Amount</th>
+                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Total</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Time</th>
               </tr>
             </thead>
             <tbody>
               {trades.map((trade) => (
                 <tr
                   key={trade.hash}
-                  className="border-b border-zinc-50 dark:border-zinc-900"
+                  className="border-b border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                 >
-                  <td className="py-1.5 pr-2">
+                  <td className="py-2 pr-2">
                     <span
                       className={
                         trade.side === "buy"
-                          ? "font-medium text-green-600 dark:text-green-400"
-                          : "font-medium text-red-600 dark:text-red-400"
+                          ? "font-semibold text-green-600 dark:text-green-400"
+                          : "font-semibold text-red-600 dark:text-red-400"
                       }
                     >
                       {trade.side === "buy" ? "Buy" : "Sell"}
                     </span>
                   </td>
-                  <td className="py-1.5 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
+                  <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
                     {parseFloat(trade.price).toFixed(4)}
                   </td>
-                  <td className="py-1.5 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
+                  <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
                     {parseFloat(trade.baseAmount).toFixed(4)}
                   </td>
-                  <td className="py-1.5 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
+                  <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
                     {parseFloat(trade.quoteAmount).toFixed(4)}
                   </td>
-                  <td className="py-1.5 text-right text-zinc-500 dark:text-zinc-400">
+                  <td className="py-2 text-right text-zinc-500 dark:text-zinc-400">
                     <span className="group relative cursor-default">
                       {formatTime(trade.time)}
-                      <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded bg-zinc-800 px-2 py-1 text-xs text-white shadow-lg group-hover:block dark:bg-zinc-700">
+                      <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap bg-zinc-800 px-2.5 py-1 text-xs text-white shadow-lg group-hover:block dark:bg-zinc-700">
                         {formatDateTime(trade.time)}
                       </span>
                     </span>

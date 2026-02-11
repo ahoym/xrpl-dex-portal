@@ -45,20 +45,20 @@ export function BalanceDisplay({ address, refreshKey }: BalanceDisplayProps) {
   const grouped = useMemo(() => groupBalances(balances), [balances]);
 
   return (
-    <div className="mt-2">
+    <div className="mt-3">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Balances</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Balances</span>
         <button
           onClick={fetchBalances}
           disabled={loading}
-          className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 dark:text-blue-400 dark:hover:text-blue-300"
+          className="px-1.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
         >
           {loading ? "Loading..." : "Refresh"}
         </button>
       </div>
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{error}</p>}
       {grouped.length > 0 && (
-        <div className="mt-1 flex flex-col gap-1">
+        <div className="mt-1.5 flex flex-col gap-1">
           {grouped.map((g) => (
             <div key={g.currency}>
               <span
@@ -68,7 +68,7 @@ export function BalanceDisplay({ address, refreshKey }: BalanceDisplayProps) {
                 role={g.entries.length > 1 ? "button" : undefined}
                 tabIndex={g.entries.length > 1 ? 0 : undefined}
                 onKeyDown={g.entries.length > 1 ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") setExpandedCurrency(expandedCurrency === g.currency ? null : g.currency); } : undefined}
-                className={`inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 ${
+                className={`inline-flex items-center bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200 ${
                   g.entries.length > 1 ? "cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700" : ""
                 }`}
               >

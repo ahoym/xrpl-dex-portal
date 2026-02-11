@@ -22,12 +22,12 @@ export function ExplorerLink({ address }: ExplorerLinkProps) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1">
+    <span className="inline-flex items-center gap-1.5">
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="break-all text-blue-600 hover:underline dark:text-blue-400"
+        className="break-all font-mono text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
       >
         {address}
       </a>
@@ -36,7 +36,7 @@ export function ExplorerLink({ address }: ExplorerLinkProps) {
         tabIndex={0}
         onClick={handleCopy}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleCopy(e as unknown as React.MouseEvent); }}
-        className="inline-flex shrink-0 cursor-pointer items-center text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+        className="inline-flex shrink-0 cursor-pointer items-center p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
         title="Copy address"
       >
         {copied ? (

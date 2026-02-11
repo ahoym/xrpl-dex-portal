@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { WalletInfo, PersistedState, Contact } from "@/lib/types";
+import { secondaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
 
 interface DataManagementProps {
   state: PersistedState;
@@ -81,23 +82,20 @@ export function DataManagement({ state, contacts, onImport, onClear }: DataManag
   return (
     <div className="border-t border-zinc-200 pt-6 dark:border-zinc-800">
       <div className="flex flex-wrap gap-3">
-        <button
-          onClick={handleImport}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-        >
+        <button onClick={handleImport} className={secondaryButtonClass}>
           Import JSON
         </button>
         <button
           onClick={handleExport}
           disabled={!state.wallet && contacts.length === 0}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          className={`${secondaryButtonClass} disabled:opacity-50`}
         >
           Export as JSON
         </button>
         <button
           onClick={() => setShowJson((v) => !v)}
           disabled={!state.wallet && contacts.length === 0}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          className={`${secondaryButtonClass} disabled:opacity-50`}
         >
           {showJson ? "Hide JSON" : "View JSON"}
         </button>
@@ -107,13 +105,13 @@ export function DataManagement({ state, contacts, onImport, onClear }: DataManag
               onClear();
             }
           }}
-          className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+          className={dangerButtonClass}
         >
           Clear All Data
         </button>
       </div>
       {showJson && (
-        <pre className="mt-4 max-h-96 overflow-auto rounded-md bg-zinc-50 p-4 font-mono text-xs text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+        <pre className="mt-4 max-h-96 overflow-auto border border-zinc-200 bg-zinc-50 p-4 font-mono text-xs text-zinc-800 shadow-inner dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
           {JSON.stringify(exportData, null, 2)}
         </pre>
       )}

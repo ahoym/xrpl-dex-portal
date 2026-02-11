@@ -26,10 +26,10 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold">XRPL DEX Portal</h1>
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Setup</h1>
 
-      <div className="mt-6 space-y-6">
+      <div className="mt-6 space-y-5">
         <WalletSetup
           wallet={state.wallet}
           network={state.network}
@@ -49,7 +49,7 @@ export default function SetupPage() {
         )}
       </div>
 
-      <div className="mt-8 space-y-6">
+      <div className="mt-8 space-y-5">
         <SecurityWarning network={state.network} />
         <DataManagement
           state={state}

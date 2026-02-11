@@ -11,6 +11,7 @@ import type { TradeFormPrefill } from "./trade-form";
 import type { WalletInfo, BalanceEntry } from "@/lib/types";
 import type { CurrencyOption, OrderBookData, AccountOffer } from "@/lib/hooks/use-trading-data";
 import type { RecentTrade } from "./recent-trades";
+import { cardClass } from "@/lib/ui/ui";
 
 interface TradeGridProps {
   focusedWallet: WalletInfo | null;
@@ -108,9 +109,9 @@ export function TradeGrid({
   );
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-7">
+    <div className="mt-6 grid gap-5 lg:grid-cols-7">
       {/* Left column: Recent Trades */}
-      <div className="space-y-6 lg:col-span-2">
+      <div className="space-y-5 lg:col-span-2">
         <RecentTrades
           trades={recentTrades}
           loading={loadingTrades}
@@ -121,8 +122,8 @@ export function TradeGrid({
       </div>
 
       {/* Middle column: Order Book + My Open Orders */}
-      <div className="space-y-6 lg:col-span-3">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="space-y-5 lg:col-span-3">
+        <div className={cardClass}>
           {pairSelected ? (
             <OrderBook
               orderBook={orderBook}
@@ -138,8 +139,8 @@ export function TradeGrid({
               }}
             />
           ) : (
-            <div className="py-8 text-center">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="py-12 text-center">
+              <p className="text-sm text-zinc-400 dark:text-zinc-500">
                 Select a currency pair to view the order book
               </p>
             </div>
@@ -160,12 +161,12 @@ export function TradeGrid({
       </div>
 
       {/* Right column: Balances + Trade Form */}
-      <div className="space-y-6 lg:col-span-2">
+      <div className="space-y-5 lg:col-span-2">
         {focusedWallet && (
           <BalancesPanel balances={balances} loading={loadingBalances} />
         )}
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className={cardClass}>
           {pairSelected && focusedWallet ? (
             <TradeForm
               focusedWallet={focusedWallet}
@@ -175,17 +176,17 @@ export function TradeGrid({
               onSubmitted={onRefresh}
             />
           ) : !focusedWallet ? (
-            <div className="py-8 text-center">
+            <div className="py-12 text-center">
               <a
                 href="/setup"
-                className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Set up a wallet to place orders
               </a>
             </div>
           ) : (
-            <div className="py-8 text-center">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="py-12 text-center">
+              <p className="text-sm text-zinc-400 dark:text-zinc-500">
                 Select a currency pair to place orders
               </p>
             </div>

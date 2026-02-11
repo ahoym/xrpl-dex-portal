@@ -6,7 +6,7 @@ import type { WalletInfo, PersistedState } from "@/lib/types";
 import { useWalletGeneration } from "@/lib/hooks/use-wallet-generation";
 import { ExplorerLink } from "@/app/components/explorer-link";
 import { SecretField } from "./secret-field";
-import { inputClass, labelClass, errorTextClass } from "@/lib/ui/ui";
+import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
 
 interface WalletSetupProps {
   wallet: WalletInfo | null;
@@ -41,17 +41,17 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
 
   if (wallet) {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Wallet</h2>
-        <div className="mt-3 space-y-1 text-sm">
+      <div className={cardClass}>
+        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Wallet</h2>
+        <div className="mt-3 space-y-1.5 text-sm">
           <p>
-            <span className="text-zinc-500 dark:text-zinc-400">Address: </span>
+            <span className="text-zinc-400 dark:text-zinc-500">Address: </span>
             <ExplorerLink address={wallet.address} />
           </p>
           <SecretField label="Seed" value={wallet.seed} />
           <p className="break-all">
-            <span className="text-zinc-500 dark:text-zinc-400">Public Key: </span>
-            {wallet.publicKey}
+            <span className="text-zinc-400 dark:text-zinc-500">Public Key: </span>
+            <span className="font-mono text-xs">{wallet.publicKey}</span>
           </p>
         </div>
         <button
@@ -60,7 +60,7 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
               onSetWallet(null);
             }
           }}
-          className="mt-3 rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+          className={`mt-4 ${dangerButtonClass} px-3 py-1.5 text-xs`}
         >
           Remove Wallet
         </button>
@@ -69,8 +69,8 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Wallet</h2>
+    <div className={cardClass}>
+      <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Wallet</h2>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Generate a new wallet or import an existing one via seed.
       </p>
@@ -79,7 +79,7 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
         <button
           onClick={() => generate(network, onSetWallet)}
           disabled={generating}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className={primaryButtonClass}
         >
           {generating ? "Generating..." : "Generate Wallet"}
         </button>
@@ -91,7 +91,7 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
       )}
       {generateError && <p className={`mt-2 ${errorTextClass}`}>{generateError}</p>}
 
-      <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+      <div className="mt-5 border-t border-zinc-200 pt-5 dark:border-zinc-700">
         <label className={labelClass}>Import from Seed</label>
         <div className="mt-1 flex gap-2">
           <input
@@ -103,7 +103,7 @@ export function WalletSetup({ wallet, network, onSetWallet }: WalletSetupProps) 
           />
           <button
             onClick={handleImport}
-            className="rounded-md bg-zinc-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-600"
+            className="bg-zinc-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-600 active:scale-[0.98]"
           >
             Import
           </button>

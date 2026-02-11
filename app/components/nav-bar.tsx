@@ -16,28 +16,35 @@ export function NavBar() {
   const { state, setNetwork } = useAppState();
 
   return (
-    <nav className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto flex max-w-4xl items-center gap-6 px-4 py-3">
-        <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          XRPL DEX Portal
-        </span>
-        {links.map((link) => {
-          const active = pathname === link.href || pathname.startsWith(link.href + '/');
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              aria-current={active ? "page" : undefined}
-              className={`text-sm font-medium ${
-                active
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
-              }`}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
+    <nav className="sticky top-0 z-40 border-b border-zinc-200/60 bg-white/80 backdrop-blur-xl dark:border-zinc-800/60 dark:bg-zinc-950/80">
+      <div className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-3">
+        <Link href="/" className="mr-4 flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-xs font-bold text-white shadow-sm">
+            X
+          </div>
+          <span className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            XRPL DEX
+          </span>
+        </Link>
+        <div className="flex items-center gap-0.5">
+          {links.map((link) => {
+            const active = pathname === link.href || pathname.startsWith(link.href + '/');
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`px-3 py-1.5 text-sm font-medium ${
+                  active
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400'
+                    : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
         <div className="ml-auto">
           <NetworkSelector network={state.network} onChange={setNetwork} />
         </div>
