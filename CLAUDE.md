@@ -28,6 +28,26 @@ pnpm lint     # ESLint
 | `/transact` | Contacts manager, send XRP/tokens to contacts or ad-hoc addresses |
 | `/trade` | DEX trading: order book, place orders, cancel orders, make-market ladder |
 
+### App Shell
+
+`app/layout.tsx` → `<Providers>` → `<NavBar>` → page content
+- `Providers` (`app/components/providers.tsx`) wraps `AppStateProvider` (React Context)
+- `NavBar` (`app/components/nav-bar.tsx`) — nav links: Setup, Trade, Transfer + NetworkSelector
+- No nested layouts — single flat layout for all routes
+
+### State Flow
+
+All client state flows through `AppStateProvider` (via `useAppState()` hook):
+- Network selection → drives which localStorage keys are read
+- `wallet` and `contacts` are per-network, stored in localStorage
+- No server state / no database — everything is client-side localStorage
+- `hydrated` flag gates rendering to avoid SSR mismatches
+- API routes are stateless — wallet `seed` is sent from the client on each request
+
+### Shared Components
+
+Reusable UI components live in `app/components/`. Before creating a new component, check there first — it likely already exists (modals, loading states, balance formatting, explorer links, etc.).
+
 ### API Routes (`app/api/`)
 
 | Route | Method | Purpose |
@@ -43,6 +63,13 @@ pnpm lint     # ESLint
 | `dex/offers/cancel` | POST | Cancel DEX offer |
 | `dex/orderbook` | GET | Order book for a currency pair |
 | `dex/trades` | GET | Recent trades for a pair |
+
+### API Conventions
+
+- All mutations send `{ network, seed, ... }` in the request body — no auth/sessions
+- All reads take `?network=` and `?address=` as query params
+- Responses follow `{ success: true, data }` or `{ error: "message" }` shape
+- Rate limited via token-bucket (see `lib/rate-limit.ts`)
 
 ### Lib Modules
 
