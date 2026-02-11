@@ -146,6 +146,14 @@ export function TradeGrid({
           )}
         </div>
 
+      </div>
+
+      {/* Right column: Balances + My Open Orders + Trade Form */}
+      <div className="space-y-5 lg:col-span-2">
+        {focusedWallet && (
+          <BalancesPanel balances={balances} loading={loadingBalances} />
+        )}
+
         {focusedWallet && (
           <MyOpenOrders
             offers={pairOffers}
@@ -156,13 +164,6 @@ export function TradeGrid({
             cancellingSeq={cancellingSeq}
             onCancel={handleCancel}
           />
-        )}
-      </div>
-
-      {/* Right column: Balances + Trade Form */}
-      <div className="space-y-5 lg:col-span-2">
-        {focusedWallet && (
-          <BalancesPanel balances={balances} loading={loadingBalances} />
         )}
 
         <div className={cardClass}>

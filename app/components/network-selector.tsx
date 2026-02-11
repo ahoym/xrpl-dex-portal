@@ -6,10 +6,15 @@ import { CustomSelect } from "@/app/components/custom-select";
 
 interface NetworkSelectorProps {
   network: PersistedState["network"];
+  walletAddress?: string;
   onChange: (network: PersistedState["network"]) => void;
 }
 
-export function NetworkSelector({ network, onChange }: NetworkSelectorProps) {
+export function NetworkSelector({ network, walletAddress, onChange }: NetworkSelectorProps) {
+  const explorerHref = walletAddress
+    ? `${EXPLORER_URLS[network]}/accounts/${walletAddress}`
+    : EXPLORER_URLS[network];
+
   return (
     <div className="flex items-center gap-3">
       {network === "mainnet" && (
@@ -18,7 +23,7 @@ export function NetworkSelector({ network, onChange }: NetworkSelectorProps) {
         </span>
       )}
       <a
-        href={EXPLORER_URLS[network]}
+        href={explorerHref}
         target="_blank"
         rel="noopener noreferrer"
         className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"

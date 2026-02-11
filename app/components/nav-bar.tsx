@@ -46,7 +46,7 @@ export function NavBar() {
           })}
         </div>
         <div className="ml-auto">
-          <NetworkSelector network={state.network} onChange={setNetwork} />
+          <NetworkSelector network={state.network} walletAddress={state.wallet?.address} onChange={setNetwork} />
         </div>
       </div>
     </nav>
