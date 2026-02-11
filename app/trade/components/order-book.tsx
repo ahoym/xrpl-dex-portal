@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BigNumber from "bignumber.js";
 import type { OrderBookEntry } from "@/lib/types";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 
@@ -37,39 +38,39 @@ export function OrderBook({
   const asks = allOffers
     .filter((o) => matchesCurrency(o.taker_gets, baseCurrency, baseIssuer))
     .map((o) => {
-      const amount = parseFloat(o.taker_gets.value);
-      const total = parseFloat(o.taker_pays.value);
-      const price = amount > 0 ? total / amount : 0;
+      const amount = new BigNumber(o.taker_gets.value);
+      const total = new BigNumber(o.taker_pays.value);
+      const price = amount.gt(0) ? total.div(amount) : new BigNumber(0);
       return { price, amount, total, account: o.account };
     });
-  asks.sort((a, b) => b.price - a.price);
+  asks.sort((a, b) => b.price.comparedTo(a.price) ?? 0);
 
   // Bids: creator buys base (taker_pays = base, taker_gets = quote)
   const bids = allOffers
     .filter((o) => matchesCurrency(o.taker_pays, baseCurrency, baseIssuer))
     .map((o) => {
-      const amount = parseFloat(o.taker_pays.value);
-      const total = parseFloat(o.taker_gets.value);
-      const price = amount > 0 ? total / amount : 0;
+      const amount = new BigNumber(o.taker_pays.value);
+      const total = new BigNumber(o.taker_gets.value);
+      const price = amount.gt(0) ? total.div(amount) : new BigNumber(0);
       return { price, amount, total, account: o.account };
     });
-  bids.sort((a, b) => b.price - a.price);
+  bids.sort((a, b) => b.price.comparedTo(a.price) ?? 0);
 
   const visibleAsks = asks.slice(-depth);
   const visibleBids = bids.slice(0, depth);
 
-  const askCumulative: number[] = new Array(visibleAsks.length);
-  for (let i = visibleAsks.length - 1, cum = 0; i >= 0; i--) {
-    cum += visibleAsks[i].amount;
+  const askCumulative: BigNumber[] = [];
+  for (let i = visibleAsks.length - 1, cum = new BigNumber(0); i >= 0; i--) {
+    cum = cum.plus(visibleAsks[i].amount);
     askCumulative[i] = cum;
   }
-  const bidCumulative: number[] = new Array(visibleBids.length);
-  for (let i = 0, cum = 0; i < visibleBids.length; i++) {
-    cum += visibleBids[i].amount;
+  const bidCumulative: BigNumber[] = [];
+  for (let i = 0, cum = new BigNumber(0); i < visibleBids.length; i++) {
+    cum = cum.plus(visibleBids[i].amount);
     bidCumulative[i] = cum;
   }
 
-  const maxAmount = Math.max(
+  const maxAmount = BigNumber.max(
     ...visibleAsks.map((a) => a.amount),
     ...visibleBids.map((b) => b.amount),
     0,
@@ -77,8 +78,8 @@ export function OrderBook({
 
   const bestAsk = visibleAsks.length > 0 ? visibleAsks[visibleAsks.length - 1].price : null;
   const bestBid = visibleBids.length > 0 ? visibleBids[0].price : null;
-  const spread = bestAsk !== null && bestBid !== null ? bestAsk - bestBid : null;
-  const mid = bestAsk !== null && bestBid !== null ? (bestAsk + bestBid) / 2 : null;
+  const spread = bestAsk !== null && bestBid !== null ? bestAsk.minus(bestBid) : null;
+  const mid = bestAsk !== null && bestBid !== null ? bestAsk.plus(bestBid).div(2) : null;
 
   return (
     <div>
@@ -100,8 +101,8 @@ export function OrderBook({
       <div className="mt-3">
         <div className="grid grid-cols-4 border-b border-zinc-200 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">
           <span>Price</span>
-          <span className="text-right">{baseCurrency}</span>
-          <span className="text-right">{quoteCurrency}</span>
+          <span className="text-right">Size</span>
+          <span className="text-right">Total</span>
           <span className="text-right">Depth</span>
         </div>
 
@@ -116,7 +117,7 @@ export function OrderBook({
           visibleAsks.map((a, i) => {
             const isOwn = accountAddress !== undefined && a.account === accountAddress;
             const clickable = !isOwn && onSelectOrder;
-            const barPct = maxAmount > 0 ? (a.amount / maxAmount) * 100 : 0;
+            const barPct = maxAmount.gt(0) ? a.amount.div(maxAmount).times(100).toNumber() : 0;
             return (
               <div
                 key={`ask-${i}`}
@@ -159,7 +160,8 @@ export function OrderBook({
               <span className="font-bold text-zinc-900 dark:text-zinc-100">{mid.toFixed(6)}</span>
               <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
               <span className="text-zinc-400 dark:text-zinc-500">
-                Spread: {spread.toFixed(6)}
+                Spread: {spread.toFixed(6)}{" "}
+                ({new BigNumber(spread).div(mid).times(10_000).toFixed(1)} bps)
               </span>
             </span>
           ) : (
@@ -180,7 +182,7 @@ export function OrderBook({
           visibleBids.map((b, i) => {
             const isOwn = accountAddress !== undefined && b.account === accountAddress;
             const clickable = !isOwn && onSelectOrder;
-            const barPct = maxAmount > 0 ? (b.amount / maxAmount) * 100 : 0;
+            const barPct = maxAmount.gt(0) ? b.amount.div(maxAmount).times(100).toNumber() : 0;
             return (
               <div
                 key={`bid-${i}`}

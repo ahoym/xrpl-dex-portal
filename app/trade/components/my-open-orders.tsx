@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { OrderBookAmount } from "@/lib/types";
+import BigNumber from "bignumber.js";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { fromRippleEpoch } from "@/lib/xrpl/constants";
 import { cardClass } from "@/lib/ui/ui";
@@ -27,7 +28,7 @@ interface MyOpenOrdersProps {
 
 function formatOfferSide(amt: OrderBookAmount): string {
   const cur = decodeCurrency(amt.currency);
-  return `${parseFloat(amt.value).toFixed(4)} ${cur}`;
+  return `${new BigNumber(amt.value).toFixed(4)} ${cur}`;
 }
 
 export function MyOpenOrders({

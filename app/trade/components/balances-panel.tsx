@@ -1,6 +1,7 @@
 "use client";
 
 import type { BalanceEntry } from "@/lib/types";
+import BigNumber from "bignumber.js";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { cardClass } from "@/lib/ui/ui";
 
@@ -41,7 +42,7 @@ export function BalancesPanel({ balances, loading }: BalancesPanelProps) {
                   {cur}
                 </span>
                 <span className="font-mono text-zinc-600 dark:text-zinc-400">
-                  {parseFloat(b.value).toFixed(4)}
+                  {new BigNumber(b.value).toFixed(4)}
                 </span>
               </div>
             );

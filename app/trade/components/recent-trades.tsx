@@ -1,5 +1,6 @@
 "use client";
 
+import BigNumber from "bignumber.js";
 import { cardClass } from "@/lib/ui/ui";
 
 export interface RecentTrade {
@@ -101,13 +102,13 @@ export function RecentTrades({
                     </span>
                   </td>
                   <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
-                    {parseFloat(trade.price).toFixed(4)}
+                    {new BigNumber(trade.price).toFixed(4)}
                   </td>
                   <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
-                    {parseFloat(trade.baseAmount).toFixed(4)}
+                    {new BigNumber(trade.baseAmount).toFixed(4)}
                   </td>
                   <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
-                    {parseFloat(trade.quoteAmount).toFixed(4)}
+                    {new BigNumber(trade.quoteAmount).toFixed(4)}
                   </td>
                   <td className="py-2 text-right text-zinc-500 dark:text-zinc-400">
                     <span className="group relative cursor-default">
