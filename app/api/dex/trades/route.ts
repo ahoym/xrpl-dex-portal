@@ -6,8 +6,27 @@ import { resolveNetwork } from "@/lib/xrpl/networks";
 import { decodeCurrency } from "@/lib/xrpl/currency";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { getNetworkParam, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
-import { DEFAULT_ORDERBOOK_LIMIT, MAX_API_LIMIT, TRADES_FETCH_MULTIPLIER } from "@/lib/xrpl/constants";
+import { TRADES_FETCH_MULTIPLIER } from "@/lib/xrpl/constants";
 import { Assets } from "@/lib/assets";
+
+const TRADES_CACHE_LIMIT = 50;
+
+interface Trade {
+  side: "buy" | "sell";
+  price: string;
+  baseAmount: string;
+  quoteAmount: string;
+  account: string;
+  time: string;
+  hash: string;
+}
+
+/** In-memory cache keyed by "network:base:baseIssuer:quote:quoteIssuer" */
+const tradesCache = new Map<string, Trade[]>();
+
+function cacheKey(network: string, baseCurrency: string, baseIssuer: string | undefined, quoteCurrency: string, quoteIssuer: string | undefined): string {
+  return `${network}:${baseCurrency}:${baseIssuer ?? ""}:${quoteCurrency}:${quoteIssuer ?? ""}`;
+}
 
 /** Convert an XRPL Amount to {currency, issuer} for comparison */
 function amountCurrency(amt: Amount): { currency: string; issuer?: string } {
@@ -17,9 +36,6 @@ function amountCurrency(amt: Amount): { currency: string; issuer?: string } {
 
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams;
-    const rawLimit = parseInt(sp.get("limit") ?? "", 10);
-    const limit = Math.min(Number.isNaN(rawLimit) ? DEFAULT_ORDERBOOK_LIMIT : rawLimit, MAX_API_LIMIT);
     const network = getNetworkParam(request);
 
     const pairOrError = validateCurrencyPair(request);
@@ -37,23 +53,13 @@ export async function GET(request: NextRequest) {
     const response = await client.request({
       command: "account_tx",
       account: issuerAccount,
-      limit: limit * TRADES_FETCH_MULTIPLIER,
+      limit: TRADES_CACHE_LIMIT * TRADES_FETCH_MULTIPLIER,
     });
 
-    interface Trade {
-      side: "buy" | "sell";
-      price: string;
-      baseAmount: string;
-      quoteAmount: string;
-      account: string;
-      time: string;
-      hash: string;
-    }
-
-    const trades: Trade[] = [];
+    const newTrades: Trade[] = [];
 
     for (const entry of response.result.transactions) {
-      if (trades.length >= limit) break;
+      if (newTrades.length >= TRADES_CACHE_LIMIT) break;
 
       const tx = entry.tx_json;
       const meta = entry.meta as TransactionMetadata | undefined;
@@ -112,7 +118,7 @@ export async function GET(request: NextRequest) {
 
       const price = quoteTotal / baseTotal;
 
-      trades.push({
+      newTrades.push({
         side: isBuy ? "buy" : "sell",
         price: price.toPrecision(6),
         baseAmount: baseTotal.toPrecision(6),
@@ -123,11 +129,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Merge new trades into cache, dedup by hash, sort by time desc, cap at limit
+    const key = cacheKey(network, baseCurrency, baseIssuer, quoteCurrency, quoteIssuer);
+    const cached = tradesCache.get(key) ?? [];
+    const seen = new Set<string>();
+    const merged: Trade[] = [];
+    for (const trade of [...newTrades, ...cached]) {
+      if (seen.has(trade.hash)) continue;
+      seen.add(trade.hash);
+      merged.push(trade);
+    }
+    merged.sort((a, b) => (b.time > a.time ? 1 : b.time < a.time ? -1 : 0));
+    const capped = merged.slice(0, TRADES_CACHE_LIMIT);
+    tradesCache.set(key, capped);
+
     return Response.json(
       {
         base: { currency: baseCurrency, issuer: baseIssuer },
         quote: { currency: quoteCurrency, issuer: quoteIssuer },
-        trades,
+        trades: capped,
       },
       {
         headers: {
