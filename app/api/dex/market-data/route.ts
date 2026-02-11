@@ -6,6 +6,7 @@ import { getNetworkParam, validateCurrencyPair, apiErrorResponse } from "@/lib/a
 import { DEFAULT_ORDERBOOK_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
 import { Assets } from "@/lib/assets";
 import { normalizeOffer } from "@/lib/xrpl/normalize-offer";
+import { fetchAndCacheTrades } from "@/lib/xrpl/trades";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,14 +29,40 @@ export async function GET(request: NextRequest) {
       ? { currency: Assets.XRP }
       : { currency: encodeXrplCurrency(quoteCurrency), issuer: quoteIssuer! };
 
-    const orderbook = await client.getOrderbook(currency1, currency2, { limit });
+    // Fetch orderbook and trades sequentially over the same connection.
+    // Each in its own try/catch so a failure in one doesn't block the other.
+
+    let orderbook: { buy: ReturnType<typeof normalizeOffer>[]; sell: ReturnType<typeof normalizeOffer>[] } | null = null;
+    try {
+      const ob = await client.getOrderbook(currency1, currency2, { limit });
+      orderbook = {
+        buy: ob.buy.map(normalizeOffer),
+        sell: ob.sell.map(normalizeOffer),
+      };
+    } catch {
+      // orderbook stays null — partial failure
+    }
+
+    let trades: Awaited<ReturnType<typeof fetchAndCacheTrades>> | null = null;
+    try {
+      trades = await fetchAndCacheTrades(
+        client,
+        network ?? "",
+        baseCurrency,
+        baseIssuer,
+        quoteCurrency,
+        quoteIssuer,
+      );
+    } catch {
+      // trades stays null — partial failure
+    }
 
     return Response.json(
       {
         base: { currency: baseCurrency, issuer: baseIssuer },
         quote: { currency: quoteCurrency, issuer: quoteIssuer },
-        buy: orderbook.buy.map(normalizeOffer),
-        sell: orderbook.sell.map(normalizeOffer),
+        orderbook,
+        trades,
       },
       {
         headers: {
@@ -44,6 +71,6 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (err) {
-    return apiErrorResponse(err, "Failed to fetch order book");
+    return apiErrorResponse(err, "Failed to fetch market data");
   }
 }

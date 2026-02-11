@@ -18,7 +18,7 @@ export const DEFAULT_TRUST_LINE_LIMIT = "1000000";
 export const DEFAULT_ACCOUNT_OFFERS_LIMIT = 200;
 
 /** Default number of items returned by orderbook and trades endpoints. */
-export const DEFAULT_ORDERBOOK_LIMIT = 20;
+export const DEFAULT_ORDERBOOK_LIMIT = 50;
 
 /** Maximum value allowed for user-supplied `limit` query params. */
 export const MAX_API_LIMIT = 400;
