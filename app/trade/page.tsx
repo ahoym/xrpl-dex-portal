@@ -59,7 +59,6 @@ export default function TradePage() {
     buyingValue,
     refreshKey,
     customCurrencies,
-    depth,
   });
 
   if (!hydrated) {

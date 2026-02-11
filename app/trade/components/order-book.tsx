@@ -68,8 +68,8 @@ export function OrderBook({
     });
   bids.sort((a, b) => b.price.comparedTo(a.price) ?? 0);
 
-  const visibleAsks = asks;
-  const visibleBids = bids;
+  const visibleAsks = asks.slice(-depth);
+  const visibleBids = bids.slice(0, depth);
 
   const askCumulative: BigNumber[] = [];
   for (let i = visibleAsks.length - 1, cum = new BigNumber(0); i >= 0; i--) {

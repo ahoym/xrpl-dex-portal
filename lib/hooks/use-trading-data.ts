@@ -38,7 +38,6 @@ interface UseTradingDataOptions {
   buyingValue: string;
   refreshKey: number;
   customCurrencies: { currency: string; issuer: string }[];
-  depth: number;
 }
 
 export function useTradingData({
@@ -47,7 +46,6 @@ export function useTradingData({
   buyingValue,
   refreshKey,
   customCurrencies,
-  depth,
 }: UseTradingDataOptions) {
   const { state: { network } } = useAppState();
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
@@ -121,7 +119,7 @@ export function useTradingData({
         setLoadingTrades(true);
       }
       try {
-        const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net, limit: String(depth) });
+        const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
         if (buying.issuer) params.set("quote_issuer", buying.issuer);
 
@@ -159,7 +157,7 @@ export function useTradingData({
         }
       }
     },
-    [depth],
+    [],
   );
 
   useEffect(() => {
@@ -175,7 +173,7 @@ export function useTradingData({
       });
     }, POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [sellingCurrency, buyingCurrency, network, depth, refreshKey, visible, fetchMarketData]);
+  }, [sellingCurrency, buyingCurrency, network, refreshKey, visible, fetchMarketData]);
 
   // Fetch account offers
   const fetchAccountOffers = useCallback(

@@ -16,8 +16,7 @@ interface OfferWithValue {
 export function aggregateDepth<T extends OfferWithValue>(
   buy: T[],
   sell: T[],
-  displayLimit: number,
-): { buy: T[]; sell: T[]; depth: DepthSummary } {
+): { depth: DepthSummary } {
   let bidVolume = new BigNumber(0);
   for (const o of buy) {
     bidVolume = bidVolume.plus(o.taker_gets.value);
@@ -29,8 +28,6 @@ export function aggregateDepth<T extends OfferWithValue>(
   }
 
   return {
-    buy: buy.slice(0, displayLimit),
-    sell: sell.slice(0, displayLimit),
     depth: {
       bidVolume: bidVolume.toFixed(),
       bidLevels: buy.length,

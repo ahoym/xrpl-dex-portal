@@ -3,7 +3,7 @@ import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
 import { getNetworkParam, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
-import { DEFAULT_ORDERBOOK_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
+import { MAX_API_LIMIT } from "@/lib/xrpl/constants";
 import { Assets } from "@/lib/assets";
 import { normalizeOffer } from "@/lib/xrpl/normalize-offer";
 import { fetchAndCacheTrades } from "@/lib/xrpl/trades";
@@ -11,9 +11,6 @@ import { aggregateDepth } from "@/lib/xrpl/aggregate-depth";
 
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams;
-    const rawLimit = parseInt(sp.get("limit") ?? "", 10);
-    const limit = Math.min(Number.isNaN(rawLimit) ? DEFAULT_ORDERBOOK_LIMIT : rawLimit, MAX_API_LIMIT);
     const network = getNetworkParam(request);
 
     const pairOrError = validateCurrencyPair(request);
@@ -39,9 +36,11 @@ export async function GET(request: NextRequest) {
       const ob = await client.getOrderbook(currency1, currency2, { limit: MAX_API_LIMIT });
       const allBuy = ob.buy.map(normalizeOffer);
       const allSell = ob.sell.map(normalizeOffer);
-      const agg = aggregateDepth(allBuy, allSell, limit);
-      orderbook = { buy: agg.buy, sell: agg.sell };
-      depth = agg.depth;
+      // Note: getOrderbook splits by lsfSell flag, not currency direction.
+      // The client re-categorises into asks/bids by currency, so we must
+      // send the full arrays — trimming here would discard cross-flagged offers.
+      orderbook = { buy: allBuy, sell: allSell };
+      depth = aggregateDepth(allBuy, allSell).depth;
     } catch {
       // orderbook stays null — partial failure
     }
