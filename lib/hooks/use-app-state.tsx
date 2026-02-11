@@ -6,7 +6,7 @@ import { useLocalStorage } from "./use-local-storage";
 import type { PersistedState, WalletInfo, Contact } from "../types";
 
 const NETWORK_KEY = "xrpl-dex-portal-network";
-const DEFAULT_NETWORK: PersistedState["network"] = "testnet";
+const DEFAULT_NETWORK: PersistedState["network"] = "mainnet";
 
 function stateKey(network: PersistedState["network"]) {
   return `xrpl-dex-portal-state-${network}`;

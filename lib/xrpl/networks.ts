@@ -34,7 +34,7 @@ export const EXPLORER_URLS: Record<NetworkId, string> = {
   mainnet: "https://livenet.xrpl.org",
 };
 
-export const DEFAULT_NETWORK: NetworkId = "testnet";
+export const DEFAULT_NETWORK: NetworkId = "mainnet";
 
 export function resolveNetwork(network?: string): NetworkId {
   if (network && !(network in NETWORKS)) {
