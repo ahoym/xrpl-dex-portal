@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { OrderBookAmount } from "@/lib/types";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
+import { fromRippleEpoch } from "@/lib/xrpl/constants";
 import { cardClass } from "@/lib/ui/ui";
 
 interface AccountOffer {
@@ -98,6 +99,22 @@ export function MyOpenOrders({
                       <span className="mx-1.5 text-zinc-400 dark:text-zinc-500">for</span>
                       {paysLabel}
                     </div>
+                    <div className="flex items-center gap-2">
+                      {offer.expiration != null && (
+                        <span className="group/exp relative flex items-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            className="h-3.5 w-3.5 cursor-help text-amber-500 dark:text-amber-400"
+                          >
+                            <path fillRule="evenodd" d="M1 8a7 7 0 1 1 14 0A7 7 0 0 1 1 8Zm7.75-4.25a.75.75 0 0 0-1.5 0V8c0 .414.336.75.75.75h3.25a.75.75 0 0 0 0-1.5h-2.5v-3.5Z" clipRule="evenodd" />
+                          </svg>
+                          <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 hidden whitespace-nowrap rounded bg-zinc-900 px-2 py-1 text-xs text-white shadow-lg group-hover/exp:block dark:bg-zinc-700">
+                            Expires: {fromRippleEpoch(offer.expiration).toLocaleString()}
+                          </span>
+                        </span>
+                      )}
                     <button
                       onClick={() => onCancel(offer.seq)}
                       disabled={cancellingSeq !== null}
@@ -107,6 +124,7 @@ export function MyOpenOrders({
                         ? "Cancelling..."
                         : "Cancel"}
                     </button>
+                    </div>
                   </div>
                 );
               })}
