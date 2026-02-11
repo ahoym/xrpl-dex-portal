@@ -20,12 +20,12 @@ export default function TransactPage() {
   }
 
   if (!state.wallet) {
-    return <EmptyWallets title="Transfer" maxWidth="max-w-4xl" />;
+    return <EmptyWallets title="Transact" maxWidth="max-w-4xl" />;
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Transfer</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Transact</h1>
 
       <div className={`mt-6 ${cardClass}`}>
         <p className="text-sm">
