@@ -8,6 +8,7 @@ import { ModalShell } from "@/app/components/modal-shell";
 import { useBalances } from "@/lib/hooks/use-balances";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { useTrustLineValidation } from "@/lib/hooks/use-trust-line-validation";
+import { CustomSelect } from "@/app/components/custom-select";
 
 interface TransferModalProps {
   sender: WalletInfo;
@@ -16,7 +17,6 @@ interface TransferModalProps {
   onClose: () => void;
 }
 
-const selectClass = "mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80";
 const inputFieldClass = "w-full border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80";
 
 export function TransferModal({
@@ -157,20 +157,18 @@ export function TransferModal({
             ) : balances.length === 0 ? (
               <p className="mt-1 text-xs text-zinc-400">No balances found</p>
             ) : (
-              <select
+              <CustomSelect
                 value={selectedCurrency}
-                onChange={(e) => {
-                  setSelectedCurrency(e.target.value);
+                onChange={(val) => {
+                  setSelectedCurrency(val);
                   setAmount("");
                 }}
-                className={selectClass}
-              >
-                {balances.map((b, i) => (
-                  <option key={i} value={String(i)}>
-                    {currencyLabel(b)}
-                  </option>
-                ))}
-              </select>
+                options={balances.map((b, i) => ({
+                  value: String(i),
+                  label: currencyLabel(b),
+                }))}
+                className="mt-1"
+              />
             )}
           </div>
 
@@ -227,17 +225,15 @@ export function TransferModal({
               </button>
             </div>
             {recipientMode === "contact" && contacts.length > 0 ? (
-              <select
-                value={selectedContactIdx}
-                onChange={(e) => setSelectedContactIdx(Number(e.target.value))}
-                className={`mt-2 ${selectClass}`}
-              >
-                {contacts.map((c, i) => (
-                  <option key={i} value={i}>
-                    {c.label} ({c.address}{c.destinationTag !== undefined ? ` tag:${c.destinationTag}` : ""})
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                value={String(selectedContactIdx)}
+                onChange={(val) => setSelectedContactIdx(Number(val))}
+                options={contacts.map((c, i) => ({
+                  value: String(i),
+                  label: `${c.label} (${c.address}${c.destinationTag !== undefined ? ` tag:${c.destinationTag}` : ""})`,
+                }))}
+                className="mt-2"
+              />
             ) : (
               <div className="mt-2 space-y-2">
                 <input

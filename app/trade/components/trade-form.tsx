@@ -7,6 +7,7 @@ import type { OfferFlag } from "@/lib/xrpl/types";
 import { toRippleEpoch } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass, SUCCESS_MESSAGE_DURATION_MS } from "@/lib/ui/ui";
 import { buildDexAmount } from "@/lib/xrpl/build-dex-amount";
+import { CustomSelect } from "@/app/components/custom-select";
 
 interface CurrencyOption {
   currency: string;
@@ -261,15 +262,12 @@ export function TradeForm({
             <label className={labelClass}>
               Execution Type
             </label>
-            <select
+            <CustomSelect
               value={executionType}
-              onChange={(e) => setExecutionType(e.target.value as ExecutionType)}
-              className={inputClass}
-            >
-              {EXECUTION_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+              onChange={(val) => setExecutionType(val as ExecutionType)}
+              options={EXECUTION_OPTIONS}
+              className="mt-1"
+            />
           </div>
 
           <div className="flex flex-wrap gap-x-4 gap-y-1">

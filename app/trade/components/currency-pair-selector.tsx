@@ -1,6 +1,7 @@
 "use client";
 
 import type { CurrencyOption } from "@/lib/hooks/use-trading-data";
+import { CustomSelect } from "@/app/components/custom-select";
 import { labelClass } from "@/lib/ui/ui";
 
 interface CurrencyPairSelectorProps {
@@ -26,39 +27,31 @@ export function CurrencyPairSelector({
         <label className={labelClass}>
           Base
         </label>
-        <select
+        <CustomSelect
           value={sellingValue}
-          onChange={(e) => onSellingChange(e.target.value)}
-          className="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-medium shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80"
-        >
-          <option value="">Select currency...</option>
-          {currencyOptions
-            .filter((o) => o.value !== buyingValue)
-            .map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-        </select>
+          onChange={onSellingChange}
+          placeholder="Select currency..."
+          className="mt-1"
+          options={[
+            { value: "", label: "Select currency..." },
+            ...currencyOptions.filter((o) => o.value !== buyingValue),
+          ]}
+        />
       </div>
       <div className="min-w-[180px] flex-1">
         <label className={labelClass}>
           Quote
         </label>
-        <select
+        <CustomSelect
           value={buyingValue}
-          onChange={(e) => onBuyingChange(e.target.value)}
-          className="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-medium shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80"
-        >
-          <option value="">Select currency...</option>
-          {currencyOptions
-            .filter((o) => o.value !== sellingValue)
-            .map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-        </select>
+          onChange={onBuyingChange}
+          placeholder="Select currency..."
+          className="mt-1"
+          options={[
+            { value: "", label: "Select currency..." },
+            ...currencyOptions.filter((o) => o.value !== sellingValue),
+          ]}
+        />
       </div>
       <button
         type="button"

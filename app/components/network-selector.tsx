@@ -2,6 +2,7 @@
 
 import type { PersistedState } from "@/lib/types";
 import { EXPLORER_URLS } from "@/lib/xrpl/networks";
+import { CustomSelect } from "@/app/components/custom-select";
 
 interface NetworkSelectorProps {
   network: PersistedState["network"];
@@ -24,16 +25,16 @@ export function NetworkSelector({ network, onChange }: NetworkSelectorProps) {
       >
         Explorer
       </a>
-      <select
+      <CustomSelect
         id="network"
         value={network}
-        onChange={(e) => onChange(e.target.value as PersistedState["network"])}
-        className="border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80"
-      >
-        <option value="testnet">Testnet</option>
-        <option value="devnet">Devnet</option>
-        <option value="mainnet">Mainnet</option>
-      </select>
+        onChange={(value) => onChange(value as PersistedState["network"])}
+        options={[
+          { value: "testnet", label: "Testnet" },
+          { value: "devnet", label: "Devnet" },
+          { value: "mainnet", label: "Mainnet" },
+        ]}
+      />
     </div>
   );
 }
