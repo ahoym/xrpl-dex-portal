@@ -1,6 +1,6 @@
 # XRPL DEX Portal
 
-Single-wallet DEX trading portal for the XRP Ledger. Built by adapting `xrpl-issued-currencies-manager` — stripped multi-wallet management, credentials, domains, permissioned DEX, and currency issuance. Added mainnet support, contacts for transfers, and streamlined trust line management.
+Single-wallet DEX trading portal for the XRP Ledger. Built by adapting `xrpl-issued-currencies-manager` — stripped multi-wallet management, credentials, domains, permissioned DEX, and currency issuance. Added mainnet support, contacts for transactions, and streamlined trust line management.
 
 ## Stack
 
@@ -32,7 +32,7 @@ pnpm lint     # ESLint
 
 `app/layout.tsx` → `<Providers>` → `<NavBar>` → page content
 - `Providers` (`app/components/providers.tsx`) wraps `AppStateProvider` (React Context)
-- `NavBar` (`app/components/nav-bar.tsx`) — nav links: Setup, Trade, Transfer + NetworkSelector
+- `NavBar` (`app/components/nav-bar.tsx`) — nav links: Setup, Trade, Transact + NetworkSelector
 - No nested layouts — single flat layout for all routes
 
 ### State Flow
