@@ -3,7 +3,7 @@ import { dropsToXrp } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { decodeCurrency } from "@/lib/xrpl/currency";
-import { getNetworkParam, validateAddress, apiErrorResponse } from "@/lib/api";
+import { getNetworkParam, validateAddress, apiErrorResponse, isAccountNotFound } from "@/lib/api";
 import type { CurrencyBalance } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -19,18 +19,28 @@ export async function GET(
 
     const client = await getClient(resolveNetwork(getNetworkParam(request)));
 
-    const [accountInfo, accountLines] = await Promise.all([
-      client.request({
+    let accountInfo;
+    try {
+      accountInfo = await client.request({
         command: "account_info",
         account: address,
         ledger_index: "validated",
-      }),
-      client.request({
-        command: "account_lines",
-        account: address,
-        ledger_index: "validated",
-      }),
-    ]);
+      });
+    } catch (err: unknown) {
+      if (isAccountNotFound(err)) {
+        return Response.json({
+          address,
+          balances: [{ currency: Assets.XRP, value: "0" }],
+        });
+      }
+      throw err;
+    }
+
+    const accountLines = await client.request({
+      command: "account_lines",
+      account: address,
+      ledger_index: "validated",
+    });
 
     const xrpBalance: CurrencyBalance = {
       currency: Assets.XRP,
@@ -50,6 +60,6 @@ export async function GET(
       balances: [xrpBalance, ...issuedBalances],
     });
   } catch (err) {
-    return apiErrorResponse(err, "Failed to fetch balances", { checkNotFound: true });
+    return apiErrorResponse(err, "Failed to fetch balances");
   }
 }

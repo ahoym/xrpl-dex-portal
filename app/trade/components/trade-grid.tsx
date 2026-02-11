@@ -146,20 +146,24 @@ export function TradeGrid({
           )}
         </div>
 
-        <MyOpenOrders
-          offers={pairOffers}
-          loading={loadingOffers}
-          pairSelected={pairSelected}
-          baseCurrency={sellingCurrency?.currency}
-          quoteCurrency={buyingCurrency?.currency}
-          cancellingSeq={cancellingSeq}
-          onCancel={handleCancel}
-        />
+        {focusedWallet && (
+          <MyOpenOrders
+            offers={pairOffers}
+            loading={loadingOffers}
+            pairSelected={pairSelected}
+            baseCurrency={sellingCurrency?.currency}
+            quoteCurrency={buyingCurrency?.currency}
+            cancellingSeq={cancellingSeq}
+            onCancel={handleCancel}
+          />
+        )}
       </div>
 
       {/* Right column: Balances + Trade Form */}
       <div className="space-y-6 lg:col-span-2">
-        <BalancesPanel balances={balances} loading={loadingBalances} />
+        {focusedWallet && (
+          <BalancesPanel balances={balances} loading={loadingBalances} />
+        )}
 
         <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
           {pairSelected && focusedWallet ? (
@@ -170,6 +174,12 @@ export function TradeGrid({
               prefill={prefill}
               onSubmitted={onRefresh}
             />
+          ) : !focusedWallet ? (
+            <div className="py-8 text-center">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Set up a wallet to place orders
+              </p>
+            </div>
           ) : (
             <div className="py-8 text-center">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">

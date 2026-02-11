@@ -3,7 +3,7 @@ import { TrustSet } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { getNetworkParam, validateRequired, walletFromSeed, validateAddress, validateSeedMatchesAddress, txFailureResponse, apiErrorResponse } from "@/lib/api";
+import { getNetworkParam, validateRequired, walletFromSeed, validateAddress, validateSeedMatchesAddress, txFailureResponse, apiErrorResponse, isAccountNotFound } from "@/lib/api";
 import type { TrustLineRequest } from "@/lib/xrpl/types";
 
 export async function GET(
@@ -19,18 +19,27 @@ export async function GET(
     const network = getNetworkParam(request);
     const client = await getClient(resolveNetwork(network));
 
-    const response = await client.request({
-      command: "account_lines",
-      account: address,
-      ledger_index: "validated",
-    });
+    let lines;
+    try {
+      const response = await client.request({
+        command: "account_lines",
+        account: address,
+        ledger_index: "validated",
+      });
+      lines = response.result.lines;
+    } catch (err: unknown) {
+      if (isAccountNotFound(err)) {
+        return Response.json({ address, trustLines: [] });
+      }
+      throw err;
+    }
 
     return Response.json({
       address,
-      trustLines: response.result.lines,
+      trustLines: lines,
     });
   } catch (err) {
-    return apiErrorResponse(err, "Failed to fetch trust lines", { checkNotFound: true });
+    return apiErrorResponse(err, "Failed to fetch trust lines");
   }
 }
 

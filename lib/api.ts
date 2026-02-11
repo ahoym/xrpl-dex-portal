@@ -195,6 +195,20 @@ export function txFailureResponse(result: TxResponse): Response | null {
 }
 
 /**
+ * Check whether an error from xrpl.js is an "account not found" error.
+ * RippledError sets `message` to `error_message` ("Account not found.")
+ * and stores the error code in `data.error` ("actNotFound").
+ */
+export function isAccountNotFound(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  if (err.message.includes("actNotFound") || err.message.includes("Account not found")) {
+    return true;
+  }
+  const data = (err as Error & { data?: { error?: string } }).data;
+  return data?.error === "actNotFound";
+}
+
+/**
  * Build a JSON error Response from a caught error.
  * When checkNotFound is true, returns 404 for XRPL "actNotFound" errors.
  */
@@ -206,6 +220,6 @@ export function apiErrorResponse(
   const message = process.env.NODE_ENV === "production" || !(err instanceof Error)
     ? fallbackMessage
     : err.message;
-  const status = checkNotFound && message.includes("actNotFound") ? 404 : 500;
+  const status = checkNotFound && isAccountNotFound(err) ? 404 : 500;
   return Response.json({ error: message } satisfies ApiError, { status });
 }

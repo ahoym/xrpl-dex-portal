@@ -1,11 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { useLocalStorage } from "./use-local-storage";
 import type { PersistedState, WalletInfo, Contact } from "../types";
 
 const NETWORK_KEY = "xrpl-dex-portal-network";
+const DEFAULT_NETWORK: PersistedState["network"] = "testnet";
 
 function stateKey(network: PersistedState["network"]) {
   return `xrpl-dex-portal-state-${network}`;
@@ -22,16 +23,6 @@ interface NetworkData {
 const DEFAULT_NETWORK_DATA: NetworkData = {
   wallet: null,
 };
-
-function readNetwork(): PersistedState["network"] {
-  try {
-    const stored = localStorage.getItem(NETWORK_KEY);
-    if (stored === "testnet" || stored === "devnet" || stored === "mainnet") return stored;
-  } catch {
-    // ignore
-  }
-  return "testnet";
-}
 
 interface AppStateValue {
   readonly state: PersistedState;
@@ -50,7 +41,19 @@ interface AppStateValue {
 const AppStateContext = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [network, setNetworkRaw] = useState<PersistedState["network"]>(readNetwork);
+  const [network, setNetworkRaw] = useState<PersistedState["network"]>(DEFAULT_NETWORK);
+
+  // Hydrate network from localStorage after mount to avoid SSR mismatch
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(NETWORK_KEY);
+      if (stored === "testnet" || stored === "devnet" || stored === "mainnet") {
+        setNetworkRaw(stored);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const {
     value: networkData,
