@@ -11,4 +11,4 @@ Single-wallet DEX trading portal for the XRP Ledger.
 
 ## Documentation
 
-See [TECHNICAL_DETAILS.md](./TECHNICAL_DETAILS.md) for architecture, API routes, state management, and conventions.
+See [CLAUDE.md](./CLAUDE.md) for architecture, API routes, state management, and conventions.
