@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { WalletInfo, PersistedState } from "@/lib/types";
 import { useFetchTrustLines } from "@/lib/hooks/use-trust-lines";
-import { WELL_KNOWN_CURRENCIES } from "@/lib/assets";
+import { useBalances } from "@/lib/hooks/use-balances";
+import { WELL_KNOWN_CURRENCIES, Assets } from "@/lib/assets";
 import { DEFAULT_TRUST_LINE_LIMIT } from "@/lib/xrpl/constants";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { TrustLineList } from "./trust-line-list";
@@ -24,9 +25,15 @@ export function TrustLineManagement({
   onRefresh,
 }: TrustLineManagementProps) {
   const { lines, loading, error } = useFetchTrustLines(wallet.address, network, refreshKey);
+  const { balances } = useBalances(wallet.address, network, refreshKey);
   const [trusting, setTrusting] = useState<string | null>(null);
   const [trustError, setTrustError] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
+
+  const xrpBalance = parseFloat(
+    balances.find((b) => b.currency === Assets.XRP)?.value ?? "0",
+  );
+  const hasSufficientXrp = xrpBalance >= 1;
 
   const wellKnown = WELL_KNOWN_CURRENCIES[network] ?? {};
 
@@ -76,7 +83,11 @@ export function TrustLineManagement({
     <div className={cardClass}>
       <div>
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Trust Lines</h2>
-        <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">Wallet must be funded with XRP before adding trust lines</p>
+        <p className={`mt-0.5 text-xs ${hasSufficientXrp ? "text-zinc-400 dark:text-zinc-500" : "text-amber-600 dark:text-amber-400"}`}>
+          {hasSufficientXrp
+            ? "Manage trust lines for issued currencies"
+            : "Wallet needs at least 1 XRP before adding trust lines"}
+        </p>
       </div>
 
       {error && (
@@ -96,7 +107,7 @@ export function TrustLineManagement({
                 <button
                   key={key}
                   onClick={() => handleQuickTrust(currency, issuer)}
-                  disabled={exists || trusting !== null}
+                  disabled={exists || trusting !== null || !hasSufficientXrp}
                   className={`px-3 py-1.5 text-xs font-semibold shadow-sm active:scale-[0.98] ${
                     exists
                       ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
@@ -121,7 +132,8 @@ export function TrustLineManagement({
       <div className="mt-4">
         <button
           onClick={() => setShowCustomForm((v) => !v)}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+          disabled={!hasSufficientXrp}
+          className="text-xs font-semibold text-blue-600 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:text-blue-400 dark:hover:text-blue-300"
         >
           {showCustomForm ? "Hide Custom Form" : "+ Custom Trust Line"}
         </button>
