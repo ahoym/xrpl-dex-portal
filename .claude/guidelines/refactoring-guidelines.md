@@ -19,3 +19,20 @@ Split PRs by **risk and reviewability**, not by batch or phase boundaries:
 - **New shared abstractions** (hooks, utilities) get their own PR so the API can be reviewed before adoption
 
 This gives reviewers focused diffs and produces cleaner git history for bisecting.
+
+## Parallel Batch Failure Handling
+
+When one of several parallel agents fails (tests break, refactor is more complex than expected):
+1. **Let successful agents merge** — don't block the entire batch on one failure
+2. **Re-attempt the failed agent** from the merged state of successful work
+3. The re-attempted agent gets a fresh worktree branched from the updated base
+
+This minimizes wasted work and keeps the batch moving forward.
+
+## Gate Strategy: Unit Tests + Selective E2E
+
+- **Every batch:** gate with `pnpm build && pnpm test` (unit tests + type check)
+- **Behavior-changing PRs only:** also run `pnpm e2e` (E2E tests against testnet)
+- **Pure refactors and test additions:** skip E2E — they add latency without catching new regressions
+
+E2E tests hit real networks and are slow. Reserve them for PRs where user-visible behavior changes (bug fixes, UI modifications, fee display changes).

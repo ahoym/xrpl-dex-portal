@@ -20,3 +20,13 @@ When running parallel subagents that modify code in the same repo, use **git wor
 - Independent items: each worktree branches from the batch's starting point
 - Dependent items: branch the dependent from the dependency's branch (e.g., if agent B needs a shared component extracted by agent A, branch B from A's branch)
 - After all agents complete, merge branches sequentially, running the gate after each merge
+
+## Subagent Execution Patterns
+
+### Scope Agent Context Narrowly
+
+When launching parallel subagents for a refactoring plan, give each agent **only its relevant section** of the plan — not the full document. Full plan context leads to over-engineering and cross-cutting concerns that aren't the agent's responsibility. If an agent hits a blocker that requires broader context, it can request it from the orchestrator.
+
+### Pre-Approve Permissions Before Parallel Execution
+
+Before launching parallel subagents, ensure wildcard bash permissions are pre-approved (e.g., `Bash(git branch:*)`, `Bash(git status:*)`, `Bash(pnpm test:*)`). In restrictive permission mode, each agent prompts independently for every command, serializing what should be parallel work. Organize permissions alphabetically by tool group (pnpm, git, gh) for maintainability.
