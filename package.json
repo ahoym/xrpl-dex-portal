@@ -20,7 +20,6 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "xrpl": "^4.5.0",
-    "xrpl-snap": "^1.0.3",
     "xumm": "^1.8.0"
   },
   "devDependencies": {

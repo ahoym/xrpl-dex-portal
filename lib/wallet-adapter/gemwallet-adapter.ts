@@ -64,13 +64,19 @@ export class GemWalletAdapter implements WalletAdapter {
     const api = await getApi();
 
     const isXrp = params.currencyCode === Assets.XRP;
-    const amount = isXrp
-      ? params.amount
-      : {
-          currency: encodeXrplCurrency(params.currencyCode),
-          issuer: params.issuerAddress!,
-          value: params.amount,
-        };
+    let amount: string | { currency: string; issuer: string; value: string };
+    if (isXrp) {
+      amount = params.amount;
+    } else {
+      if (!params.issuerAddress) {
+        throw new Error(`issuerAddress is required for non-XRP currency "${params.currencyCode}"`);
+      }
+      amount = {
+        currency: encodeXrplCurrency(params.currencyCode),
+        issuer: params.issuerAddress,
+        value: params.amount,
+      };
+    }
 
     const request: Parameters<GemWalletApi["sendPayment"]>[0] = {
       amount,

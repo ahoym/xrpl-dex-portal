@@ -84,10 +84,12 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
             <ExplorerLink address={wallet.address} />
           </p>
           {wallet.seed && <SecretField label="Seed" value={wallet.seed} />}
-          <p className="break-all">
-            <span className="text-zinc-400 dark:text-zinc-500">Public Key: </span>
-            <span className="font-mono text-xs">{wallet.publicKey}</span>
-          </p>
+          {wallet.publicKey && wallet.publicKey !== wallet.address && (
+            <p className="break-all">
+              <span className="text-zinc-400 dark:text-zinc-500">Public Key: </span>
+              <span className="font-mono text-xs">{wallet.publicKey}</span>
+            </p>
+          )}
         </div>
         {wallet.type !== "seed" && !needsReconnect && (
           <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">
@@ -179,12 +181,7 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
       {generateError && <p className={`mt-2 ${errorTextClass}`}>{generateError}</p>}
 
       <div className="mt-5 border-t border-zinc-200 pt-5 dark:border-zinc-700">
-        <WalletConnector
-          network={network}
-          onConnected={({ address, publicKey, type }) => {
-            onSetWallet({ address, publicKey, type });
-          }}
-        />
+        <WalletConnector network={network} />
       </div>
 
       <div className="mt-5 border-t border-zinc-200 pt-5 dark:border-zinc-700">

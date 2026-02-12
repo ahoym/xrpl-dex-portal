@@ -124,24 +124,29 @@ export function WalletAdapterProvider({ children }: { children: ReactNode }) {
     [requireAdapter],
   );
 
-  const value: WalletAdapterContextValue = {
-    adapter,
-    connecting,
-    needsReconnect,
-    xamanPayload,
-    connectWallet,
-    disconnectWallet,
-    sendPayment,
-    createOffer,
-    cancelOffer,
-    setTrustline,
-  };
+  const value = useMemo<WalletAdapterContextValue>(
+    () => ({
+      adapter,
+      connecting,
+      needsReconnect,
+      xamanPayload,
+      connectWallet,
+      disconnectWallet,
+      sendPayment,
+      createOffer,
+      cancelOffer,
+      setTrustline,
+    }),
+    [adapter, connecting, needsReconnect, xamanPayload, connectWallet, disconnectWallet, sendPayment, createOffer, cancelOffer, setTrustline],
+  );
 
   // Expose setXamanPayload for the xaman adapter (avoids circular deps)
-  if (adapter && adapter.type === "xaman" && "setPayloadCallback" in adapter) {
-    (adapter as WalletAdapter & { setPayloadCallback: (cb: (p: XamanPayload | null) => void) => void })
-      .setPayloadCallback(setXamanPayload);
-  }
+  useEffect(() => {
+    if (adapter && adapter.type === "xaman" && "setPayloadCallback" in adapter) {
+      (adapter as WalletAdapter & { setPayloadCallback: (cb: (p: XamanPayload | null) => void) => void })
+        .setPayloadCallback(setXamanPayload);
+    }
+  }, [adapter]);
 
   return (
     <WalletAdapterContext.Provider value={value}>

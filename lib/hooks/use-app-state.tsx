@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useLocalStorage } from "./use-local-storage";
 import type { PersistedState, WalletInfo, Contact } from "../types";
@@ -159,19 +159,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     removeContacts();
   }, [removeNetworkData, removeContacts]);
 
-  const value: AppStateValue = {
-    state,
-    hydrated,
-    contacts,
-    setNetwork,
-    setWallet,
-    addContact,
-    updateContact,
-    removeContact,
-    setContacts,
-    importState,
-    clearAll,
-  };
+  const value = useMemo<AppStateValue>(
+    () => ({
+      state,
+      hydrated,
+      contacts,
+      setNetwork,
+      setWallet,
+      addContact,
+      updateContact,
+      removeContact,
+      setContacts,
+      importState,
+      clearAll,
+    }),
+    [state, hydrated, contacts, setNetwork, setWallet, addContact, updateContact, removeContact, setContacts, importState, clearAll],
+  );
 
   return (
     <AppStateContext.Provider value={value}>

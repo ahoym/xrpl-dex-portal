@@ -8,7 +8,7 @@ interface AdapterInfo {
   type: WalletType;
   displayName: string;
   /** Dynamic import for the adapter module (lazy-loaded to avoid bundle bloat). */
-  load: () => Promise<{ new (...args: unknown[]): WalletAdapter }>;
+  load: () => Promise<{ new (): WalletAdapter }>;
 }
 
 /**

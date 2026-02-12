@@ -17,17 +17,25 @@ import type { PaymentParams, CreateOfferParams, CancelOfferParams, TrustlinePara
 export function buildPaymentTx(params: PaymentParams, account: string): Payment {
   const isXrp = params.currencyCode === Assets.XRP;
 
+  let amount: Payment["Amount"];
+  if (isXrp) {
+    amount = xrpToDrops(params.amount);
+  } else {
+    if (!params.issuerAddress) {
+      throw new Error(`issuerAddress is required for non-XRP currency "${params.currencyCode}"`);
+    }
+    amount = {
+      currency: encodeXrplCurrency(params.currencyCode),
+      issuer: params.issuerAddress,
+      value: params.amount,
+    };
+  }
+
   const payment: Payment = {
     TransactionType: "Payment",
     Account: account,
     Destination: params.recipientAddress,
-    Amount: isXrp
-      ? xrpToDrops(params.amount)
-      : {
-          currency: encodeXrplCurrency(params.currencyCode),
-          issuer: params.issuerAddress!,
-          value: params.amount,
-        },
+    Amount: amount,
   };
 
   if (params.destinationTag !== undefined) {

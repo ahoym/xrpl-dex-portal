@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { WalletType } from "@/lib/types";
 import { getExtensionAdapterTypes, loadExtensionAdapter } from "@/lib/wallet-adapter";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { errorTextClass } from "@/lib/ui/ui";
 
 interface DetectedWallet {
@@ -13,45 +14,50 @@ interface DetectedWallet {
 
 interface WalletConnectorProps {
   network: string;
-  onConnected: (info: { address: string; publicKey: string; type: WalletType }) => void;
 }
 
-export function WalletConnector({ network, onConnected }: WalletConnectorProps) {
+export function WalletConnector({ network }: WalletConnectorProps) {
+  const { connectWallet, connecting } = useWalletAdapter();
   const [wallets, setWallets] = useState<DetectedWallet[]>([]);
-  const [connecting, setConnecting] = useState<WalletType | null>(null);
+  const [connectingType, setConnectingType] = useState<WalletType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function detect() {
       const adapters = getExtensionAdapterTypes();
-      const results: DetectedWallet[] = [];
-      for (const info of adapters) {
-        try {
-          const adapter = await info.load().then((Cls) => new Cls());
+      const results = await Promise.allSettled(
+        adapters.map(async (info) => {
+          const Cls = await info.load();
+          const adapter = new Cls();
           const available = await adapter.isAvailable();
-          results.push({ type: info.type, displayName: info.displayName, available });
-        } catch {
-          results.push({ type: info.type, displayName: info.displayName, available: false });
-        }
+          return { type: info.type, displayName: info.displayName, available };
+        })
+      );
+
+      if (!cancelled) {
+        setWallets(
+          results.map((r, i) =>
+            r.status === "fulfilled"
+              ? r.value
+              : { type: adapters[i].type, displayName: adapters[i].displayName, available: false }
+          )
+        );
       }
-      if (!cancelled) setWallets(results);
     }
     detect();
     return () => { cancelled = true; };
   }, []);
 
   async function handleConnect(type: WalletType) {
-    setConnecting(type);
+    setConnectingType(type);
     setError(null);
     try {
-      const adapter = await loadExtensionAdapter(type);
-      const { address, publicKey } = await adapter.connect(network);
-      onConnected({ address, publicKey, type });
+      await connectWallet(type, network);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Connection failed");
     } finally {
-      setConnecting(null);
+      setConnectingType(null);
     }
   }
 
@@ -67,7 +73,7 @@ export function WalletConnector({ network, onConnected }: WalletConnectorProps) 
           <button
             key={w.type}
             onClick={() => handleConnect(w.type)}
-            disabled={!w.available || connecting !== null}
+            disabled={!w.available || connecting || connectingType !== null}
             className={`px-4 py-2 text-sm font-semibold shadow-sm active:scale-[0.98] ${
               w.available
                 ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-md disabled:opacity-50"
@@ -75,7 +81,7 @@ export function WalletConnector({ network, onConnected }: WalletConnectorProps) 
             }`}
             title={w.available ? `Connect ${w.displayName}` : `${w.displayName} not detected`}
           >
-            {connecting === w.type
+            {connectingType === w.type
               ? "Connecting..."
               : w.available
                 ? w.displayName

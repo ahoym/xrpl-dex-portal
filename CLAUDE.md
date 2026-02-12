@@ -1,22 +1,32 @@
-# XRPL DEX Portal
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
 
 Single-wallet DEX trading portal for the XRP Ledger. Built by adapting `xrpl-issued-currencies-manager` — stripped multi-wallet management, credentials, domains, permissioned DEX, and currency issuance. Added mainnet support, contacts for transactions, and streamlined trust line management.
 
 ## Stack
 
 - **Framework**: Next.js 16 (App Router) with React 19
-- **Language**: TypeScript 5
+- **Language**: TypeScript 5 (strict mode, path alias `@/*` → `./*`)
 - **Styling**: Tailwind CSS 4 with dark mode
 - **XRPL**: `xrpl` npm package v4.5.0
+- **Math**: `bignumber.js` for all financial/trading calculations (never use native floats for currency math)
 - **Package manager**: pnpm
+- **Node**: 22 (via `.node-version` / `mise.toml`)
 
 ## Commands
 
 ```bash
-pnpm dev      # Start dev server
-pnpm build    # Production build
-pnpm lint     # ESLint
+pnpm install  # Install dependencies
+pnpm dev      # Start dev server (http://localhost:3000)
+pnpm build    # Production build (also serves as type-check — no separate tsc)
+pnpm start    # Serve production build
+pnpm lint     # ESLint (flat config, v9)
 ```
+
+No test framework is configured — there are no tests.
 
 ## Architecture
 
@@ -24,6 +34,7 @@ pnpm lint     # ESLint
 
 | Route | Purpose |
 |-------|---------|
+| `/` | Redirects to `/setup` |
 | `/setup` | Wallet generation/import, trust line management, data import/export |
 | `/transact` | Contacts manager, send XRP/tokens to contacts or ad-hoc addresses |
 | `/trade` | DEX trading: order book, place orders, cancel orders, make-market ladder |
@@ -54,15 +65,16 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 |-------|--------|---------|
 | `accounts/generate` | POST | Generate wallet (keypair on mainnet, funded on testnet/devnet) |
 | `accounts/[address]` | GET | Account info |
+| `accounts/[address]/balances` | GET | Account balances |
 | `accounts/[address]/offers` | GET | Account's open offers |
-| `balances` | GET | Account balances |
-| `trustlines` | POST | Set trust line |
+| `accounts/[address]/transactions` | GET | Transaction history |
+| `accounts/[address]/trustlines` | POST | Set trust line |
 | `transfers` | POST | Send payment (supports DestinationTag) |
-| `transactions` | GET | Transaction history |
 | `dex/offers` | POST | Create DEX offer |
 | `dex/offers/cancel` | POST | Cancel DEX offer |
 | `dex/orderbook` | GET | Order book for a currency pair |
 | `dex/trades` | GET | Recent trades for a pair |
+| `dex/market-data` | GET | Market data for a pair |
 
 ### API Conventions
 
@@ -71,18 +83,17 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 - Responses follow `{ success: true, data }` or `{ error: "message" }` shape
 - Rate limited via token-bucket (see `lib/rate-limit.ts`)
 
-### Lib Modules
+### Key Lib Modules
 
 - `lib/types.ts` — Core types: `PersistedState`, `WalletInfo`, `Contact`, `BalanceEntry`
 - `lib/xrpl/client.ts` — Singleton XRPL WebSocket client per network
-- `lib/xrpl/networks.ts` — Network configs (devnet, testnet, mainnet)
+- `lib/xrpl/networks.ts` — Network configs (devnet, testnet, mainnet); default is **mainnet**
 - `lib/xrpl/currency.ts` — Currency code encoding (3-char standard, 4-20 non-standard → hex)
 - `lib/xrpl/decode-currency-client.ts` — Client-side currency hex decoding
 - `lib/xrpl/build-dex-amount.ts` — Build XRPL Amount objects for DEX operations
-- `lib/xrpl/match-currency.ts` — Compare currency+issuer pairs
-- `lib/xrpl/offers.ts` — Offer flag mapping
-- `lib/xrpl/constants.ts` — XRPL epoch, currency code limits
-- `lib/xrpl/types.ts` — Request/response types for XRPL operations
+- `lib/xrpl/aggregate-depth.ts` — Server-side order book depth aggregation
+- `lib/xrpl/normalize-offer.ts` — Normalize raw XRPL offers for display
+- `lib/xrpl/trades.ts` — Trade history parsing
 - `lib/assets.ts` — Well-known currency issuers per network (RLUSD, BBRL)
 - `lib/rate-limit.ts` — Token-bucket rate limiter for API routes
 - `lib/api.ts` — Shared API validation helpers
@@ -98,7 +109,7 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 - `use-trust-line-validation.ts` — Trust line form validation
 - `use-wallet-generation.ts` — Wallet generation with API call
 - `use-trading-data.ts` — Aggregates order book, offers, trades, balances for trade page
-- `use-make-market-execution.ts` — Make-market ladder execution logic
+- `use-page-visible.ts` — Page visibility detection (pauses polling when tab is hidden)
 
 ## localStorage Keys
 
@@ -112,7 +123,9 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 
 - **Next.js 16 async params**: Route handler params are `Promise`-based — must `await` them (e.g., `const { address } = await params`)
 - **XRPL client singleton**: `lib/xrpl/client.ts` maintains one WebSocket connection per network. Don't instantiate new clients.
-- **Mainnet restrictions**: No faucet — wallet generation creates keypair only (balance = 0). Users must fund externally. Red "REAL FUNDS" warning shown in UI.
+- **Default network is mainnet**: `lib/xrpl/networks.ts` defaults to mainnet. No faucet — wallet generation creates keypair only (balance = 0). Users must fund externally. Red "REAL FUNDS" warning shown in UI.
 - **Currency encoding**: Standard codes are 3 chars. Non-standard (4-20 chars) get hex-encoded to 40-char uppercase. Use `encodeCurrency()` / `decodeCurrencyClient()`.
 - **Rate limiting**: API routes use a token-bucket limiter. Default: 20 requests/second, burst of 5.
 - **Single wallet model**: One wallet per network, not the multi-wallet issuer/recipient model from the source project.
+- **CSP headers**: `next.config.ts` sets strict Content-Security-Policy (self-only for scripts, styles, connections; no iframes). If adding external resources (CDN, analytics, WebSocket URLs), update the CSP or requests will be silently blocked.
+- **XRPL WebSocket not in CSP**: The `connect-src 'self'` CSP directive does not include the XRPL WebSocket URLs. This works because API routes (server-side) make the WebSocket connections, not the browser. If you move XRPL calls to the client, you must add the WSS URLs to `connect-src`.

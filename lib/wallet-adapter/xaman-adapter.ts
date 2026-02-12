@@ -63,10 +63,10 @@ export class XamanAdapter implements WalletAdapter {
     }
 
     this.address = account;
-    // Xaman doesn't directly expose public key during PKCE auth,
-    // use the account address as a placeholder — the public key
-    // is resolved server-side when needed for verification
-    this.publicKey = account;
+    // Xaman doesn't directly expose public key during PKCE auth.
+    // Set to empty string since it's not available during connection.
+    // The public key can be fetched from XRPL account_info if needed.
+    this.publicKey = "";
 
     return { address: this.address, publicKey: this.publicKey };
   }
@@ -75,8 +75,13 @@ export class XamanAdapter implements WalletAdapter {
     this.address = null;
     this.publicKey = null;
     this.payloadCallback?.(null);
-    // Best-effort logout
-    getXumm().then((x) => x.logout()).catch(() => {});
+    // Best-effort logout and clear singleton
+    getXumm()
+      .then((x) => x.logout())
+      .catch(() => {})
+      .finally(() => {
+        xummInstance = null;
+      });
   }
 
   async sendPayment(params: PaymentParams): Promise<TxResult> {
@@ -117,8 +122,8 @@ export class XamanAdapter implements WalletAdapter {
       throw new Error("Xumm payload API not available");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const subscription = await xumm.payload.createAndSubscribe(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tx as any,
       (event) => {
         // When the payload is signed or rejected, resolve the subscription
