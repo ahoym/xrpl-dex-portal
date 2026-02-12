@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useLocalStorage } from "./use-local-storage";
 import type { PersistedState, WalletInfo, Contact } from "../types";
@@ -68,9 +68,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     remove: removeContacts,
   } = useLocalStorage<Contact[]>(contactsKey(network), []);
 
+  // Migrate legacy wallets that lack a `type` field (pre-wallet-adapter data)
+  const migratedWallet = (() => {
+    const w = networkData.wallet;
+    if (!w) return null;
+    if (w.type) return w;
+    return { ...w, type: "seed" as const };
+  })();
+
   const state: PersistedState = {
     network,
-    wallet: networkData.wallet ?? null,
+    wallet: migratedWallet,
   };
 
   const setNetwork = useCallback(
@@ -151,19 +159,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     removeContacts();
   }, [removeNetworkData, removeContacts]);
 
-  const value: AppStateValue = {
-    state,
-    hydrated,
-    contacts,
-    setNetwork,
-    setWallet,
-    addContact,
-    updateContact,
-    removeContact,
-    setContacts,
-    importState,
-    clearAll,
-  };
+  const value = useMemo<AppStateValue>(
+    () => ({
+      state,
+      hydrated,
+      contacts,
+      setNetwork,
+      setWallet,
+      addContact,
+      updateContact,
+      removeContact,
+      setContacts,
+      importState,
+      clearAll,
+    }),
+    [state, hydrated, contacts, setNetwork, setWallet, addContact, updateContact, removeContact, setContacts, importState, clearAll],
+  );
 
   return (
     <AppStateContext.Provider value={value}>

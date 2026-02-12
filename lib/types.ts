@@ -1,7 +1,10 @@
+export type WalletType = "seed" | "crossmark" | "gemwallet" | "xaman" | "metamask-snap";
+
 export interface WalletInfo {
   address: string;
-  seed: string;
   publicKey: string;
+  type: WalletType;
+  seed?: string;
 }
 
 export interface PersistedState {

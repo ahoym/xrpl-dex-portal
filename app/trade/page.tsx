@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useAppState } from "@/lib/hooks/use-app-state";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { useTradingData } from "@/lib/hooks/use-trading-data";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { CustomCurrencyForm } from "./components/custom-currency-form";
@@ -14,6 +15,7 @@ import { DEPTH_OPTIONS } from "./components/order-book";
 
 export default function TradePage() {
   const { state, hydrated } = useAppState();
+  const { cancelOffer: adapterCancelOffer } = useWalletAdapter();
 
   const [sellingValue, setSellingValue] = useState("");
   const [buyingValue, setBuyingValue] = useState("");
@@ -84,19 +86,15 @@ export default function TradePage() {
       if (!focusedWallet || cancellingSeq !== null) return;
       setCancellingSeq(seq);
       try {
-        const res = await fetch("/api/dex/offers/cancel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ seed: focusedWallet.seed, offerSequence: seq, network: state.network }),
-        });
-        if (res.ok) onRefresh();
+        await adapterCancelOffer({ offerSequence: seq, network: state.network });
+        onRefresh();
       } catch {
         // ignore
       } finally {
         setCancellingSeq(null);
       }
     },
-    [focusedWallet, cancellingSeq, state.network, onRefresh],
+    [focusedWallet, cancellingSeq, state.network, onRefresh, adapterCancelOffer],
   );
 
   if (!hydrated) {

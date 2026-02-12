@@ -21,8 +21,9 @@ export function useWalletGeneration(): UseWalletGenerationResult {
       if (data) {
         onSuccess({
           address: data.address,
-          seed: data.seed,
           publicKey: data.publicKey,
+          type: "seed",
+          seed: data.seed,
         });
       }
     },

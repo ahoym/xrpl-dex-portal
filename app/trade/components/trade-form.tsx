@@ -5,6 +5,7 @@ import BigNumber from "bignumber.js";
 import type { WalletInfo, BalanceEntry } from "@/lib/types";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import type { OfferFlag } from "@/lib/xrpl/types";
 import { toRippleEpoch } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass, SUCCESS_MESSAGE_DURATION_MS } from "@/lib/ui/ui";
@@ -51,6 +52,7 @@ export function TradeForm({
   onSubmitted,
 }: TradeFormProps) {
   const { state: { network } } = useAppState();
+  const { adapter, createOffer: adapterCreateOffer } = useWalletAdapter();
   const [tab, setTab] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
@@ -144,34 +146,28 @@ export function TradeForm({
       );
     }
 
-    const payload: Record<string, unknown> = {
-      seed: focusedWallet.seed,
+    const flags = buildFlags();
+    const offerParams: Parameters<typeof adapterCreateOffer>[0] = {
       takerGets,
       takerPays,
       network,
     };
 
-    const flags = buildFlags();
     if (flags.length > 0) {
-      payload.flags = flags;
+      offerParams.flags = flags;
     }
 
     if (expiration) {
       const epochMs = new Date(expiration).getTime();
       if (!isNaN(epochMs)) {
-        payload.expiration = toRippleEpoch(epochMs);
+        offerParams.expiration = toRippleEpoch(epochMs);
       }
     }
 
     try {
-      const res = await fetch("/api/dex/offers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Failed to place offer");
+      const result = await adapterCreateOffer(offerParams);
+      if (!result.success) {
+        setError(result.resultCode ?? "Failed to place offer");
       } else {
         setSuccess(true);
         setAmount("");
@@ -184,8 +180,8 @@ export function TradeForm({
           onSubmitted();
         }, SUCCESS_MESSAGE_DURATION_MS);
       }
-    } catch {
-      setError("Network error");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Network error");
     } finally {
       setSubmitting(false);
     }
@@ -334,7 +330,9 @@ export function TradeForm({
             }`}
           >
             {submitting
-              ? "Placing..."
+              ? adapter && adapter.type !== "seed"
+                ? `Confirm in ${adapter.displayName}...`
+                : "Placing..."
               : tab === "buy"
                 ? "Place Buy Order"
                 : "Place Sell Order"}

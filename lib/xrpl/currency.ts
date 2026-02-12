@@ -38,7 +38,7 @@ export function encodeXrplCurrency(code: string): string {
 
   // Non-standard ASCII codes that fit in 20 bytes (4–20 chars)
   if (code.length > MIN_CURRENCY_CODE_LENGTH && code.length <= MAX_CURRENCY_CODE_LENGTH / 2) {
-    const hex = Buffer.from(code, "ascii").toString("hex").toUpperCase();
+    const hex = Array.from(code, (ch) => ch.charCodeAt(0).toString(16).padStart(2, "0")).join("").toUpperCase();
     return hex.padEnd(HEX_CURRENCY_CODE_LENGTH, "0");
   }
 

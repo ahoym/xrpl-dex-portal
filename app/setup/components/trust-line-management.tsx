@@ -9,6 +9,7 @@ import { DEFAULT_TRUST_LINE_LIMIT } from "@/lib/xrpl/constants";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { TrustLineList } from "./trust-line-list";
 import { CustomTrustLineForm } from "./custom-trust-line-form";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { cardClass, errorTextClass } from "@/lib/ui/ui";
 
 interface TrustLineManagementProps {
@@ -24,6 +25,7 @@ export function TrustLineManagement({
   refreshKey,
   onRefresh,
 }: TrustLineManagementProps) {
+  const { adapter, setTrustline: adapterSetTrustline } = useWalletAdapter();
   const { lines, loading, error } = useFetchTrustLines(wallet.address, network, refreshKey);
   const { balances } = useBalances(wallet.address, network, refreshKey);
   const [trusting, setTrusting] = useState<string | null>(null);
@@ -55,25 +57,20 @@ export function TrustLineManagement({
     setTrusting(key);
     setTrustError(null);
     try {
-      const res = await fetch(`/api/accounts/${wallet.address}/trustlines`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seed: wallet.seed,
-          currency,
-          issuer,
-          limit: DEFAULT_TRUST_LINE_LIMIT,
-          network,
-        }),
+      const result = await adapterSetTrustline({
+        address: wallet.address,
+        currency,
+        issuer,
+        limit: DEFAULT_TRUST_LINE_LIMIT,
+        network,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setTrustError(data.error ?? "Failed to create trust line");
+      if (!result.success) {
+        setTrustError(result.resultCode ?? "Failed to create trust line");
       } else {
         onRefresh();
       }
-    } catch {
-      setTrustError("Network error");
+    } catch (err) {
+      setTrustError(err instanceof Error ? err.message : "Network error");
     } finally {
       setTrusting(null);
     }
@@ -115,7 +112,9 @@ export function TrustLineManagement({
                   }`}
                 >
                   {trusting === key
-                    ? "Creating..."
+                    ? adapter && adapter.type !== "seed"
+                      ? `Confirm in ${adapter.displayName}...`
+                      : "Creating..."
                     : exists
                       ? `${currency} (trusted)`
                       : `Trust ${currency}`}
@@ -140,7 +139,6 @@ export function TrustLineManagement({
         {showCustomForm && (
           <CustomTrustLineForm
             recipientAddress={wallet.address}
-            recipientSeed={wallet.seed}
             network={network}
             onSuccess={onRefresh}
           />
