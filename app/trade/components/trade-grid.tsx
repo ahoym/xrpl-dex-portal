@@ -181,6 +181,7 @@ export function TradeGrid({
               focusedWallet={focusedWallet}
               sellingCurrency={sellingCurrency!}
               buyingCurrency={buyingCurrency!}
+              balances={balances}
               prefill={prefill}
               onSubmitted={onRefresh}
             />

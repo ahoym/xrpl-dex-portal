@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import BigNumber from "bignumber.js";
-import type { WalletInfo } from "@/lib/types";
+import type { WalletInfo, BalanceEntry } from "@/lib/types";
 import { useAppState } from "@/lib/hooks/use-app-state";
+import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import type { OfferFlag } from "@/lib/xrpl/types";
 import { toRippleEpoch } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass, SUCCESS_MESSAGE_DURATION_MS } from "@/lib/ui/ui";
@@ -27,6 +28,7 @@ interface TradeFormProps {
   focusedWallet: WalletInfo;
   sellingCurrency: CurrencyOption;
   buyingCurrency: CurrencyOption;
+  balances: BalanceEntry[];
   prefill?: TradeFormPrefill;
   onSubmitted: () => void;
 }
@@ -44,6 +46,7 @@ export function TradeForm({
   focusedWallet,
   sellingCurrency,
   buyingCurrency,
+  balances,
   prefill,
   onSubmitted,
 }: TradeFormProps) {
@@ -75,8 +78,23 @@ export function TradeForm({
       ? new BigNumber(amount).times(new BigNumber(price)).toFixed(6)
       : "";
 
+  // Determine what currency and how much the user is spending
+  const spendCurrency = tab === "buy" ? buyingCurrency : sellingCurrency;
+  const spendAmount = tab === "buy" ? total : amount;
+
+  const spendBalance = balances.find((b) =>
+    matchesCurrency(b, spendCurrency.currency, spendCurrency.issuer),
+  );
+  const availableBalance = spendBalance ? new BigNumber(spendBalance.value) : new BigNumber(0);
+  const insufficientBalance =
+    spendAmount !== "" &&
+    !new BigNumber(spendAmount).isNaN() &&
+    new BigNumber(spendAmount).gt(0) &&
+    new BigNumber(spendAmount).gt(availableBalance);
+
   const canSubmit =
     !submitting &&
+    !insufficientBalance &&
     amount !== "" &&
     !new BigNumber(amount).isNaN() &&
     new BigNumber(amount).gt(0) &&
@@ -294,6 +312,13 @@ export function TradeForm({
               className={inputClass}
             />
           </div>
+
+          {insufficientBalance && (
+            <p className={errorTextClass}>
+              Insufficient {spendCurrency.currency} balance — you have{" "}
+              {availableBalance.toFixed(6)} but need {new BigNumber(spendAmount).toFixed(6)}
+            </p>
+          )}
 
           {error && (
             <p className={errorTextClass}>{error}</p>
