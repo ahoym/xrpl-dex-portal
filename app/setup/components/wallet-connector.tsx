@@ -5,7 +5,7 @@ import type { WalletType } from "@/lib/types";
 import { getExtensionAdapterTypes, loadExtensionAdapter } from "@/lib/wallet-adapter";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { errorTextClass } from "@/lib/ui/ui";
-import { getWalletLogo } from "@/lib/wallet-ui";
+import { getWalletLogo, extractErrorMessage } from "@/lib/wallet-ui";
 
 interface DetectedWallet {
   type: WalletType;
@@ -56,7 +56,7 @@ export function WalletConnector({ network }: WalletConnectorProps) {
     try {
       await connectWallet(type, network);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Connection failed");
+      setError(extractErrorMessage(err, "Connection failed"));
     } finally {
       setConnectingType(null);
     }

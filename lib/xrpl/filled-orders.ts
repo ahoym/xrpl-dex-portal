@@ -1,5 +1,5 @@
-import { Assets } from "@/lib/assets";
 import { matchesCurrency } from "./match-currency";
+import { Assets } from "@/lib/assets";
 
 export interface FilledOrder {
   side: "buy" | "sell";

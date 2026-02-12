@@ -6,6 +6,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     include: ["**/*.test.{ts,tsx}"],
+    exclude: ["node_modules/**"],
   },
   resolve: {
     alias: {

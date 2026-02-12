@@ -2,6 +2,7 @@ import { getBalanceChanges } from "xrpl";
 import type { TransactionMetadata, Amount } from "xrpl";
 import { decodeCurrency } from "./currency";
 import { matchesCurrency } from "./match-currency";
+import { deduplicateByHash } from "./deduplication";
 import { Assets } from "@/lib/assets";
 import { TRADES_FETCH_MULTIPLIER } from "./constants";
 import type { Client } from "xrpl";
@@ -123,13 +124,7 @@ export async function fetchAndCacheTrades(
   // Merge new trades into cache, dedup by hash, sort by time desc, cap at limit
   const key = tradesCacheKey(network ?? "", baseCurrency, baseIssuer, quoteCurrency, quoteIssuer);
   const cached = tradesCache.get(key) ?? [];
-  const seen = new Set<string>();
-  const merged: Trade[] = [];
-  for (const trade of [...newTrades, ...cached]) {
-    if (seen.has(trade.hash)) continue;
-    seen.add(trade.hash);
-    merged.push(trade);
-  }
+  const merged = deduplicateByHash([...newTrades, ...cached]);
   merged.sort((a, b) => (b.time > a.time ? 1 : b.time < a.time ? -1 : 0));
   const capped = merged.slice(0, TRADES_CACHE_LIMIT);
   tradesCache.set(key, capped);

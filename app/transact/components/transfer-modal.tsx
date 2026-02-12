@@ -8,7 +8,9 @@ import { ModalShell } from "@/app/components/modal-shell";
 import { useBalances } from "@/lib/hooks/use-balances";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
+import { getSigningLoadingText, extractErrorMessage } from "@/lib/wallet-ui";
 import { useTrustLineValidation } from "@/lib/hooks/use-trust-line-validation";
+import { parseDestinationTag } from "@/lib/validation/destination-tag";
 import { CustomSelect } from "@/app/components/custom-select";
 
 interface TransferModalProps {
@@ -61,9 +63,7 @@ export function TransferModal({
   const destinationTag =
     recipientMode === "contact"
       ? selectedContact?.destinationTag
-      : customDestTag.trim()
-        ? parseInt(customDestTag.trim(), 10)
-        : undefined;
+      : parseDestinationTag(customDestTag).tag;
 
   const { trustLineOk, checkingTrustLine, ripplingOk } = useTrustLineValidation({
     selectedBalance,
@@ -128,7 +128,7 @@ export function TransferModal({
         }, SUCCESS_MESSAGE_DURATION_MS);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error");
+      setError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -284,9 +284,7 @@ export function TransferModal({
             className="w-full bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-500 hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:hover:shadow-sm disabled:active:scale-100"
           >
             {submitting
-              ? adapter && adapter.type !== "seed"
-                ? `Confirm in ${adapter.displayName}...`
-                : "Sending..."
+              ? getSigningLoadingText(adapter, "Sending...")
               : "Send"}
           </button>
         </form>

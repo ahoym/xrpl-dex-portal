@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Contact } from "@/lib/types";
+import { parseDestinationTag } from "@/lib/validation/destination-tag";
 import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass } from "@/lib/ui/ui";
 
 interface ContactsManagerProps {
@@ -45,13 +46,13 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
     if (!trimAddress) { setFormError("Address is required"); return; }
 
     const contact: Contact = { label: trimLabel, address: trimAddress };
-    if (destTag.trim()) {
-      const parsed = parseInt(destTag.trim(), 10);
-      if (isNaN(parsed) || parsed < 0) {
-        setFormError("Destination tag must be a non-negative integer");
-        return;
-      }
-      contact.destinationTag = parsed;
+    const tagResult = parseDestinationTag(destTag);
+    if (tagResult.error) {
+      setFormError(tagResult.error);
+      return;
+    }
+    if (tagResult.tag !== undefined) {
+      contact.destinationTag = tagResult.tag;
     }
 
     if (editIndex !== null) {

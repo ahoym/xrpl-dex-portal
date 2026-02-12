@@ -1,10 +1,9 @@
 import { decodeCurrency } from "./decode-currency-client";
-import type { OrderBookAmount } from "../types";
 import { Assets } from "@/lib/assets";
 
-/** Check whether an order-book amount matches a given currency + optional issuer. */
+/** Check whether an amount-like object matches a given currency + optional issuer. */
 export function matchesCurrency(
-  amt: OrderBookAmount,
+  amt: { currency: string; issuer?: string },
   currency: string,
   issuer: string | undefined,
 ): boolean {
