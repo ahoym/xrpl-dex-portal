@@ -33,6 +33,15 @@ function getEthereum(): EthereumProvider | null {
   return eth?.isMetaMask ? eth : null;
 }
 
+/** Extract a usable Error from MetaMask RPC error objects ({ code, message }) or unknown throws. */
+function toError(err: unknown, fallback: string): Error {
+  if (err instanceof Error) return err;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    return new Error((err as { message: string }).message);
+  }
+  return new Error(fallback);
+}
+
 export class MetaMaskSnapAdapter implements WalletAdapter {
   readonly type = "metamask-snap" as const;
   readonly displayName = "MetaMask (XRPL)";
@@ -51,31 +60,43 @@ export class MetaMaskSnapAdapter implements WalletAdapter {
     }
 
     // Install the snap if not already present
-    await ethereum.request({
-      method: "wallet_requestSnaps",
-      params: { [SNAP_ID]: {} },
-    });
+    try {
+      await ethereum.request({
+        method: "wallet_requestSnaps",
+        params: { [SNAP_ID]: {} },
+      });
+    } catch (err) {
+      throw toError(err, "Failed to install XRPL Snap");
+    }
 
-    // Switch to the requested network
+    // Switch to the requested network (ignore if already on it)
     const chainId = CHAIN_IDS[network];
     if (chainId !== undefined) {
-      await this.invokeSnap(ethereum, "xrpl_changeNetwork", { chainId });
+      try {
+        await this.invokeSnap(ethereum, "xrpl_changeNetwork", { chainId });
+      } catch {
+        // Snap throws if already on the requested network — safe to ignore
+      }
     }
 
     // Get account info
-    const account = (await this.invokeSnap(ethereum, "xrpl_getAccount")) as {
-      account: string;
-      publicKey: string;
-    };
+    try {
+      const account = (await this.invokeSnap(ethereum, "xrpl_getAccount")) as {
+        account: string;
+        publicKey: string;
+      };
 
-    if (!account?.account) {
-      throw new Error("MetaMask Snap did not return an account address");
+      if (!account?.account) {
+        throw new Error("MetaMask Snap did not return an account address");
+      }
+
+      this.address = account.account;
+      this.publicKey = account.publicKey ?? account.account;
+
+      return { address: this.address, publicKey: this.publicKey };
+    } catch (err) {
+      throw toError(err, "Failed to get account from XRPL Snap");
     }
-
-    this.address = account.account;
-    this.publicKey = account.publicKey ?? account.account;
-
-    return { address: this.address, publicKey: this.publicKey };
   }
 
   disconnect(): void {
@@ -141,7 +162,7 @@ export class MetaMaskSnapAdapter implements WalletAdapter {
       if (typeof err === "object" && err !== null && "code" in err && (err as { code: number }).code === 4001) {
         throw new Error("Transaction was rejected by the user");
       }
-      throw err;
+      throw toError(err, "Transaction failed");
     }
   }
 
