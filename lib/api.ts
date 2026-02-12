@@ -3,6 +3,7 @@ import { Wallet, isValidClassicAddress } from "xrpl";
 import type { TxResponse } from "xrpl";
 import type { ApiError, DexAmount } from "./xrpl/types";
 import { Assets } from "./assets";
+import { friendlyTxError } from "./xrpl/transaction-errors";
 
 // ---------------------------------------------------------------------------
 // Request helpers
@@ -241,7 +242,7 @@ export function txFailureResponse(result: TxResponse): Response | null {
   const txResult = getTransactionResult(result.result.meta);
   if (txResult && txResult !== "tesSUCCESS") {
     return Response.json(
-      { error: `Transaction failed: ${txResult}`, result: result.result },
+      { error: `${friendlyTxError(txResult)} (${txResult})`, result: result.result },
       { status: 400 },
     );
   }

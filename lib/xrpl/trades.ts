@@ -1,5 +1,6 @@
 import { getBalanceChanges } from "xrpl";
 import type { TransactionMetadata, Amount } from "xrpl";
+import BigNumber from "bignumber.js";
 import { decodeCurrency } from "./currency";
 import { matchesCurrency } from "./match-currency";
 import { deduplicateByHash } from "./deduplication";
@@ -69,35 +70,35 @@ export async function fetchAndCacheTrades(
 
     const changes = getBalanceChanges(meta);
 
-    let baseTotal = 0;
-    let quoteTotal = 0;
+    let baseTotal = new BigNumber(0);
+    let quoteTotal = new BigNumber(0);
 
     for (const acctChanges of changes) {
       if (acctChanges.account === issuerAccount) continue;
 
       for (const bal of acctChanges.balances) {
-        const val = parseFloat(bal.value);
-        if (val <= 0) continue;
+        const val = new BigNumber(bal.value);
+        if (val.lte(0)) continue;
 
         if (matchesCurrency(bal, baseCurrency, baseIssuer)) {
           if (baseCurrency === Assets.XRP && acctChanges.account === tx.Account) {
-            const fee = parseFloat(String(tx.Fee ?? "0")) / 1_000_000;
-            baseTotal += val - fee;
+            const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
+            baseTotal = baseTotal.plus(val.minus(fee));
           } else {
-            baseTotal += val;
+            baseTotal = baseTotal.plus(val);
           }
         } else if (matchesCurrency(bal, quoteCurrency, quoteIssuer)) {
           if (quoteCurrency === Assets.XRP && acctChanges.account === tx.Account) {
-            const fee = parseFloat(String(tx.Fee ?? "0")) / 1_000_000;
-            quoteTotal += val - fee;
+            const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
+            quoteTotal = quoteTotal.plus(val.minus(fee));
           } else {
-            quoteTotal += val;
+            quoteTotal = quoteTotal.plus(val);
           }
         }
       }
     }
 
-    if (baseTotal <= 0 || quoteTotal <= 0) continue;
+    if (baseTotal.lte(0) || quoteTotal.lte(0)) continue;
 
     const takerPays = amountCurrency(tx.TakerPays as Amount);
     const isBuy =
@@ -108,7 +109,7 @@ export async function fetchAndCacheTrades(
     const time = (entryAny.close_time_iso as string) ?? (entryAny.date as string) ?? "";
     const hash = (entryAny.hash as string) ?? (tx.hash as string | undefined) ?? "";
 
-    const price = quoteTotal / baseTotal;
+    const price = quoteTotal.dividedBy(baseTotal);
 
     newTrades.push({
       side: isBuy ? "buy" : "sell",
