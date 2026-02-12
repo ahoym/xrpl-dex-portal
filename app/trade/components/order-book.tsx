@@ -119,11 +119,12 @@ export function OrderBook({
       )}
 
       <div className="mt-3">
-        <div className="grid grid-cols-4 border-b border-zinc-200 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] border-b border-zinc-200 pb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">
           <span>Price</span>
           <span className="text-right">Size</span>
           <span className="text-right">Total</span>
           <span className="text-right">Depth</span>
+          <span className="w-[4.5rem] text-right">Maker</span>
         </div>
 
         <div className="mb-1 mt-2.5 text-[10px] font-bold uppercase tracking-widest text-red-400 dark:text-red-500">
@@ -145,7 +146,7 @@ export function OrderBook({
                 role={clickable ? "button" : undefined}
                 tabIndex={clickable ? 0 : undefined}
                 onKeyDown={clickable ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onSelectOrder(a.price.toFixed(6), a.amount.toFixed(6), "buy"); } : undefined}
-                className={`relative grid grid-cols-4 py-0.5 text-xs font-mono ${
+                className={`relative grid grid-cols-[1fr_1fr_1fr_1fr_auto] py-0.5 text-xs font-mono ${
                   clickable
                     ? "cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
                     : isOwn
@@ -168,6 +169,12 @@ export function OrderBook({
                 </span>
                 <span className="relative text-right text-zinc-500 dark:text-zinc-400">
                   {askCumulative[i].toFixed(4)}
+                </span>
+                <span
+                  className="relative w-[4.5rem] text-right text-zinc-400 dark:text-zinc-500"
+                  title={a.account}
+                >
+                  {a.account.slice(0, 4)}…{a.account.slice(-4)}
                 </span>
               </div>
             );
@@ -210,7 +217,7 @@ export function OrderBook({
                 role={clickable ? "button" : undefined}
                 tabIndex={clickable ? 0 : undefined}
                 onKeyDown={clickable ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onSelectOrder(b.price.toFixed(6), b.amount.toFixed(6), "sell"); } : undefined}
-                className={`relative grid grid-cols-4 py-0.5 text-xs font-mono ${
+                className={`relative grid grid-cols-[1fr_1fr_1fr_1fr_auto] py-0.5 text-xs font-mono ${
                   clickable
                     ? "cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20"
                     : isOwn
@@ -233,6 +240,12 @@ export function OrderBook({
                 </span>
                 <span className="relative text-right text-zinc-500 dark:text-zinc-400">
                   {bidCumulative[i].toFixed(4)}
+                </span>
+                <span
+                  className="relative w-[4.5rem] text-right text-zinc-400 dark:text-zinc-500"
+                  title={b.account}
+                >
+                  {b.account.slice(0, 4)}…{b.account.slice(-4)}
                 </span>
               </div>
             );
