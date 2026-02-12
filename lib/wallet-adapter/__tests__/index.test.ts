@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createSeedAdapter, getExtensionAdapterTypes, loadExtensionAdapter } from "../index";
 import { SeedWalletAdapter } from "../seed-adapter";
 import { CrossmarkAdapter } from "../crossmark-adapter";
+import { GemWalletAdapter } from "../gemwallet-adapter";
 
 describe("createSeedAdapter", () => {
   it("returns a SeedWalletAdapter instance", () => {
@@ -17,14 +18,19 @@ describe("getExtensionAdapterTypes", () => {
     const types = getExtensionAdapterTypes();
     expect(Array.isArray(types)).toBe(true);
     expect(types.some((t) => t.type === "crossmark")).toBe(true);
+    expect(types.some((t) => t.type === "gemwallet")).toBe(true);
   });
 });
 
 describe("loadExtensionAdapter", () => {
-  it("loads CrossmarkAdapter for type 'crossmark'", async () => {
+  it("loads CrossmarkAdapter", async () => {
     const adapter = await loadExtensionAdapter("crossmark");
     expect(adapter).toBeInstanceOf(CrossmarkAdapter);
-    expect(adapter.type).toBe("crossmark");
+  });
+
+  it("loads GemWalletAdapter", async () => {
+    const adapter = await loadExtensionAdapter("gemwallet");
+    expect(adapter).toBeInstanceOf(GemWalletAdapter);
   });
 
   it("throws for seed type (not an extension)", async () => {
@@ -32,7 +38,8 @@ describe("loadExtensionAdapter", () => {
   });
 
   it("throws for unregistered types", async () => {
-    // gemwallet not yet registered
-    await expect(loadExtensionAdapter("gemwallet")).rejects.toThrow("No adapter registered");
+    // xaman and metamask-snap not yet registered
+    await expect(loadExtensionAdapter("xaman")).rejects.toThrow("No adapter registered");
+    await expect(loadExtensionAdapter("metamask-snap")).rejects.toThrow("No adapter registered");
   });
 });

@@ -11,6 +11,9 @@ importers:
       '@crossmarkio/sdk':
         specifier: ^0.4.0
         version: 0.4.0
+      '@gemwallet/api':
+        specifier: ^3.8.0
+        version: 3.8.0
       bignumber.js:
         specifier: ^9.3.1
         version: 9.3.1
@@ -405,6 +408,9 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@gemwallet/api@3.8.0':
+    resolution: {integrity: sha512-hZ6XC0mVm3Q54cgonrzk6tHS/wUMjtPHyqsqbtlnNGPouCR7OIfEDo5Y802qLZ5ah6PskhsK0DouVnwUykEM8Q==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -3283,6 +3289,8 @@ snapshots:
   '@exodus/bytes@1.13.0(@noble/hashes@1.8.0)':
     optionalDependencies:
       '@noble/hashes': 1.8.0
+
+  '@gemwallet/api@3.8.0': {}
 
   '@humanfs/core@0.19.1': {}
 
