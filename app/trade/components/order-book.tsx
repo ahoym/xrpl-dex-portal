@@ -5,7 +5,7 @@ import type { OrderBookEntry, DepthSummary } from "@/lib/types";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 
 /** Depth options for the order book display. Server always scans 400 levels for aggregation. */
-export const DEPTH_OPTIONS = [10, 25, 50] as const;
+export const DEPTH_OPTIONS = [10, 25, 50, 100] as const;
 
 function formatCompact(value: string): string {
   const n = new BigNumber(value);
