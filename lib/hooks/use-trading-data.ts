@@ -50,7 +50,9 @@ export function useTradingData({
   refreshKey,
   customCurrencies,
 }: UseTradingDataOptions) {
-  const { state: { network } } = useAppState();
+  const {
+    state: { network },
+  } = useAppState();
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
   const visible = usePageVisible();
   const pollingMarketData = useRef(false);
@@ -101,7 +103,12 @@ export function useTradingData({
       const key = `${c.currency}|${c.issuer}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      opts.push({ currency: c.currency, issuer: c.issuer, label: `${c.currency} (${c.issuer})`, value: key });
+      opts.push({
+        currency: c.currency,
+        issuer: c.issuer,
+        label: `${c.currency} (${c.issuer})`,
+        value: key,
+      });
     }
 
     return opts;
@@ -125,7 +132,11 @@ export function useTradingData({
         setLoadingTrades(true);
       }
       try {
-        const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net });
+        const params = new URLSearchParams({
+          base_currency: selling.currency,
+          quote_currency: buying.currency,
+          network: net,
+        });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
         if (buying.issuer) params.set("quote_issuer", buying.issuer);
 
@@ -167,25 +178,22 @@ export function useTradingData({
   );
 
   // Fetch account offers
-  const fetchAccountOffers = useCallback(
-    async (addr: string, net: string, silent = false) => {
-      if (!silent) setLoadingOffers(true);
-      try {
-        const res = await fetch(`/api/accounts/${addr}/offers?network=${net}`);
-        const data = await res.json();
-        if (res.ok) {
-          setAccountOffers(data.offers ?? []);
-        } else if (!silent) {
-          setAccountOffers([]);
-        }
-      } catch {
-        if (!silent) setAccountOffers([]);
-      } finally {
-        if (!silent) setLoadingOffers(false);
+  const fetchAccountOffers = useCallback(async (addr: string, net: string, silent = false) => {
+    if (!silent) setLoadingOffers(true);
+    try {
+      const res = await fetch(`/api/accounts/${addr}/offers?network=${net}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAccountOffers(data.offers ?? []);
+      } else if (!silent) {
+        setAccountOffers([]);
       }
-    },
-    [],
-  );
+    } catch {
+      if (!silent) setAccountOffers([]);
+    } finally {
+      if (!silent) setLoadingOffers(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (address) {
@@ -260,12 +268,7 @@ export function useTradingData({
 
   // Fetch filled orders from account transaction history
   const fetchFilledOrders = useCallback(
-    async (
-      addr: string,
-      net: string,
-      selling: CurrencyOption,
-      buying: CurrencyOption,
-    ) => {
+    async (addr: string, net: string, selling: CurrencyOption, buying: CurrencyOption) => {
       setLoadingFilledOrders(true);
       try {
         const res = await fetch(
@@ -275,7 +278,14 @@ export function useTradingData({
         if (res.ok) {
           const txs = (data.transactions ?? []) as Record<string, unknown>[];
           setFilledOrders(
-            parseFilledOrders(txs, addr, selling.currency, selling.issuer, buying.currency, buying.issuer),
+            parseFilledOrders(
+              txs,
+              addr,
+              selling.currency,
+              selling.issuer,
+              buying.currency,
+              buying.issuer,
+            ),
           );
         } else {
           setFilledOrders([]);
