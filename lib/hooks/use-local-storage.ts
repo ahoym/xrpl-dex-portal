@@ -37,7 +37,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         try {
           localStorage.setItem(key, JSON.stringify(resolved));
         } catch (err) {
-          console.warn("localStorage setItem failed:", err);
+          console.debug("localStorage setItem failed:", err);
         }
         return resolved;
       });
@@ -50,7 +50,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     try {
       localStorage.removeItem(key);
     } catch (err) {
-      console.warn("localStorage removeItem failed:", err);
+      console.debug("localStorage removeItem failed:", err);
     }
   }, [key, initialValue]);
 

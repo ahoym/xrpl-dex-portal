@@ -38,7 +38,7 @@ export const DEFAULT_NETWORK: NetworkId = "mainnet";
 
 export function resolveNetwork(network?: string): NetworkId {
   if (network && !(network in NETWORKS)) {
-    console.warn(`Unknown network "${network}", falling back to ${DEFAULT_NETWORK}`);
+    console.debug(`Unknown network "${network}", falling back to ${DEFAULT_NETWORK}`);
   }
   if (network && network in NETWORKS) {
     return network as NetworkId;

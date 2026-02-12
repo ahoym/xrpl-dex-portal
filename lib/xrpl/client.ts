@@ -17,7 +17,7 @@ export async function getClient(network?: string): Promise<Client> {
       await currentClient.connect();
       return currentClient;
     } catch (err) {
-      console.warn("XRPL client reconnect failed:", err);
+      console.error("XRPL client reconnect failed:", err);
     }
   }
 
@@ -26,7 +26,7 @@ export async function getClient(network?: string): Promise<Client> {
     try {
       await currentClient.disconnect();
     } catch (err) {
-      console.warn("XRPL client disconnect failed:", err);
+      console.debug("XRPL client disconnect failed:", err);
     }
   }
 

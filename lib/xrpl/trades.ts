@@ -61,65 +61,71 @@ export async function fetchAndCacheTrades(
   for (const entry of response.result.transactions) {
     if (newTrades.length >= TRADES_CACHE_LIMIT) break;
 
-    const tx = entry.tx_json;
-    const meta = entry.meta as TransactionMetadata | undefined;
-    if (!tx || !meta) continue;
-    if (tx.TransactionType !== "OfferCreate") continue;
-    if (typeof meta === "string") continue;
-    if (meta.TransactionResult !== "tesSUCCESS") continue;
+    try {
+      const tx = entry.tx_json;
+      const meta = entry.meta as TransactionMetadata | undefined;
+      if (!tx || !meta) continue;
+      if (tx.TransactionType !== "OfferCreate") continue;
+      if (typeof meta === "string") continue;
+      if (meta.TransactionResult !== "tesSUCCESS") continue;
 
-    const changes = getBalanceChanges(meta);
+      const changes = getBalanceChanges(meta);
 
-    let baseTotal = new BigNumber(0);
-    let quoteTotal = new BigNumber(0);
+      let baseTotal = new BigNumber(0);
+      let quoteTotal = new BigNumber(0);
 
-    for (const acctChanges of changes) {
-      if (acctChanges.account === issuerAccount) continue;
+      for (const acctChanges of changes) {
+        if (acctChanges.account === issuerAccount) continue;
 
-      for (const bal of acctChanges.balances) {
-        const val = new BigNumber(bal.value);
-        if (val.lte(0)) continue;
+        for (const bal of acctChanges.balances) {
+          const val = new BigNumber(bal.value);
+          if (val.lte(0)) continue;
 
-        if (matchesCurrency(bal, baseCurrency, baseIssuer)) {
-          if (baseCurrency === Assets.XRP && acctChanges.account === tx.Account) {
-            const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
-            baseTotal = baseTotal.plus(val.minus(fee));
-          } else {
-            baseTotal = baseTotal.plus(val);
-          }
-        } else if (matchesCurrency(bal, quoteCurrency, quoteIssuer)) {
-          if (quoteCurrency === Assets.XRP && acctChanges.account === tx.Account) {
-            const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
-            quoteTotal = quoteTotal.plus(val.minus(fee));
-          } else {
-            quoteTotal = quoteTotal.plus(val);
+          if (matchesCurrency(bal, baseCurrency, baseIssuer)) {
+            if (baseCurrency === Assets.XRP && acctChanges.account === tx.Account) {
+              const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
+              baseTotal = baseTotal.plus(val.minus(fee));
+            } else {
+              baseTotal = baseTotal.plus(val);
+            }
+          } else if (matchesCurrency(bal, quoteCurrency, quoteIssuer)) {
+            if (quoteCurrency === Assets.XRP && acctChanges.account === tx.Account) {
+              const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
+              quoteTotal = quoteTotal.plus(val.minus(fee));
+            } else {
+              quoteTotal = quoteTotal.plus(val);
+            }
           }
         }
       }
+
+      if (baseTotal.lte(0) || quoteTotal.lte(0)) continue;
+
+      const takerPays = amountCurrency(tx.TakerPays as Amount);
+      const isBuy =
+        takerPays.currency === baseCurrency &&
+        (baseCurrency === Assets.XRP || takerPays.issuer === baseIssuer);
+
+      const entryAny = entry as unknown as Record<string, unknown>;
+      const time = (entryAny.close_time_iso as string) ?? (entryAny.date as string) ?? "";
+      const hash = (entryAny.hash as string) ?? (tx.hash as string | undefined) ?? "";
+
+      const price = quoteTotal.dividedBy(baseTotal);
+
+      newTrades.push({
+        side: isBuy ? "buy" : "sell",
+        price: price.toPrecision(6),
+        baseAmount: baseTotal.toPrecision(6),
+        quoteAmount: quoteTotal.toPrecision(6),
+        account: tx.Account as string,
+        time,
+        hash,
+      });
+    } catch (err) {
+      const entryAny = entry as unknown as Record<string, unknown>;
+      const hash = (entryAny.hash as string) ?? "unknown";
+      console.warn(`Failed to parse trade transaction ${hash}:`, err);
     }
-
-    if (baseTotal.lte(0) || quoteTotal.lte(0)) continue;
-
-    const takerPays = amountCurrency(tx.TakerPays as Amount);
-    const isBuy =
-      takerPays.currency === baseCurrency &&
-      (baseCurrency === Assets.XRP || takerPays.issuer === baseIssuer);
-
-    const entryAny = entry as unknown as Record<string, unknown>;
-    const time = (entryAny.close_time_iso as string) ?? (entryAny.date as string) ?? "";
-    const hash = (entryAny.hash as string) ?? (tx.hash as string | undefined) ?? "";
-
-    const price = quoteTotal.dividedBy(baseTotal);
-
-    newTrades.push({
-      side: isBuy ? "buy" : "sell",
-      price: price.toPrecision(6),
-      baseAmount: baseTotal.toPrecision(6),
-      quoteAmount: quoteTotal.toPrecision(6),
-      account: tx.Account as string,
-      time,
-      hash,
-    });
   }
 
   // Merge new trades into cache, dedup by hash, sort by time desc, cap at limit
