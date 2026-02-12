@@ -33,7 +33,7 @@ export function TrustLineManagement({
   const xrpBalance = parseFloat(
     balances.find((b) => b.currency === Assets.XRP)?.value ?? "0",
   );
-  const hasSufficientXrp = xrpBalance >= 1;
+  const hasSufficientXrp = xrpBalance >= 2;
 
   const wellKnown = WELL_KNOWN_CURRENCIES[network] ?? {};
 
@@ -86,7 +86,7 @@ export function TrustLineManagement({
         <p className={`mt-0.5 text-xs ${hasSufficientXrp ? "text-zinc-400 dark:text-zinc-500" : "text-amber-600 dark:text-amber-400"}`}>
           {hasSufficientXrp
             ? "Manage trust lines for issued currencies"
-            : "Wallet needs at least 1 XRP before adding trust lines"}
+            : "Wallet needs at least 2 XRP before adding trust lines"}
         </p>
       </div>
 
