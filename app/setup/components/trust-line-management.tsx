@@ -25,7 +25,7 @@ export function TrustLineManagement({
   refreshKey,
   onRefresh,
 }: TrustLineManagementProps) {
-  const { setTrustline: adapterSetTrustline } = useWalletAdapter();
+  const { adapter, setTrustline: adapterSetTrustline } = useWalletAdapter();
   const { lines, loading, error } = useFetchTrustLines(wallet.address, network, refreshKey);
   const { balances } = useBalances(wallet.address, network, refreshKey);
   const [trusting, setTrusting] = useState<string | null>(null);
@@ -112,7 +112,9 @@ export function TrustLineManagement({
                   }`}
                 >
                   {trusting === key
-                    ? "Creating..."
+                    ? adapter && adapter.type !== "seed"
+                      ? `Confirm in ${adapter.displayName}...`
+                      : "Creating..."
                     : exists
                       ? `${currency} (trusted)`
                       : `Trust ${currency}`}

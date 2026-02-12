@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Wallet } from "xrpl";
 import type { WalletInfo, PersistedState } from "@/lib/types";
 import { useWalletGeneration } from "@/lib/hooks/use-wallet-generation";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { ExplorerLink } from "@/app/components/explorer-link";
 import { SecretField } from "./secret-field";
 import { WalletConnector } from "./wallet-connector";
@@ -18,8 +19,10 @@ interface WalletSetupProps {
 
 export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSetupProps) {
   const { loading: generating, error: generateError, generate } = useWalletGeneration();
+  const { needsReconnect, connectWallet, connecting, disconnectWallet } = useWalletAdapter();
   const [importSeed, setImportSeed] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
+  const [reconnectError, setReconnectError] = useState<string | null>(null);
 
   function handleImport() {
     const seed = importSeed.trim();
@@ -57,10 +60,40 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
             <span className="font-mono text-xs">{wallet.publicKey}</span>
           </p>
         </div>
-        {wallet.type !== "seed" && (
+        {wallet.type !== "seed" && !needsReconnect && (
           <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">
             Connected via {wallet.type === "crossmark" ? "Crossmark" : wallet.type === "gemwallet" ? "GemWallet" : wallet.type === "xaman" ? "Xaman" : wallet.type === "metamask-snap" ? "MetaMask" : wallet.type}
           </p>
+        )}
+        {needsReconnect && wallet.type !== "seed" && (
+          <div className="mt-3 border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/50">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+              Wallet session expired. Reconnect to sign transactions.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={async () => {
+                  setReconnectError(null);
+                  try {
+                    await connectWallet(wallet.type, network);
+                  } catch (err) {
+                    setReconnectError(err instanceof Error ? err.message : "Reconnection failed");
+                  }
+                }}
+                disabled={connecting}
+                className="bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-500 active:scale-[0.98] disabled:opacity-50"
+              >
+                {connecting ? "Reconnecting..." : "Reconnect"}
+              </button>
+              <button
+                onClick={() => disconnectWallet()}
+                className={`${dangerButtonClass} px-3 py-1.5 text-xs`}
+              >
+                Disconnect
+              </button>
+            </div>
+            {reconnectError && <p className={`mt-1 ${errorTextClass}`}>{reconnectError}</p>}
+          </div>
         )}
         {children}
         <button

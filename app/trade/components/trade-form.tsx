@@ -52,7 +52,7 @@ export function TradeForm({
   onSubmitted,
 }: TradeFormProps) {
   const { state: { network } } = useAppState();
-  const { createOffer: adapterCreateOffer } = useWalletAdapter();
+  const { adapter, createOffer: adapterCreateOffer } = useWalletAdapter();
   const [tab, setTab] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
@@ -330,7 +330,9 @@ export function TradeForm({
             }`}
           >
             {submitting
-              ? "Placing..."
+              ? adapter && adapter.type !== "seed"
+                ? `Confirm in ${adapter.displayName}...`
+                : "Placing..."
               : tab === "buy"
                 ? "Place Buy Order"
                 : "Place Sell Order"}

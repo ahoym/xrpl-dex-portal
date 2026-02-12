@@ -1,12 +1,27 @@
 "use client";
 
 import type { PersistedState } from "@/lib/types";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 
 interface SecurityWarningProps {
   network: PersistedState["network"];
 }
 
 export function SecurityWarning({ network }: SecurityWarningProps) {
+  const { adapter } = useWalletAdapter();
+  const isExtensionWallet = adapter !== null && adapter.type !== "seed";
+
+  if (isExtensionWallet) {
+    return (
+      <div className="border border-green-200 bg-green-50 px-5 py-4 shadow-sm dark:border-green-800 dark:bg-green-950/50">
+        <p className="text-sm text-green-800 dark:text-green-200">
+          <strong>Connected via {adapter.displayName}.</strong> Your keys are managed
+          by the wallet extension — no seed is stored in this browser.
+        </p>
+      </div>
+    );
+  }
+
   if (network === "mainnet") {
     return (
       <div className="border border-red-300 bg-red-50 px-5 py-4 shadow-sm dark:border-red-800 dark:bg-red-950/50">

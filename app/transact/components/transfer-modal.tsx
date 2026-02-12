@@ -27,7 +27,7 @@ export function TransferModal({
   onClose,
 }: TransferModalProps) {
   const { state: { network } } = useAppState();
-  const { sendPayment: adapterSendPayment } = useWalletAdapter();
+  const { adapter, sendPayment: adapterSendPayment } = useWalletAdapter();
   const { balances, loading: loadingBalances } = useBalances(sender.address, network);
   const [selectedCurrency, setSelectedCurrency] = useState("");
   const [amount, setAmount] = useState("");
@@ -283,7 +283,11 @@ export function TransferModal({
             disabled={!canSubmit}
             className="w-full bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-500 hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:hover:shadow-sm disabled:active:scale-100"
           >
-            {submitting ? "Sending..." : "Send"}
+            {submitting
+              ? adapter && adapter.type !== "seed"
+                ? `Confirm in ${adapter.displayName}...`
+                : "Sending..."
+              : "Send"}
           </button>
         </form>
       )}

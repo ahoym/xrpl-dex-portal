@@ -16,7 +16,7 @@ export function CustomTrustLineForm({
   network,
   onSuccess,
 }: CustomTrustLineFormProps) {
-  const { setTrustline: adapterSetTrustline } = useWalletAdapter();
+  const { adapter, setTrustline: adapterSetTrustline } = useWalletAdapter();
   const [customIssuer, setCustomIssuer] = useState("");
   const [customCurrency, setCustomCurrency] = useState("");
   const [customLimit, setCustomLimit] = useState(DEFAULT_TRUST_LINE_LIMIT);
@@ -92,7 +92,11 @@ export function CustomTrustLineForm({
         disabled={customTrusting}
         className={`${primaryButtonClass} px-3 py-1.5 text-xs`}
       >
-        {customTrusting ? "Creating..." : "Create Trust Line"}
+        {customTrusting
+          ? adapter && adapter.type !== "seed"
+            ? `Confirm in ${adapter.displayName}...`
+            : "Creating..."
+          : "Create Trust Line"}
       </button>
       {customTrustError && (
         <p className={errorTextClass}>{customTrustError}</p>

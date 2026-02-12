@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useCallback, useState } from "react";
+import { createContext, useContext, useMemo, useCallback, useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { WalletType } from "../types";
 import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "../wallet-adapter/types";
@@ -17,6 +17,8 @@ interface WalletAdapterContextValue {
   readonly adapter: WalletAdapter | null;
   /** Whether a wallet connection is in progress. */
   readonly connecting: boolean;
+  /** True when persisted wallet is an extension type but the adapter session was lost (e.g. page reload). */
+  readonly needsReconnect: boolean;
   /** Active Xaman QR payload for signing (null when not signing via Xaman). */
   readonly xamanPayload: XamanPayload | null;
 
@@ -39,6 +41,24 @@ export function WalletAdapterProvider({ children }: { children: ReactNode }) {
   const [extensionAdapter, setExtensionAdapter] = useState<WalletAdapter | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [xamanPayload, setXamanPayload] = useState<XamanPayload | null>(null);
+  const prevNetworkRef = useRef(state.network);
+
+  // Disconnect extension wallet when the user switches networks
+  useEffect(() => {
+    if (prevNetworkRef.current !== state.network && extensionAdapter) {
+      extensionAdapter.disconnect();
+      setExtensionAdapter(null);
+      setXamanPayload(null);
+    }
+    prevNetworkRef.current = state.network;
+  }, [state.network, extensionAdapter]);
+
+  // Detect stale extension wallet after page reload
+  const needsReconnect = useMemo(() => {
+    const wallet = state.wallet;
+    if (!wallet || wallet.type === "seed") return false;
+    return extensionAdapter === null;
+  }, [state.wallet, extensionAdapter]);
 
   // Build the active adapter based on wallet type
   const adapter = useMemo<WalletAdapter | null>(() => {
@@ -107,6 +127,7 @@ export function WalletAdapterProvider({ children }: { children: ReactNode }) {
   const value: WalletAdapterContextValue = {
     adapter,
     connecting,
+    needsReconnect,
     xamanPayload,
     connectWallet,
     disconnectWallet,
