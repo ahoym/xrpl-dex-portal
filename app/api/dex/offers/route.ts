@@ -4,7 +4,7 @@ import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { toXrplAmount } from "@/lib/xrpl/currency";
 import { resolveOfferFlags, VALID_OFFER_FLAGS } from "@/lib/xrpl/offers";
-import { validateRequired, walletFromSeed, validateDexAmount, txFailureResponse, apiErrorResponse } from "@/lib/api";
+import { validateRequired, requireWallet, validateDexAmount, txFailureResponse, apiErrorResponse } from "@/lib/api";
 import type { CreateOfferRequest, OfferFlag, ApiError } from "@/lib/xrpl/types";
 
 export async function POST(request: NextRequest) {
@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const seedResult = walletFromSeed(body.seed);
-    if ("error" in seedResult) return seedResult.error;
-    const wallet = seedResult.wallet;
+    const walletResult = requireWallet(body.seed);
+    if ("error" in walletResult) return walletResult.error;
+    const wallet = walletResult.wallet;
 
     const client = await getClient(resolveNetwork(body.network));
 

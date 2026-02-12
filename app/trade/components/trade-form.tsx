@@ -10,7 +10,6 @@ import { getSigningLoadingText, extractErrorMessage } from "@/lib/wallet-ui";
 import type { OfferFlag } from "@/lib/xrpl/types";
 import { toRippleEpoch } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass, SUCCESS_MESSAGE_DURATION_MS } from "@/lib/ui/ui";
-import { buildDexAmount } from "@/lib/xrpl/build-dex-amount";
 import { CustomSelect } from "@/app/components/custom-select";
 
 interface CurrencyOption {
@@ -124,27 +123,19 @@ export function TradeForm({
     let takerPays;
 
     if (tab === "buy") {
-      takerGets = buildDexAmount(
-        buyingCurrency.currency,
-        buyingCurrency.issuer,
-        total,
-      );
-      takerPays = buildDexAmount(
-        sellingCurrency.currency,
-        sellingCurrency.issuer,
-        amount,
-      );
+      takerGets = buyingCurrency.currency === "XRP"
+        ? { currency: "XRP", value: total }
+        : { currency: buyingCurrency.currency, issuer: buyingCurrency.issuer, value: total };
+      takerPays = sellingCurrency.currency === "XRP"
+        ? { currency: "XRP", value: amount }
+        : { currency: sellingCurrency.currency, issuer: sellingCurrency.issuer, value: amount };
     } else {
-      takerGets = buildDexAmount(
-        sellingCurrency.currency,
-        sellingCurrency.issuer,
-        amount,
-      );
-      takerPays = buildDexAmount(
-        buyingCurrency.currency,
-        buyingCurrency.issuer,
-        total,
-      );
+      takerGets = sellingCurrency.currency === "XRP"
+        ? { currency: "XRP", value: amount }
+        : { currency: sellingCurrency.currency, issuer: sellingCurrency.issuer, value: amount };
+      takerPays = buyingCurrency.currency === "XRP"
+        ? { currency: "XRP", value: total }
+        : { currency: buyingCurrency.currency, issuer: buyingCurrency.issuer, value: total };
     }
 
     const flags = buildFlags();

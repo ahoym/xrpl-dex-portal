@@ -67,6 +67,23 @@ export function walletFromSeed(seed: string): { wallet: Wallet } | { error: Resp
   }
 }
 
+/**
+ * Derive a Wallet from a seed, optionally verifying it matches an expected address.
+ * Combines walletFromSeed + validateSeedMatchesAddress into one call.
+ */
+export function requireWallet(
+  seed: string,
+  expectedAddress?: string,
+): { wallet: Wallet } | { error: Response } {
+  const result = walletFromSeed(seed);
+  if ("error" in result) return result;
+  if (expectedAddress) {
+    const mismatch = validateSeedMatchesAddress(result.wallet, expectedAddress);
+    if (mismatch) return { error: mismatch };
+  }
+  return result;
+}
+
 // ---------------------------------------------------------------------------
 // Address validation
 // ---------------------------------------------------------------------------

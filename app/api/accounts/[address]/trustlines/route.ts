@@ -3,7 +3,7 @@ import { TrustSet } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { getNetworkParam, validateRequired, walletFromSeed, validateAddress, validateSeedMatchesAddress, txFailureResponse, apiErrorResponse, isAccountNotFound } from "@/lib/api";
+import { getNetworkParam, validateRequired, requireWallet, validateAddress, txFailureResponse, apiErrorResponse, isAccountNotFound } from "@/lib/api";
 import type { TrustLineRequest } from "@/lib/xrpl/types";
 
 export async function GET(
@@ -60,12 +60,9 @@ export async function POST(
 
     const client = await getClient(resolveNetwork(body.network));
 
-    const seedResult = walletFromSeed(body.seed);
-    if ("error" in seedResult) return seedResult.error;
-    const wallet = seedResult.wallet;
-
-    const mismatch = validateSeedMatchesAddress(wallet, address);
-    if (mismatch) return mismatch;
+    const walletResult = requireWallet(body.seed, address);
+    if ("error" in walletResult) return walletResult.error;
+    const wallet = walletResult.wallet;
 
     const trustSet: TrustSet = {
       TransactionType: "TrustSet",

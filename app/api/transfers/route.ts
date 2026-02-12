@@ -3,7 +3,7 @@ import { Payment, xrpToDrops } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { validateRequired, walletFromSeed, validateAddress, validateDexAmount, txFailureResponse, apiErrorResponse } from "@/lib/api";
+import { validateRequired, requireWallet, validateAddress, validateDexAmount, txFailureResponse, apiErrorResponse } from "@/lib/api";
 import type { TransferRequest } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
     const invalid = validateRequired(body as unknown as Record<string, unknown>, ["senderSeed", "recipientAddress", "currencyCode", "amount"]);
     if (invalid) return invalid;
 
-    const seedResult = walletFromSeed(body.senderSeed);
-    if ("error" in seedResult) return seedResult.error;
-    const senderWallet = seedResult.wallet;
+    const walletResult = requireWallet(body.senderSeed);
+    if ("error" in walletResult) return walletResult.error;
+    const senderWallet = walletResult.wallet;
 
     const badRecipient = validateAddress(body.recipientAddress, "recipientAddress");
     if (badRecipient) return badRecipient;
