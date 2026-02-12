@@ -23,6 +23,35 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
   const [importSeed, setImportSeed] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const [reconnectError, setReconnectError] = useState<string | null>(null);
+  const [funding, setFunding] = useState(false);
+  const [fundResult, setFundResult] = useState<string | null>(null);
+  const [fundError, setFundError] = useState<string | null>(null);
+
+  const hasFaucet = network !== "mainnet";
+
+  async function handleFundFromFaucet() {
+    if (!wallet) return;
+    setFunding(true);
+    setFundResult(null);
+    setFundError(null);
+    try {
+      const res = await fetch(`/api/accounts/${wallet.address}/fund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ network }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFundError(data.error ?? "Faucet request failed");
+      } else {
+        setFundResult(`Funded ${data.amount} XRP`);
+      }
+    } catch {
+      setFundError("Network error — could not reach faucet");
+    } finally {
+      setFunding(false);
+    }
+  }
 
   function handleImport() {
     const seed = importSeed.trim();
@@ -93,6 +122,19 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
               </button>
             </div>
             {reconnectError && <p className={`mt-1 ${errorTextClass}`}>{reconnectError}</p>}
+          </div>
+        )}
+        {hasFaucet && (
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              onClick={handleFundFromFaucet}
+              disabled={funding}
+              className="bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50"
+            >
+              {funding ? "Requesting..." : "Fund from Faucet"}
+            </button>
+            {fundResult && <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">{fundResult}</span>}
+            {fundError && <span className={`text-xs ${errorTextClass}`}>{fundError}</span>}
           </div>
         )}
         {children}
