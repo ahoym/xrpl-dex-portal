@@ -9,6 +9,7 @@ import { ExplorerLink } from "@/app/components/explorer-link";
 import { SecretField } from "./secret-field";
 import { WalletConnector } from "./wallet-connector";
 import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
+import { getWalletLogo, getWalletDisplayName } from "@/lib/wallet-ui";
 
 interface WalletSetupProps {
   wallet: WalletInfo | null;
@@ -92,9 +93,16 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
           )}
         </div>
         {wallet.type !== "seed" && !needsReconnect && (
-          <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">
-            Connected via {wallet.type === "crossmark" ? "Crossmark" : wallet.type === "gemwallet" ? "GemWallet" : wallet.type === "xaman" ? "Xaman" : wallet.type === "metamask-snap" ? "MetaMask" : wallet.type}
-          </p>
+          <div className="mt-2 flex items-center gap-1.5">
+            <img
+              src={getWalletLogo(wallet.type)}
+              alt={`${getWalletDisplayName(wallet.type)} logo`}
+              className="h-4 w-4"
+            />
+            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              Connected via {getWalletDisplayName(wallet.type)}
+            </p>
+          </div>
         )}
         {needsReconnect && wallet.type !== "seed" && (
           <div className="mt-3 border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/50">

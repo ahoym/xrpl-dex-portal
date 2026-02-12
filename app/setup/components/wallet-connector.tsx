@@ -5,6 +5,7 @@ import type { WalletType } from "@/lib/types";
 import { getExtensionAdapterTypes, loadExtensionAdapter } from "@/lib/wallet-adapter";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { errorTextClass } from "@/lib/ui/ui";
+import { getWalletLogo } from "@/lib/wallet-ui";
 
 interface DetectedWallet {
   type: WalletType;
@@ -14,18 +15,6 @@ interface DetectedWallet {
 
 interface WalletConnectorProps {
   network: string;
-}
-
-function getWalletLogo(type: WalletType): string {
-  // Map wallet type to logo filename
-  const logoMap: Record<WalletType, string> = {
-    seed: "",
-    crossmark: "crossmark",
-    gemwallet: "gemwallet",
-    xaman: "xaman",
-    "metamask-snap": "metamask",
-  };
-  return logoMap[type] ? `/wallets/${logoMap[type]}.svg` : "";
 }
 
 export function WalletConnector({ network }: WalletConnectorProps) {
