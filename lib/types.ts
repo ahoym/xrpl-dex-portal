@@ -41,6 +41,8 @@ export interface OrderBookEntry {
   account: string;
   taker_gets: OrderBookAmount;
   taker_pays: OrderBookAmount;
+  taker_gets_funded?: OrderBookAmount;
+  taker_pays_funded?: OrderBookAmount;
   quality: string;
   sequence: number;
 }

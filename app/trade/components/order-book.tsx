@@ -47,22 +47,24 @@ export function OrderBook({
   ];
 
   // Asks: creator sells base (taker_gets = base)
+  // Use funded amounts when available to reflect actual fillable size
   const asks = allOffers
     .filter((o) => matchesCurrency(o.taker_gets, baseCurrency, baseIssuer))
     .map((o) => {
-      const amount = new BigNumber(o.taker_gets.value);
-      const total = new BigNumber(o.taker_pays.value);
+      const amount = new BigNumber((o.taker_gets_funded ?? o.taker_gets).value);
+      const total = new BigNumber((o.taker_pays_funded ?? o.taker_pays).value);
       const price = amount.gt(0) ? total.div(amount) : new BigNumber(0);
       return { price, amount, total, account: o.account };
     });
   asks.sort((a, b) => b.price.comparedTo(a.price) ?? 0);
 
   // Bids: creator buys base (taker_pays = base, taker_gets = quote)
+  // Use funded amounts when available to reflect actual fillable size
   const bids = allOffers
     .filter((o) => matchesCurrency(o.taker_pays, baseCurrency, baseIssuer))
     .map((o) => {
-      const amount = new BigNumber(o.taker_pays.value);
-      const total = new BigNumber(o.taker_gets.value);
+      const amount = new BigNumber((o.taker_pays_funded ?? o.taker_pays).value);
+      const total = new BigNumber((o.taker_gets_funded ?? o.taker_gets).value);
       const price = amount.gt(0) ? total.div(amount) : new BigNumber(0);
       return { price, amount, total, account: o.account };
     });
