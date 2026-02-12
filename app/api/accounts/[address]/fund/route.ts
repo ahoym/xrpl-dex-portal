@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
-import { isValidClassicAddress } from "xrpl";
 import { NETWORKS, resolveNetwork } from "@/lib/xrpl/networks";
-import { apiErrorResponse } from "@/lib/api";
+import { apiErrorResponse, validateAddress } from "@/lib/api";
 import type { ApiError } from "@/lib/xrpl/types";
 
 export async function POST(
@@ -13,12 +12,8 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const networkId = resolveNetwork(body.network);
 
-    if (!isValidClassicAddress(address)) {
-      return Response.json(
-        { error: "Invalid address" } satisfies ApiError,
-        { status: 400 },
-      );
-    }
+    const badAddress = validateAddress(address, "address");
+    if (badAddress) return badAddress;
 
     const faucet = NETWORKS[networkId].faucet;
     if (!faucet) {

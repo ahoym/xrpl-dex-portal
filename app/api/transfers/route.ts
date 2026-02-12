@@ -3,7 +3,7 @@ import { Payment, xrpToDrops } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { validateRequired, walletFromSeed, validateAddress, validatePositiveAmount, getTransactionResult, apiErrorResponse } from "@/lib/api";
+import { validateRequired, walletFromSeed, validateAddress, validateDexAmount, getTransactionResult, apiErrorResponse } from "@/lib/api";
 import type { TransferRequest, ApiError } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -34,26 +34,14 @@ export async function POST(request: NextRequest) {
     const badRecipient = validateAddress(body.recipientAddress, "recipientAddress");
     if (badRecipient) return badRecipient;
 
-    const badAmount = validatePositiveAmount(body.amount, "amount");
+    const badAmount = validateDexAmount(
+      { currency: body.currencyCode, value: body.amount, issuer: body.issuerAddress },
+      "amount",
+    );
     if (badAmount) return badAmount;
 
-    const isXrp = body.currencyCode === Assets.XRP;
-
-    if (!isXrp && !body.issuerAddress) {
-      return Response.json(
-        {
-          error: "issuerAddress is required for non-XRP transfers",
-        } satisfies ApiError,
-        { status: 400 },
-      );
-    }
-
-    if (!isXrp && body.issuerAddress) {
-      const badIssuer = validateAddress(body.issuerAddress, "issuerAddress");
-      if (badIssuer) return badIssuer;
-    }
-
     const client = await getClient(resolveNetwork(body.network));
+    const isXrp = body.currencyCode === Assets.XRP;
 
     const payment: Payment = {
       TransactionType: "Payment",

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { Wallet, isValidClassicAddress } from "xrpl";
 import type { TxResponse } from "xrpl";
-import type { ApiError } from "./xrpl/types";
+import type { ApiError, DexAmount } from "./xrpl/types";
 import { Assets } from "./assets";
 
 // ---------------------------------------------------------------------------
@@ -11,6 +11,20 @@ import { Assets } from "./assets";
 /** Extract the optional `network` query param from a NextRequest. */
 export function getNetworkParam(request: NextRequest): string | undefined {
   return request.nextUrl.searchParams.get("network") ?? undefined;
+}
+
+/**
+ * Parse an integer query parameter, falling back to `defaultValue` when the
+ * param is missing or not a valid integer, and clamping to `maxValue`.
+ */
+export function parseIntQueryParam(
+  searchParams: URLSearchParams,
+  key: string,
+  defaultValue: number,
+  maxValue: number,
+): number {
+  const raw = parseInt(searchParams.get(key) ?? "", 10);
+  return Math.min(Number.isNaN(raw) ? defaultValue : raw, maxValue);
 }
 
 /**
@@ -103,6 +117,46 @@ export function validatePositiveAmount(amount: string, fieldName: string): Respo
 }
 
 // ---------------------------------------------------------------------------
+// DexAmount validation
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate a DexAmount object (currency + value + optional issuer).
+ * Returns a 400 Response on the first validation failure, or null if valid.
+ *
+ * Checks:
+ * 1. `currency` and `value` are present
+ * 2. Non-XRP currencies have an `issuer`
+ * 3. The `issuer` (when present) is a valid XRPL classic address
+ * 4. The `value` is a finite positive number
+ */
+export function validateDexAmount(amount: DexAmount, fieldName: string): Response | null {
+  if (!amount.currency || !amount.value) {
+    return Response.json(
+      { error: `${fieldName} must include currency and value` } satisfies ApiError,
+      { status: 400 },
+    );
+  }
+
+  if (amount.currency !== Assets.XRP && !amount.issuer) {
+    return Response.json(
+      { error: `${fieldName}.issuer is required for non-XRP currencies` } satisfies ApiError,
+      { status: 400 },
+    );
+  }
+
+  if (amount.currency !== Assets.XRP && amount.issuer) {
+    const bad = validateAddress(amount.issuer, `${fieldName}.issuer address`);
+    if (bad) return bad;
+  }
+
+  const bad = validatePositiveAmount(amount.value, `${fieldName}.value`);
+  if (bad) return bad;
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Currency pair validation (orderbook / trades)
 // ---------------------------------------------------------------------------
 
@@ -180,7 +234,7 @@ export function getTransactionResult(meta: unknown): string | undefined {
 }
 
 /**
- * Return a 422 error Response if the transaction failed, or null on success.
+ * Return a 400 error Response if the transaction failed, or null on success.
  * Replaces the common 5-line result-check pattern in API routes.
  */
 export function txFailureResponse(result: TxResponse): Response | null {
@@ -188,7 +242,7 @@ export function txFailureResponse(result: TxResponse): Response | null {
   if (txResult && txResult !== "tesSUCCESS") {
     return Response.json(
       { error: `Transaction failed: ${txResult}`, result: result.result },
-      { status: 422 },
+      { status: 400 },
     );
   }
   return null;
