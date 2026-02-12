@@ -68,9 +68,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     remove: removeContacts,
   } = useLocalStorage<Contact[]>(contactsKey(network), []);
 
+  // Migrate legacy wallets that lack a `type` field (pre-wallet-adapter data)
+  const migratedWallet = (() => {
+    const w = networkData.wallet;
+    if (!w) return null;
+    if (w.type) return w;
+    return { ...w, type: "seed" as const };
+  })();
+
   const state: PersistedState = {
     network,
-    wallet: networkData.wallet ?? null,
+    wallet: migratedWallet,
   };
 
   const setNetwork = useCallback(

@@ -30,8 +30,9 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
       const w = Wallet.fromSeed(seed);
       onSetWallet({
         address: w.address,
-        seed: w.seed!,
         publicKey: w.publicKey,
+        type: "seed",
+        seed: w.seed!,
       });
       setImportSeed("");
       setImportError(null);
@@ -49,7 +50,7 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
             <span className="text-zinc-400 dark:text-zinc-500">Address: </span>
             <ExplorerLink address={wallet.address} />
           </p>
-          <SecretField label="Seed" value={wallet.seed} />
+          {wallet.seed && <SecretField label="Seed" value={wallet.seed} />}
           <p className="break-all">
             <span className="text-zinc-400 dark:text-zinc-500">Public Key: </span>
             <span className="font-mono text-xs">{wallet.publicKey}</span>

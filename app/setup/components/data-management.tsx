@@ -32,12 +32,13 @@ export function DataManagement({ state, contacts, onImport, onClear }: DataManag
         try {
           const parsed = JSON.parse(reader.result as string);
 
-          const isWallet = (w: unknown): boolean =>
-            !!w &&
-            typeof w === "object" &&
-            typeof (w as Record<string, unknown>).address === "string" &&
-            typeof (w as Record<string, unknown>).seed === "string" &&
-            typeof (w as Record<string, unknown>).publicKey === "string";
+          const isWallet = (w: unknown): boolean => {
+            if (!w || typeof w !== "object") return false;
+            const obj = w as Record<string, unknown>;
+            if (typeof obj.address !== "string" || typeof obj.publicKey !== "string") return false;
+            // Seed wallets require seed; extension wallets require type
+            return typeof obj.seed === "string" || typeof obj.type === "string";
+          };
 
           if (
             !parsed ||
@@ -45,7 +46,7 @@ export function DataManagement({ state, contacts, onImport, onClear }: DataManag
             !("wallet" in parsed) ||
             (parsed.wallet !== null && !isWallet(parsed.wallet))
           ) {
-            alert("Invalid file: network must be testnet, devnet, or mainnet, and wallet must have address, seed, and publicKey.");
+            alert("Invalid file: network must be testnet, devnet, or mainnet, and wallet must have address and publicKey.");
             return;
           }
 

@@ -140,7 +140,7 @@ export function TrustLineManagement({
         {showCustomForm && (
           <CustomTrustLineForm
             recipientAddress={wallet.address}
-            recipientSeed={wallet.seed}
+            recipientSeed={wallet.seed ?? ""}
             network={network}
             onSuccess={onRefresh}
           />
