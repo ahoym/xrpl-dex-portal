@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { createContext, useContext, useState, useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useLocalStorage } from "./use-local-storage";
 import type { PersistedState, WalletInfo, Contact } from "../types";
@@ -41,19 +41,19 @@ interface AppStateValue {
 const AppStateContext = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [network, setNetworkRaw] = useState<PersistedState["network"]>(DEFAULT_NETWORK);
-
-  // Hydrate network from localStorage after mount to avoid SSR mismatch
-  useEffect(() => {
+  // Hydrate network from localStorage on mount to avoid SSR mismatch
+  const [network, setNetworkRaw] = useState<PersistedState["network"]>(() => {
+    if (typeof window === "undefined") return DEFAULT_NETWORK;
     try {
       const stored = localStorage.getItem(NETWORK_KEY);
       if (stored === "testnet" || stored === "devnet" || stored === "mainnet") {
-        setNetworkRaw(stored);
+        return stored;
       }
     } catch {
       // ignore
     }
-  }, []);
+    return DEFAULT_NETWORK;
+  });
 
   const {
     value: networkData,

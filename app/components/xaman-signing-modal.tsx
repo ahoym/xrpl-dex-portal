@@ -21,7 +21,7 @@ export function XamanSigningModal({ payload }: XamanSigningModalProps) {
         {qrError ? (
           <div className="flex h-64 w-64 flex-col items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700">
             <p className="text-sm text-red-600 dark:text-red-400">Failed to generate QR code</p>
-            <p className="text-xs text-zinc-500">Use the "Open in Xaman" button below</p>
+            <p className="text-xs text-zinc-500">Use the &quot;Open in Xaman&quot; button below</p>
           </div>
         ) : qrDataUrl ? (
           <img
