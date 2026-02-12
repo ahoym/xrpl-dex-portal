@@ -146,11 +146,14 @@ test.describe.serial("Trade page", () => {
       hasText: /\d+\.\d{4,}/,
     });
 
-    const rowCount = await orderBookRows.count();
-
-    // Skip the test if there are no clickable order book rows
-    // (an empty order book on testnet is possible)
-    if (rowCount === 0) {
+    // Wait for clickable order book rows to appear. The component renders
+    // "No asks"/"No bids" both while loading AND when empty, so we can't use
+    // those as a "loaded" signal. Instead, give the data time to arrive.
+    try {
+      await orderBookRows.first().waitFor({ timeout: 15_000 });
+    } catch {
+      // Timed out — take a debug screenshot then skip.
+      await page.screenshot({ path: "test-results/orderbook-prefill-debug.png", fullPage: true });
       test.skip(true, "No clickable order book rows available");
       return;
     }
