@@ -16,6 +16,18 @@ interface WalletConnectorProps {
   network: string;
 }
 
+function getWalletLogo(type: WalletType): string {
+  // Map wallet type to logo filename
+  const logoMap: Record<WalletType, string> = {
+    seed: "",
+    crossmark: "crossmark",
+    gemwallet: "gemwallet",
+    xaman: "xaman",
+    "metamask-snap": "metamask",
+  };
+  return logoMap[type] ? `/wallets/${logoMap[type]}.svg` : "";
+}
+
 export function WalletConnector({ network }: WalletConnectorProps) {
   const { connectWallet, connecting } = useWalletAdapter();
   const [wallets, setWallets] = useState<DetectedWallet[]>([]);
@@ -74,13 +86,18 @@ export function WalletConnector({ network }: WalletConnectorProps) {
             key={w.type}
             onClick={() => handleConnect(w.type)}
             disabled={!w.available || connecting || connectingType !== null}
-            className={`px-4 py-2 text-sm font-semibold shadow-sm active:scale-[0.98] ${
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold shadow-sm active:scale-[0.98] ${
               w.available
                 ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-md disabled:opacity-50"
                 : "bg-zinc-200 text-zinc-400 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-600"
             }`}
             title={w.available ? `Connect ${w.displayName}` : `${w.displayName} not detected`}
           >
+            <img
+              src={getWalletLogo(w.type)}
+              alt={`${w.displayName} logo`}
+              className="h-5 w-5"
+            />
             {connectingType === w.type
               ? "Connecting..."
               : w.available
