@@ -143,19 +143,39 @@ export class MetaMaskSnapAdapter implements WalletAdapter {
     }
 
     try {
-      const result = (await this.invokeSnap(ethereum, "xrpl_signAndSubmit", tx)) as {
-        tx_json?: { hash?: string };
-        engine_result?: string;
-        engine_result_code?: number;
-      };
+      const raw = await this.invokeSnap(ethereum, "xrpl_signAndSubmit", tx);
 
-      const hash = result?.tx_json?.hash ?? "";
-      const engineResult = result?.engine_result ?? "";
+      if (!raw || typeof raw !== "object") {
+        throw new Error("MetaMask Snap returned an empty response");
+      }
+
+      const resp = raw as Record<string, unknown>;
+
+      // MetaMask may return snap errors as resolved values instead of rejections
+      if ("code" in resp && typeof resp.code === "number" && "message" in resp) {
+        throw new Error((resp.message as string) || "Transaction failed in MetaMask Snap");
+      }
+
+      // The XRPL submit response may arrive wrapped: { result: { engine_result, ... } }
+      const inner =
+        typeof resp.result === "object" && resp.result !== null
+          ? (resp.result as Record<string, unknown>)
+          : resp;
+
+      const engineResult = (inner.engine_result as string) ?? (resp.engine_result as string) ?? "";
+      const txJson = (inner.tx_json ?? resp.tx_json) as { hash?: string } | undefined;
+      const hash = txJson?.hash ?? (inner.hash as string) ?? "";
+
+      if (!engineResult) {
+        throw new Error(
+          `Unexpected response from MetaMask Snap (keys: ${Object.keys(resp).join(", ")})`,
+        );
+      }
 
       return {
         hash,
         success: engineResult === "tesSUCCESS",
-        resultCode: engineResult || undefined,
+        resultCode: engineResult,
       };
     } catch (err: unknown) {
       // MetaMask user rejection is code 4001
