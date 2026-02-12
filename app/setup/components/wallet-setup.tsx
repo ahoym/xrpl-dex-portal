@@ -6,6 +6,7 @@ import type { WalletInfo, PersistedState } from "@/lib/types";
 import { useWalletGeneration } from "@/lib/hooks/use-wallet-generation";
 import { ExplorerLink } from "@/app/components/explorer-link";
 import { SecretField } from "./secret-field";
+import { WalletConnector } from "./wallet-connector";
 import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
 
 interface WalletSetupProps {
@@ -56,16 +57,24 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
             <span className="font-mono text-xs">{wallet.publicKey}</span>
           </p>
         </div>
+        {wallet.type !== "seed" && (
+          <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+            Connected via {wallet.type === "crossmark" ? "Crossmark" : wallet.type === "gemwallet" ? "GemWallet" : wallet.type === "xaman" ? "Xaman" : wallet.type === "metamask-snap" ? "MetaMask" : wallet.type}
+          </p>
+        )}
         {children}
         <button
           onClick={() => {
-            if (window.confirm("Remove wallet? This cannot be undone.")) {
+            const msg = wallet.type === "seed"
+              ? "Remove wallet? This cannot be undone."
+              : "Disconnect wallet?";
+            if (window.confirm(msg)) {
               onSetWallet(null);
             }
           }}
           className={`mt-4 ${dangerButtonClass} px-3 py-1.5 text-xs`}
         >
-          Remove Wallet
+          {wallet.type === "seed" ? "Remove Wallet" : "Disconnect"}
         </button>
       </div>
     );
@@ -93,6 +102,15 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
         </p>
       )}
       {generateError && <p className={`mt-2 ${errorTextClass}`}>{generateError}</p>}
+
+      <div className="mt-5 border-t border-zinc-200 pt-5 dark:border-zinc-700">
+        <WalletConnector
+          network={network}
+          onConnected={({ address, publicKey, type }) => {
+            onSetWallet({ address, publicKey, type });
+          }}
+        />
+      </div>
 
       <div className="mt-5 border-t border-zinc-200 pt-5 dark:border-zinc-700">
         <label className={labelClass}>Import from Seed</label>

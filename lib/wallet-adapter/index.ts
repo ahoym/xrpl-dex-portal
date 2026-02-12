@@ -16,8 +16,7 @@ interface AdapterInfo {
  * Extension adapters are lazily loaded only when selected.
  */
 const ADAPTER_REGISTRY: AdapterInfo[] = [
-  // Extension adapters will be registered here in later phases:
-  // { type: "crossmark", displayName: "Crossmark", load: () => import("./crossmark-adapter").then(m => m.CrossmarkAdapter) },
+  { type: "crossmark", displayName: "Crossmark", load: () => import("./crossmark-adapter").then(m => m.CrossmarkAdapter) },
   // { type: "gemwallet", displayName: "GemWallet", load: () => import("./gemwallet-adapter").then(m => m.GemWalletAdapter) },
   // { type: "xaman", displayName: "Xaman", load: () => import("./xaman-adapter").then(m => m.XamanAdapter) },
   // { type: "metamask-snap", displayName: "MetaMask (XRPL)", load: () => import("./metamask-snap-adapter").then(m => m.MetaMaskSnapAdapter) },
