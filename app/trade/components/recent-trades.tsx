@@ -1,6 +1,8 @@
 "use client";
 
 import BigNumber from "bignumber.js";
+import { useAppState } from "@/lib/hooks/use-app-state";
+import { EXPLORER_URLS } from "@/lib/xrpl/networks";
 import { cardClass } from "@/lib/ui/ui";
 
 export interface RecentTrade {
@@ -48,6 +50,9 @@ export function RecentTrades({
   baseCurrency,
   quoteCurrency,
 }: RecentTradesProps) {
+  const { state } = useAppState();
+  const explorerBase = EXPLORER_URLS[state.network];
+
   return (
     <div className={cardClass}>
       <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
@@ -88,7 +93,8 @@ export function RecentTrades({
               {trades.map((trade) => (
                 <tr
                   key={trade.hash}
-                  className="border-b border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                  className="cursor-pointer border-b border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                  onClick={() => window.open(`${explorerBase}/transactions/${trade.hash}`, "_blank", "noopener,noreferrer")}
                 >
                   <td className="py-2 pr-2">
                     <span
