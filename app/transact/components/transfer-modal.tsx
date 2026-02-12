@@ -7,6 +7,7 @@ import { Assets } from "@/lib/assets";
 import { ModalShell } from "@/app/components/modal-shell";
 import { useBalances } from "@/lib/hooks/use-balances";
 import { useAppState } from "@/lib/hooks/use-app-state";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { useTrustLineValidation } from "@/lib/hooks/use-trust-line-validation";
 import { CustomSelect } from "@/app/components/custom-select";
 
@@ -26,6 +27,7 @@ export function TransferModal({
   onClose,
 }: TransferModalProps) {
   const { state: { network } } = useAppState();
+  const { sendPayment: adapterSendPayment } = useWalletAdapter();
   const { balances, loading: loadingBalances } = useBalances(sender.address, network);
   const [selectedCurrency, setSelectedCurrency] = useState("");
   const [amount, setAmount] = useState("");
@@ -100,8 +102,7 @@ export function TransferModal({
 
     const isXrp = selectedBalance.currency === Assets.XRP;
 
-    const payload: Record<string, unknown> = {
-      senderSeed: sender.seed,
+    const paymentParams: Parameters<typeof adapterSendPayment>[0] = {
       recipientAddress: destinationAddress,
       currencyCode: selectedBalance.currency,
       amount,
@@ -109,30 +110,25 @@ export function TransferModal({
     };
 
     if (!isXrp && selectedBalance.issuer) {
-      payload.issuerAddress = selectedBalance.issuer;
+      paymentParams.issuerAddress = selectedBalance.issuer;
     }
 
     if (destinationTag !== undefined && !isNaN(destinationTag)) {
-      payload.destinationTag = destinationTag;
+      paymentParams.destinationTag = destinationTag;
     }
 
     try {
-      const res = await fetch("/api/transfers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Transfer failed");
+      const result = await adapterSendPayment(paymentParams);
+      if (!result.success) {
+        setError(result.resultCode ?? "Transfer failed");
       } else {
         setSuccess(true);
         setTimeout(() => {
           onComplete();
         }, SUCCESS_MESSAGE_DURATION_MS);
       }
-    } catch {
-      setError("Network error");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Network error");
     } finally {
       setSubmitting(false);
     }

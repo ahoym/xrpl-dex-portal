@@ -49,7 +49,6 @@ export function TradeGrid({
   const prefillKeyRef = useRef(0);
 
   const pairSelected = sellingCurrency !== null && buyingCurrency !== null;
-
   return (
     <div className="mt-6 grid gap-5 lg:grid-cols-7">
       {/* Left column: Recent Trades */}

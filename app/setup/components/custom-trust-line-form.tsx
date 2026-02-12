@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { DEFAULT_TRUST_LINE_LIMIT } from "@/lib/xrpl/constants";
+import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { inputClass, labelClass, errorTextClass, primaryButtonClass } from "@/lib/ui/ui";
 
 interface CustomTrustLineFormProps {
   recipientAddress: string;
-  recipientSeed: string;
   network: string;
   onSuccess: () => void;
 }
 
 export function CustomTrustLineForm({
   recipientAddress,
-  recipientSeed,
   network,
   onSuccess,
 }: CustomTrustLineFormProps) {
+  const { setTrustline: adapterSetTrustline } = useWalletAdapter();
   const [customIssuer, setCustomIssuer] = useState("");
   const [customCurrency, setCustomCurrency] = useState("");
   const [customLimit, setCustomLimit] = useState(DEFAULT_TRUST_LINE_LIMIT);
@@ -32,28 +32,23 @@ export function CustomTrustLineForm({
     setCustomTrusting(true);
     setCustomTrustError(null);
     try {
-      const res = await fetch(`/api/accounts/${recipientAddress}/trustlines`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seed: recipientSeed,
-          currency,
-          issuer: issuerAddr,
-          limit: customLimit,
-          network,
-        }),
+      const result = await adapterSetTrustline({
+        address: recipientAddress,
+        currency,
+        issuer: issuerAddr,
+        limit: customLimit,
+        network,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setCustomTrustError(data.error ?? "Failed to create trust line");
+      if (!result.success) {
+        setCustomTrustError(result.resultCode ?? "Failed to create trust line");
       } else {
         setCustomIssuer("");
         setCustomCurrency("");
         setCustomLimit(DEFAULT_TRUST_LINE_LIMIT);
         onSuccess();
       }
-    } catch {
-      setCustomTrustError("Network error");
+    } catch (err) {
+      setCustomTrustError(err instanceof Error ? err.message : "Network error");
     } finally {
       setCustomTrusting(false);
     }
