@@ -6,9 +6,8 @@ import { useBalances } from "./use-balances";
 import { usePageVisible } from "./use-page-visible";
 import type { OrderBookAmount, OrderBookEntry, DepthSummary } from "@/lib/types";
 import type { RecentTrade } from "@/app/trade/components/recent-trades";
-import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
-import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { parseFilledOrders } from "@/lib/xrpl/filled-orders";
+import { buildCurrencyOptions, detectNewOwnTrades } from "./use-trading-data-utils";
 import type { FilledOrder } from "@/lib/xrpl/filled-orders";
 import { fromRippleEpoch } from "@/lib/xrpl/constants";
 
@@ -67,45 +66,10 @@ export function useTradingData({
   const [loadingFilledOrders, setLoadingFilledOrders] = useState(false);
 
   // Build currency options from balances + well-known + custom
-  const currencyOptions = useMemo<CurrencyOption[]>(() => {
-    const opts: CurrencyOption[] = [];
-    const seen = new Set<string>();
-
-    const xrpKey = `${Assets.XRP}|`;
-    opts.push({ currency: Assets.XRP, label: Assets.XRP, value: xrpKey });
-    seen.add(xrpKey);
-
-    for (const [currency, issuer] of Object.entries(WELL_KNOWN_CURRENCIES[network] ?? {})) {
-      const key = `${currency}|${issuer}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        opts.push({ currency, issuer, label: `${currency} (${issuer})`, value: key });
-      }
-    }
-
-    for (const b of balances) {
-      const cur = decodeCurrency(b.currency);
-      if (cur === Assets.XRP) continue;
-      const key = `${cur}|${b.issuer ?? ""}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      opts.push({
-        currency: cur,
-        issuer: b.issuer,
-        label: b.issuer ? `${cur} (${b.issuer})` : cur,
-        value: key,
-      });
-    }
-
-    for (const c of customCurrencies) {
-      const key = `${c.currency}|${c.issuer}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      opts.push({ currency: c.currency, issuer: c.issuer, label: `${c.currency} (${c.issuer})`, value: key });
-    }
-
-    return opts;
-  }, [balances, customCurrencies, network]);
+  const currencyOptions = useMemo<CurrencyOption[]>(
+    () => buildCurrencyOptions(balances, customCurrencies, network),
+    [balances, customCurrencies, network],
+  );
 
   // Resolve selected currencies from string values
   const sellingCurrency = useMemo(
@@ -210,25 +174,13 @@ export function useTradingData({
 
   // Reactive fill detection: when a new recent trade matches our address, refresh open orders
   useEffect(() => {
-    if (!address || recentTrades.length === 0) return;
-
-    const seen = seenTradeHashes.current;
-    // On first load, seed the set without triggering a refresh
-    if (seen.size === 0) {
-      for (const t of recentTrades) seen.add(t.hash);
-      return;
-    }
-
-    let hasNewOwnTrade = false;
-    for (const t of recentTrades) {
-      if (!seen.has(t.hash)) {
-        seen.add(t.hash);
-        if (t.account === address) hasNewOwnTrade = true;
-      }
-    }
-
-    if (hasNewOwnTrade) {
-      fetchAccountOffers(address, network, true);
+    const { shouldRefresh } = detectNewOwnTrades(
+      recentTrades,
+      seenTradeHashes.current,
+      address,
+    );
+    if (shouldRefresh) {
+      fetchAccountOffers(address!, network, true);
     }
   }, [recentTrades, address, network, fetchAccountOffers]);
 
