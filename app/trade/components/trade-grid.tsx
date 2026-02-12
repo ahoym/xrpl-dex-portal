@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { OrderBook } from "./order-book";
 import { TradeForm } from "./trade-form";
-import { MyOpenOrders } from "./my-open-orders";
 import { RecentTrades } from "./recent-trades";
 import { BalancesPanel } from "./balances-panel";
-import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import type { TradeFormPrefill } from "./trade-form";
 import type { WalletInfo, BalanceEntry, DepthSummary } from "@/lib/types";
 import type { CurrencyOption, OrderBookData, AccountOffer } from "@/lib/hooks/use-trading-data";
@@ -38,81 +36,19 @@ export function TradeGrid({
   buyingCurrency,
   orderBook,
   loadingOrderBook,
-  accountOffers,
-  loadingOffers,
   recentTrades,
   loadingTrades,
   balances,
   loadingBalances,
-  network,
   onRefresh,
   depth,
   onDepthChange,
   depthSummary,
 }: TradeGridProps) {
-  const [cancellingSeq, setCancellingSeq] = useState<number | null>(null);
   const [prefill, setPrefill] = useState<TradeFormPrefill | undefined>(undefined);
   const prefillKeyRef = useRef(0);
 
   const pairSelected = sellingCurrency !== null && buyingCurrency !== null;
-
-  // Filter offers to the selected pair
-  const pairOffers = useMemo(() => {
-    if (!sellingCurrency || !buyingCurrency) return [];
-    return accountOffers.filter((o) => {
-      const getsMatchesSelling = matchesCurrency(
-        o.taker_gets,
-        sellingCurrency.currency,
-        sellingCurrency.issuer,
-      );
-      const paysMatchesBuying = matchesCurrency(
-        o.taker_pays,
-        buyingCurrency.currency,
-        buyingCurrency.issuer,
-      );
-      const getsMatchesBuying = matchesCurrency(
-        o.taker_gets,
-        buyingCurrency.currency,
-        buyingCurrency.issuer,
-      );
-      const paysMatchesSelling = matchesCurrency(
-        o.taker_pays,
-        sellingCurrency.currency,
-        sellingCurrency.issuer,
-      );
-      return (
-        (getsMatchesSelling && paysMatchesBuying) ||
-        (getsMatchesBuying && paysMatchesSelling)
-      );
-    });
-  }, [accountOffers, sellingCurrency, buyingCurrency]);
-
-  // Cancel an offer
-  const handleCancel = useCallback(
-    async (seq: number) => {
-      if (!focusedWallet || cancellingSeq !== null) return;
-      setCancellingSeq(seq);
-      try {
-        const res = await fetch("/api/dex/offers/cancel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            seed: focusedWallet.seed,
-            offerSequence: seq,
-            network,
-          }),
-        });
-        if (res.ok) {
-          onRefresh();
-        }
-      } catch {
-        // ignore
-      } finally {
-        setCancellingSeq(null);
-      }
-    },
-    [focusedWallet, cancellingSeq, network, onRefresh],
-  );
 
   return (
     <div className="mt-6 grid gap-5 lg:grid-cols-7">
@@ -127,7 +63,7 @@ export function TradeGrid({
         />
       </div>
 
-      {/* Middle column: Order Book + My Open Orders */}
+      {/* Middle column: Order Book */}
       <div className="space-y-5 lg:col-span-3">
         <div className={cardClass}>
           {pairSelected ? (
@@ -154,25 +90,12 @@ export function TradeGrid({
             </div>
           )}
         </div>
-
       </div>
 
-      {/* Right column: Balances + My Open Orders + Trade Form */}
+      {/* Right column: Balances + Trade Form */}
       <div className="space-y-5 lg:col-span-2">
         {focusedWallet && (
           <BalancesPanel balances={balances} loading={loadingBalances} onRefresh={onRefresh} />
-        )}
-
-        {focusedWallet && (
-          <MyOpenOrders
-            offers={pairOffers}
-            loading={loadingOffers}
-            pairSelected={pairSelected}
-            baseCurrency={sellingCurrency?.currency}
-            quoteCurrency={buyingCurrency?.currency}
-            cancellingSeq={cancellingSeq}
-            onCancel={handleCancel}
-          />
         )}
 
         <div className={cardClass}>

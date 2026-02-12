@@ -8,6 +8,9 @@ import type { OrderBookAmount, OrderBookEntry, DepthSummary } from "@/lib/types"
 import type { RecentTrade } from "@/app/trade/components/recent-trades";
 import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
+import { parseFilledOrders } from "@/lib/xrpl/filled-orders";
+import type { FilledOrder } from "@/lib/xrpl/filled-orders";
+import { fromRippleEpoch } from "@/lib/xrpl/constants";
 
 const POLL_INTERVAL_MS = 3_000;
 
@@ -51,6 +54,7 @@ export function useTradingData({
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
   const visible = usePageVisible();
   const pollingMarketData = useRef(false);
+  const seenTradeHashes = useRef(new Set<string>());
 
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [loadingOrderBook, setLoadingOrderBook] = useState(false);
@@ -59,6 +63,8 @@ export function useTradingData({
   const [recentTrades, setRecentTrades] = useState<RecentTrade[]>([]);
   const [loadingTrades, setLoadingTrades] = useState(false);
   const [depthSummary, setDepthSummary] = useState<DepthSummary | null>(null);
+  const [filledOrders, setFilledOrders] = useState<FilledOrder[]>([]);
+  const [loadingFilledOrders, setLoadingFilledOrders] = useState(false);
 
   // Build currency options from balances + well-known + custom
   const currencyOptions = useMemo<CurrencyOption[]>(() => {
@@ -160,6 +166,33 @@ export function useTradingData({
     [],
   );
 
+  // Fetch account offers
+  const fetchAccountOffers = useCallback(
+    async (addr: string, net: string, silent = false) => {
+      if (!silent) setLoadingOffers(true);
+      try {
+        const res = await fetch(`/api/accounts/${addr}/offers?network=${net}`);
+        const data = await res.json();
+        if (res.ok) {
+          setAccountOffers(data.offers ?? []);
+        } else if (!silent) {
+          setAccountOffers([]);
+        }
+      } catch {
+        if (!silent) setAccountOffers([]);
+      } finally {
+        if (!silent) setLoadingOffers(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (address) {
+      fetchAccountOffers(address, network);
+    }
+  }, [address, network, refreshKey, fetchAccountOffers]);
+
   useEffect(() => {
     if (!sellingCurrency || !buyingCurrency) return;
     fetchMarketData(sellingCurrency, buyingCurrency, network);
@@ -175,32 +208,92 @@ export function useTradingData({
     return () => clearInterval(id);
   }, [sellingCurrency, buyingCurrency, network, refreshKey, visible, fetchMarketData]);
 
-  // Fetch account offers
-  const fetchAccountOffers = useCallback(
-    async (addr: string, net: string) => {
-      setLoadingOffers(true);
+  // Reactive fill detection: when a new recent trade matches our address, refresh open orders
+  useEffect(() => {
+    if (!address || recentTrades.length === 0) return;
+
+    const seen = seenTradeHashes.current;
+    // On first load, seed the set without triggering a refresh
+    if (seen.size === 0) {
+      for (const t of recentTrades) seen.add(t.hash);
+      return;
+    }
+
+    let hasNewOwnTrade = false;
+    for (const t of recentTrades) {
+      if (!seen.has(t.hash)) {
+        seen.add(t.hash);
+        if (t.account === address) hasNewOwnTrade = true;
+      }
+    }
+
+    if (hasNewOwnTrade) {
+      fetchAccountOffers(address, network, true);
+    }
+  }, [recentTrades, address, network, fetchAccountOffers]);
+
+  // Expiration tracking: schedule a refresh when an open order's expiration time is reached
+  useEffect(() => {
+    if (!address || accountOffers.length === 0) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const now = Date.now();
+
+    for (const offer of accountOffers) {
+      if (offer.expiration == null) continue;
+      const expiresAt = fromRippleEpoch(offer.expiration).getTime();
+      const delay = expiresAt - now;
+      // If already expired or expires within the next 5 minutes, schedule a refresh
+      if (delay <= 5 * 60 * 1000) {
+        const timer = setTimeout(
+          () => fetchAccountOffers(address, network, true),
+          Math.max(delay + 1000, 0), // 1s buffer after expiry
+        );
+        timers.push(timer);
+      }
+    }
+
+    return () => timers.forEach(clearTimeout);
+  }, [accountOffers, address, network, fetchAccountOffers]);
+
+  // Fetch filled orders from account transaction history
+  const fetchFilledOrders = useCallback(
+    async (
+      addr: string,
+      net: string,
+      selling: CurrencyOption,
+      buying: CurrencyOption,
+    ) => {
+      setLoadingFilledOrders(true);
       try {
-        const res = await fetch(`/api/accounts/${addr}/offers?network=${net}`);
+        const res = await fetch(
+          `/api/accounts/${encodeURIComponent(addr)}/transactions?network=${net}&limit=200`,
+        );
         const data = await res.json();
         if (res.ok) {
-          setAccountOffers(data.offers ?? []);
+          const txs = (data.transactions ?? []) as Record<string, unknown>[];
+          setFilledOrders(
+            parseFilledOrders(txs, addr, selling.currency, selling.issuer, buying.currency, buying.issuer),
+          );
         } else {
-          setAccountOffers([]);
+          setFilledOrders([]);
         }
       } catch {
-        setAccountOffers([]);
+        setFilledOrders([]);
       } finally {
-        setLoadingOffers(false);
+        setLoadingFilledOrders(false);
       }
     },
     [],
   );
 
   useEffect(() => {
-    if (address) {
-      fetchAccountOffers(address, network);
+    if (address && sellingCurrency && buyingCurrency) {
+      fetchFilledOrders(address, network, sellingCurrency, buyingCurrency);
+    } else {
+      setFilledOrders([]);
     }
-  }, [address, network, refreshKey, fetchAccountOffers]);
+  }, [address, network, sellingCurrency, buyingCurrency, refreshKey, fetchFilledOrders]);
 
   return {
     balances,
@@ -215,5 +308,7 @@ export function useTradingData({
     recentTrades,
     loadingTrades,
     depthSummary,
+    filledOrders,
+    loadingFilledOrders,
   };
 }

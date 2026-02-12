@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { useTradingData } from "@/lib/hooks/use-trading-data";
+import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { CustomCurrencyForm } from "./components/custom-currency-form";
 import { CurrencyPairSelector } from "./components/currency-pair-selector";
 import { TradeGrid } from "./components/trade-grid";
+import { OrdersSheet, OrdersSection } from "./components/orders-sheet";
 import { LoadingScreen } from "../components/loading-screen";
 import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
 import { DEPTH_OPTIONS } from "./components/order-book";
@@ -53,6 +55,8 @@ export default function TradePage() {
     recentTrades,
     loadingTrades,
     depthSummary,
+    filledOrders,
+    loadingFilledOrders,
   } = useTradingData({
     address: focusedWallet?.address,
     sellingValue,
@@ -61,12 +65,61 @@ export default function TradePage() {
     customCurrencies,
   });
 
+  // Filter offers to selected pair (shared by TradeGrid + OrdersSheet)
+  const pairOffers = useMemo(() => {
+    if (!sellingCurrency || !buyingCurrency) return [];
+    return accountOffers.filter((o) => {
+      const getsMatchesSelling = matchesCurrency(o.taker_gets, sellingCurrency.currency, sellingCurrency.issuer);
+      const paysMatchesBuying = matchesCurrency(o.taker_pays, buyingCurrency.currency, buyingCurrency.issuer);
+      const getsMatchesBuying = matchesCurrency(o.taker_gets, buyingCurrency.currency, buyingCurrency.issuer);
+      const paysMatchesSelling = matchesCurrency(o.taker_pays, sellingCurrency.currency, sellingCurrency.issuer);
+      return (getsMatchesSelling && paysMatchesBuying) || (getsMatchesBuying && paysMatchesSelling);
+    });
+  }, [accountOffers, sellingCurrency, buyingCurrency]);
+
+  // Cancel offer handler (shared by TradeGrid + OrdersSheet)
+  const [cancellingSeq, setCancellingSeq] = useState<number | null>(null);
+  const handleCancel = useCallback(
+    async (seq: number) => {
+      if (!focusedWallet || cancellingSeq !== null) return;
+      setCancellingSeq(seq);
+      try {
+        const res = await fetch("/api/dex/offers/cancel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seed: focusedWallet.seed, offerSequence: seq, network: state.network }),
+        });
+        if (res.ok) onRefresh();
+      } catch {
+        // ignore
+      } finally {
+        setCancellingSeq(null);
+      }
+    },
+    [focusedWallet, cancellingSeq, state.network, onRefresh],
+  );
+
   if (!hydrated) {
     return <LoadingScreen />;
   }
 
+  const pairSelected = sellingCurrency !== null && buyingCurrency !== null;
+
+  const ordersProps = {
+    openOrders: pairOffers,
+    loadingOpen: loadingOffers,
+    filledOrders,
+    loadingFilled: loadingFilledOrders,
+    pairSelected,
+    baseCurrency: sellingCurrency?.currency,
+    baseIssuer: sellingCurrency?.issuer,
+    quoteCurrency: buyingCurrency?.currency,
+    cancellingSeq,
+    onCancel: handleCancel,
+  };
+
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 lg:pb-[calc(33vh+1.5rem)]">
       <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Trade</h1>
 
       <CurrencyPairSelector
@@ -106,6 +159,15 @@ export default function TradePage() {
         depthSummary={depthSummary}
       />
 
+      {/* Mobile: in-flow orders section */}
+      {focusedWallet && (
+        <div className="mt-5 lg:hidden">
+          <OrdersSection {...ordersProps} />
+        </div>
+      )}
+
+      {/* Desktop: fixed bottom sheet */}
+      {focusedWallet && <OrdersSheet {...ordersProps} />}
     </div>
   );
 }
