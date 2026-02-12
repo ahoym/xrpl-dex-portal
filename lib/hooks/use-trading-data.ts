@@ -243,11 +243,13 @@ export function useTradingData({
       if (offer.expiration == null) continue;
       const expiresAt = fromRippleEpoch(offer.expiration).getTime();
       const delay = expiresAt - now;
-      // If already expired or expires within the next 5 minutes, schedule a refresh
-      if (delay <= 5 * 60 * 1000) {
+      // Only schedule for offers that expire in the future (within 5 minutes).
+      // Already-expired offers linger on-ledger; re-fetching them causes an
+      // infinite loop because the response still includes them.
+      if (delay > 0 && delay <= 5 * 60 * 1000) {
         const timer = setTimeout(
           () => fetchAccountOffers(address, network, true),
-          Math.max(delay + 1000, 0), // 1s buffer after expiry
+          delay + 1000, // 1s buffer after expiry
         );
         timers.push(timer);
       }
