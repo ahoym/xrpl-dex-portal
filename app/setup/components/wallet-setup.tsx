@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Wallet } from "xrpl";
+import QRCode from "qrcode";
 import type { WalletInfo, PersistedState } from "@/lib/types";
 import { useWalletGeneration } from "@/lib/hooks/use-wallet-generation";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
@@ -27,8 +28,18 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
   const [funding, setFunding] = useState(false);
   const [fundResult, setFundResult] = useState<string | null>(null);
   const [fundError, setFundError] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const hasFaucet = network !== "mainnet";
+
+  useEffect(() => {
+    if (showQR && wallet) {
+      QRCode.toDataURL(wallet.address, { width: 200, margin: 2 }).then(setQrDataUrl);
+    } else {
+      setQrDataUrl(null);
+    }
+  }, [showQR, wallet]);
 
   async function handleFundFromFaucet() {
     if (!wallet) return;
@@ -80,10 +91,25 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
       <div className={cardClass}>
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Wallet</h2>
         <div className="mt-3 space-y-1.5 text-sm">
-          <p>
+          <div className="flex items-center gap-2">
             <span className="text-zinc-400 dark:text-zinc-500">Address: </span>
             <ExplorerLink address={wallet.address} />
-          </p>
+            <button
+              onClick={() => setShowQR((v) => !v)}
+              className="inline-flex shrink-0 items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+              title={showQR ? "Hide QR code" : "Show QR code"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4">
+                <path fillRule="evenodd" d="M3 4.25A1.25 1.25 0 0 1 4.25 3h2.5A1.25 1.25 0 0 1 8 4.25v2.5A1.25 1.25 0 0 1 6.75 8h-2.5A1.25 1.25 0 0 1 3 6.75v-2.5Zm1.5.25v2h2v-2h-2ZM3 13.25A1.25 1.25 0 0 1 4.25 12h2.5A1.25 1.25 0 0 1 8 13.25v2.5A1.25 1.25 0 0 1 6.75 17h-2.5A1.25 1.25 0 0 1 3 15.75v-2.5Zm1.5.25v2h2v-2h-2ZM12 4.25A1.25 1.25 0 0 1 13.25 3h2.5A1.25 1.25 0 0 1 17 4.25v2.5A1.25 1.25 0 0 1 15.75 8h-2.5A1.25 1.25 0 0 1 12 6.75v-2.5Zm1.5.25v2h2v-2h-2ZM12 13.25a1.25 1.25 0 0 1 1-1.22v3.94a1.25 1.25 0 0 1-1-1.22v-1.5ZM14.5 12h1.25A1.25 1.25 0 0 1 17 13.25V14h-2.5v-2ZM14.5 15.5H17v.25A1.25 1.25 0 0 1 15.75 17H14.5v-1.5ZM10 3v2.5h-.5A1.5 1.5 0 0 1 8 4V3h2ZM10 8v2H8V8h2ZM10 12v2H8v-2h2ZM10 16v1H8v-1h2Z" clipRule="evenodd" />
+              </svg>
+              {showQR ? "Hide QR" : "QR"}
+            </button>
+          </div>
+          {showQR && qrDataUrl && (
+            <div className="mt-2">
+              <img src={qrDataUrl} alt={`QR code for ${wallet.address}`} width={200} height={200} className="rounded" />
+            </div>
+          )}
           {wallet.seed && <SecretField label="Seed" value={wallet.seed} />}
           {wallet.publicKey && wallet.publicKey !== wallet.address && (
             <p className="break-all">

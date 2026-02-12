@@ -170,11 +170,11 @@ export function OrderBook({
                 <span className="relative text-right text-zinc-500 dark:text-zinc-400">
                   {askCumulative[i].toFixed(4)}
                 </span>
-                <span
-                  className="relative text-right text-zinc-400 dark:text-zinc-500"
-                  title={a.account}
-                >
+                <span className="group relative text-right text-zinc-400 dark:text-zinc-500">
                   {a.account.slice(0, 4)}…{a.account.slice(-4)}
+                  <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded bg-zinc-800 px-2 py-1 text-[11px] text-zinc-100 shadow-lg group-hover:block dark:bg-zinc-700">
+                    {a.account}
+                  </span>
                 </span>
               </div>
             );
@@ -241,11 +241,11 @@ export function OrderBook({
                 <span className="relative text-right text-zinc-500 dark:text-zinc-400">
                   {bidCumulative[i].toFixed(4)}
                 </span>
-                <span
-                  className="relative text-right text-zinc-400 dark:text-zinc-500"
-                  title={b.account}
-                >
+                <span className="group relative text-right text-zinc-400 dark:text-zinc-500">
                   {b.account.slice(0, 4)}…{b.account.slice(-4)}
+                  <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded bg-zinc-800 px-2 py-1 text-[11px] text-zinc-100 shadow-lg group-hover:block dark:bg-zinc-700">
+                    {b.account}
+                  </span>
                 </span>
               </div>
             );
