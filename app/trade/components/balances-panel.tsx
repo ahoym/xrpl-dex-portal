@@ -8,14 +8,26 @@ import { cardClass } from "@/lib/ui/ui";
 interface BalancesPanelProps {
   balances: BalanceEntry[];
   loading: boolean;
+  onRefresh?: () => void;
 }
 
-export function BalancesPanel({ balances, loading }: BalancesPanelProps) {
+export function BalancesPanel({ balances, loading, onRefresh }: BalancesPanelProps) {
   return (
     <div className={cardClass}>
-      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-        Balances
-      </h3>
+      <div className="flex items-center gap-2">
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          Balances
+        </h3>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className="px-1.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+          >
+            {loading ? "Loading..." : "Refresh"}
+          </button>
+        )}
+      </div>
       {loading ? (
         <div className="mt-3 space-y-2">
           {[1, 2, 3].map((i) => (

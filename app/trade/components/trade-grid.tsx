@@ -160,7 +160,7 @@ export function TradeGrid({
       {/* Right column: Balances + My Open Orders + Trade Form */}
       <div className="space-y-5 lg:col-span-2">
         {focusedWallet && (
-          <BalancesPanel balances={balances} loading={loadingBalances} />
+          <BalancesPanel balances={balances} loading={loadingBalances} onRefresh={onRefresh} />
         )}
 
         {focusedWallet && (
