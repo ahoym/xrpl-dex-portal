@@ -33,6 +33,19 @@ pnpm test:watch # Run tests in watch mode (vitest)
 
 Tests use **Vitest** (v4, jsdom environment, globals enabled). Test files live alongside source as `*.test.ts` or in `__tests__/` directories. Path alias `@/*` is resolved in `vitest.config.ts`.
 
+### E2E Tests
+
+E2E smoke tests use **Playwright** (Chromium) against XRPL **testnet** with real network calls. Test files live in `e2e/`.
+
+```bash
+pnpm e2e          # Run all E2E tests
+pnpm e2e:ui       # Playwright UI mode
+pnpm e2e:headed   # Run with visible browser
+pnpm e2e:report   # View HTML test report
+```
+
+The suite uses a **setup project** pattern: `e2e/global-setup.ts` generates a testnet wallet + RLUSD trust line and saves `storageState` to `.auth/wallet.json`. Trade and transact test projects depend on this setup and load the saved state automatically. The `setup.spec.ts` project runs independently in clean browser state.
+
 ## Architecture
 
 ### Pages
