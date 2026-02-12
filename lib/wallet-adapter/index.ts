@@ -18,7 +18,7 @@ interface AdapterInfo {
 const ADAPTER_REGISTRY: AdapterInfo[] = [
   { type: "crossmark", displayName: "Crossmark", load: () => import("./crossmark-adapter").then(m => m.CrossmarkAdapter) },
   { type: "gemwallet", displayName: "GemWallet", load: () => import("./gemwallet-adapter").then(m => m.GemWalletAdapter) },
-  // { type: "xaman", displayName: "Xaman", load: () => import("./xaman-adapter").then(m => m.XamanAdapter) },
+  { type: "xaman", displayName: "Xaman", load: () => import("./xaman-adapter").then(m => m.XamanAdapter) },
   // { type: "metamask-snap", displayName: "MetaMask (XRPL)", load: () => import("./metamask-snap-adapter").then(m => m.MetaMaskSnapAdapter) },
 ];
 
