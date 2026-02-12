@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import QRCode from "qrcode";
+import { useState } from "react";
 import { useAppState } from "@/lib/hooks/use-app-state";
+import { useQRCode } from "@/lib/hooks/use-qr-code";
 import { LoadingScreen } from "../components/loading-screen";
 import { EmptyWallets } from "../components/empty-wallets";
 import { BalanceDisplay } from "../components/balance-display";
@@ -16,15 +16,7 @@ export default function TransactPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showTransfer, setShowTransfer] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (showQR && state.wallet) {
-      QRCode.toDataURL(state.wallet.address, { width: 200, margin: 2 }).then(setQrDataUrl);
-    } else {
-      setQrDataUrl(null);
-    }
-  }, [showQR, state.wallet]);
+  const { qrDataUrl } = useQRCode(showQR && state.wallet ? state.wallet.address : null);
 
   if (!hydrated) {
     return <LoadingScreen />;

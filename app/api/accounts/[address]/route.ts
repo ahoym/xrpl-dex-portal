@@ -1,19 +1,16 @@
 import { NextRequest } from "next/server";
-import { getClient } from "@/lib/xrpl/client";
-import { resolveNetwork } from "@/lib/xrpl/networks";
-import { getNetworkParam, validateAddress, apiErrorResponse } from "@/lib/api";
+import { getXrplClient, getAndValidateAddress, apiErrorResponse } from "@/lib/api";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ address: string }> },
 ) {
   try {
-    const { address } = await params;
+    const addressOrError = await getAndValidateAddress(params);
+    if (addressOrError instanceof Response) return addressOrError;
+    const address = addressOrError;
 
-    const badAddress = validateAddress(address, "XRPL address");
-    if (badAddress) return badAddress;
-
-    const client = await getClient(resolveNetwork(getNetworkParam(request)));
+    const client = await getXrplClient(request);
 
     const response = await client.request({
       command: "account_info",

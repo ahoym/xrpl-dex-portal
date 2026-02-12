@@ -4,7 +4,7 @@ import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { toXrplAmount } from "@/lib/xrpl/currency";
 import { resolveOfferFlags, VALID_OFFER_FLAGS } from "@/lib/xrpl/offers";
-import { validateRequired, requireWallet, validateDexAmount, txFailureResponse, apiErrorResponse } from "@/lib/api";
+import { validateRequired, requireWallet, validateDexAmount, submitTxAndRespond, apiErrorResponse } from "@/lib/api";
 import type { CreateOfferRequest, OfferFlag, ApiError } from "@/lib/xrpl/types";
 
 export async function POST(request: NextRequest) {
@@ -74,12 +74,7 @@ export async function POST(request: NextRequest) {
       tx.OfferSequence = body.offerSequence;
     }
 
-    const result = await client.submitAndWait(tx, { wallet });
-
-    const failure = txFailureResponse(result);
-    if (failure) return failure;
-
-    return Response.json({ result: result.result }, { status: 201 });
+    return submitTxAndRespond(client, tx, wallet);
   } catch (err) {
     return apiErrorResponse(err, "Failed to create offer");
   }

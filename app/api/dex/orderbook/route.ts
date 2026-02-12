@@ -1,42 +1,23 @@
 import { NextRequest } from "next/server";
-import { getClient } from "@/lib/xrpl/client";
-import { resolveNetwork } from "@/lib/xrpl/networks";
-import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { getNetworkParam, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
-import { MAX_API_LIMIT } from "@/lib/xrpl/constants";
-import { Assets } from "@/lib/assets";
-import { normalizeOffer } from "@/lib/xrpl/normalize-offer";
-import { aggregateDepth } from "@/lib/xrpl/aggregate-depth";
+import { getXrplClient, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
+import type { CurrencyPair } from "@/lib/api";
+import { fetchAndNormalizeOrderbook } from "@/lib/xrpl/orderbook-helpers";
 
 export async function GET(request: NextRequest) {
   try {
-    const network = getNetworkParam(request);
-
     const pairOrError = validateCurrencyPair(request);
     if (pairOrError instanceof Response) return pairOrError;
-    const { baseCurrency, baseIssuer, quoteCurrency, quoteIssuer } = pairOrError;
 
-    const client = await getClient(resolveNetwork(network));
+    const client = await getXrplClient(request);
 
-    const currency1 = baseCurrency === Assets.XRP
-      ? { currency: Assets.XRP }
-      : { currency: encodeXrplCurrency(baseCurrency), issuer: baseIssuer! };
-
-    const currency2 = quoteCurrency === Assets.XRP
-      ? { currency: Assets.XRP }
-      : { currency: encodeXrplCurrency(quoteCurrency), issuer: quoteIssuer! };
-
-    const orderbook = await client.getOrderbook(currency1, currency2, { limit: MAX_API_LIMIT });
-    const allBuy = orderbook.buy.map(normalizeOffer);
-    const allSell = orderbook.sell.map(normalizeOffer);
-    const { depth } = aggregateDepth(allBuy, allSell);
+    const { buy, sell, depth } = await fetchAndNormalizeOrderbook(client, pairOrError as CurrencyPair);
 
     return Response.json(
       {
-        base: { currency: baseCurrency, issuer: baseIssuer },
-        quote: { currency: quoteCurrency, issuer: quoteIssuer },
-        buy: allBuy,
-        sell: allSell,
+        base: { currency: pairOrError.baseCurrency, issuer: pairOrError.baseIssuer },
+        quote: { currency: pairOrError.quoteCurrency, issuer: pairOrError.quoteIssuer },
+        buy,
+        sell,
         depth,
       },
       {

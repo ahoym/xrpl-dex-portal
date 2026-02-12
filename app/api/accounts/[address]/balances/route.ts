@@ -1,9 +1,7 @@
 import { NextRequest } from "next/server";
 import { dropsToXrp } from "xrpl";
-import { getClient } from "@/lib/xrpl/client";
-import { resolveNetwork } from "@/lib/xrpl/networks";
 import { decodeCurrency } from "@/lib/xrpl/currency";
-import { getNetworkParam, validateAddress, apiErrorResponse, isAccountNotFound } from "@/lib/api";
+import { getXrplClient, getAndValidateAddress, apiErrorResponse, isAccountNotFound } from "@/lib/api";
 import type { CurrencyBalance } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -12,12 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ address: string }> },
 ) {
   try {
-    const { address } = await params;
+    const addressOrError = await getAndValidateAddress(params);
+    if (addressOrError instanceof Response) return addressOrError;
+    const address = addressOrError;
 
-    const badAddress = validateAddress(address, "XRPL address");
-    if (badAddress) return badAddress;
-
-    const client = await getClient(resolveNetwork(getNetworkParam(request)));
+    const client = await getXrplClient(request);
 
     let accountInfo;
     try {

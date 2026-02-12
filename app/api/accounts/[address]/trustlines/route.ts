@@ -3,7 +3,7 @@ import { TrustSet } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { getNetworkParam, validateRequired, requireWallet, validateAddress, txFailureResponse, apiErrorResponse, isAccountNotFound } from "@/lib/api";
+import { getAndValidateAddress, getXrplClient, validateRequired, requireWallet, submitTxAndRespond, apiErrorResponse, isAccountNotFound } from "@/lib/api";
 import type { TrustLineRequest } from "@/lib/xrpl/types";
 
 export async function GET(
@@ -11,13 +11,11 @@ export async function GET(
   { params }: { params: Promise<{ address: string }> },
 ) {
   try {
-    const { address } = await params;
+    const addressOrError = await getAndValidateAddress(params);
+    if (addressOrError instanceof Response) return addressOrError;
+    const address = addressOrError;
 
-    const badAddress = validateAddress(address, "XRPL address");
-    if (badAddress) return badAddress;
-
-    const network = getNetworkParam(request);
-    const client = await getClient(resolveNetwork(network));
+    const client = await getXrplClient(request);
 
     let lines;
     try {
@@ -48,10 +46,9 @@ export async function POST(
   { params }: { params: Promise<{ address: string }> },
 ) {
   try {
-    const { address } = await params;
-
-    const badAddress = validateAddress(address, "XRPL address");
-    if (badAddress) return badAddress;
+    const addressOrError = await getAndValidateAddress(params);
+    if (addressOrError instanceof Response) return addressOrError;
+    const address = addressOrError;
 
     const body: TrustLineRequest = await request.json();
 
@@ -74,14 +71,7 @@ export async function POST(
       },
     };
 
-    const result = await client.submitAndWait(trustSet, { wallet });
-
-    const failure = txFailureResponse(result);
-    if (failure) return failure;
-
-    return Response.json({
-      result: result.result,
-    }, { status: 201 });
+    return submitTxAndRespond(client, trustSet, wallet);
   } catch (err) {
     return apiErrorResponse(err, "Failed to set trust line");
   }

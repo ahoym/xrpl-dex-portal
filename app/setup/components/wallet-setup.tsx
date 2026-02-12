@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Wallet } from "xrpl";
-import QRCode from "qrcode";
 import type { WalletInfo, PersistedState } from "@/lib/types";
+import { useQRCode } from "@/lib/hooks/use-qr-code";
 import { useWalletGeneration } from "@/lib/hooks/use-wallet-generation";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { ExplorerLink } from "@/app/components/explorer-link";
@@ -29,17 +29,9 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
   const [fundResult, setFundResult] = useState<string | null>(null);
   const [fundError, setFundError] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const { qrDataUrl } = useQRCode(showQR && wallet ? wallet.address : null);
 
   const hasFaucet = network !== "mainnet";
-
-  useEffect(() => {
-    if (showQR && wallet) {
-      QRCode.toDataURL(wallet.address, { width: 200, margin: 2 }).then(setQrDataUrl);
-    } else {
-      setQrDataUrl(null);
-    }
-  }, [showQR, wallet]);
 
   async function handleFundFromFaucet() {
     if (!wallet) return;

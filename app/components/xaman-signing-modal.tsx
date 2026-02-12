@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ModalShell } from "./modal-shell";
+import { useQRCode } from "@/lib/hooks/use-qr-code";
 import type { XamanPayload } from "@/lib/hooks/use-wallet-adapter";
 
 interface XamanSigningModalProps {
@@ -9,21 +9,7 @@ interface XamanSigningModalProps {
 }
 
 export function XamanSigningModal({ payload }: XamanSigningModalProps) {
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [qrError, setQrError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    import("qrcode")
-      .then((QRCode) => QRCode.toDataURL(payload.deeplink, { width: 256, margin: 2 }))
-      .then((url) => {
-        if (!cancelled) setQrDataUrl(url);
-      })
-      .catch(() => {
-        if (!cancelled) setQrError(true);
-      });
-    return () => { cancelled = true; };
-  }, [payload.deeplink]);
+  const { qrDataUrl, qrError } = useQRCode(payload.deeplink, { width: 256 });
 
   return (
     <ModalShell title="Sign with Xaman" onClose={() => {}}>

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { OfferCancel } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
-import { validateRequired, requireWallet, txFailureResponse, apiErrorResponse } from "@/lib/api";
+import { validateRequired, requireWallet, submitTxAndRespond, apiErrorResponse } from "@/lib/api";
 import type { CancelOfferRequest, ApiError } from "@/lib/xrpl/types";
 
 export async function POST(request: NextRequest) {
@@ -31,12 +31,7 @@ export async function POST(request: NextRequest) {
       OfferSequence: body.offerSequence,
     };
 
-    const result = await client.submitAndWait(tx, { wallet });
-
-    const failure = txFailureResponse(result);
-    if (failure) return failure;
-
-    return Response.json({ result: result.result }, { status: 201 });
+    return submitTxAndRespond(client, tx, wallet);
   } catch (err) {
     return apiErrorResponse(err, "Failed to cancel offer");
   }

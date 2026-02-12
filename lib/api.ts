@@ -1,9 +1,11 @@
 import type { NextRequest } from "next/server";
 import { Wallet, isValidClassicAddress } from "xrpl";
-import type { TxResponse } from "xrpl";
+import type { SubmittableTransaction, Client as XrplClient, TxResponse } from "xrpl";
 import type { ApiError, DexAmount } from "./xrpl/types";
 import { Assets } from "./assets";
 import { friendlyTxError } from "./xrpl/transaction-errors";
+import { getClient } from "./xrpl/client";
+import { resolveNetwork } from "./xrpl/networks";
 
 // ---------------------------------------------------------------------------
 // Request helpers
@@ -12,6 +14,21 @@ import { friendlyTxError } from "./xrpl/transaction-errors";
 /** Extract the optional `network` query param from a NextRequest. */
 export function getNetworkParam(request: NextRequest): string | undefined {
   return request.nextUrl.searchParams.get("network") ?? undefined;
+}
+
+/** Resolve network from query params and return a connected XRPL client. */
+export async function getXrplClient(request: NextRequest): Promise<XrplClient> {
+  return getClient(resolveNetwork(getNetworkParam(request)));
+}
+
+/** Extract and validate the `address` route param. Returns the address string or an error Response. */
+export async function getAndValidateAddress(
+  params: Promise<{ address: string }>,
+): Promise<string | Response> {
+  const { address } = await params;
+  const bad = validateAddress(address, "XRPL address");
+  if (bad) return bad;
+  return address;
 }
 
 /**
@@ -264,6 +281,21 @@ export function txFailureResponse(result: TxResponse): Response | null {
     );
   }
   return null;
+}
+
+/**
+ * Submit a transaction and return the appropriate JSON response.
+ * Returns 201 on success or a 400 error Response if the transaction failed.
+ */
+export async function submitTxAndRespond(
+  client: XrplClient,
+  tx: SubmittableTransaction,
+  wallet: Wallet,
+): Promise<Response> {
+  const result = await client.submitAndWait(tx, { wallet });
+  const failure = txFailureResponse(result);
+  if (failure) return failure;
+  return Response.json({ result: result.result }, { status: 201 });
 }
 
 /**

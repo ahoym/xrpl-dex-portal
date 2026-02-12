@@ -26,7 +26,12 @@ pnpm start    # Serve production build
 pnpm lint     # ESLint (flat config, v9)
 ```
 
-No test framework is configured — there are no tests.
+```bash
+pnpm test       # Run tests once (vitest run)
+pnpm test:watch # Run tests in watch mode (vitest)
+```
+
+Tests use **Vitest** (v4, jsdom environment, globals enabled). Test files live alongside source as `*.test.ts` or in `__tests__/` directories. Path alias `@/*` is resolved in `vitest.config.ts`.
 
 ## Architecture
 

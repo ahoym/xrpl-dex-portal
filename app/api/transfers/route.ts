@@ -3,7 +3,7 @@ import { Payment, xrpToDrops } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { validateRequired, requireWallet, validateAddress, validateDexAmount, txFailureResponse, apiErrorResponse } from "@/lib/api";
+import { validateRequired, requireWallet, validateAddress, validateDexAmount, submitTxAndRespond, apiErrorResponse } from "@/lib/api";
 import type { TransferRequest } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -47,14 +47,7 @@ export async function POST(request: NextRequest) {
       payment.DestinationTag = body.destinationTag;
     }
 
-    const result = await client.submitAndWait(payment, { wallet: senderWallet });
-
-    const failure = txFailureResponse(result);
-    if (failure) return failure;
-
-    return Response.json({
-      result: result.result,
-    }, { status: 201 });
+    return submitTxAndRespond(client, payment, senderWallet);
   } catch (err) {
     return apiErrorResponse(err, "Failed to transfer currency");
   }

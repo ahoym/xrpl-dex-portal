@@ -1,18 +1,16 @@
 import { NextRequest } from "next/server";
-import { getClient } from "@/lib/xrpl/client";
-import { resolveNetwork } from "@/lib/xrpl/networks";
-import { getNetworkParam, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
+import { getXrplClient, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
 import { fetchAndCacheTrades } from "@/lib/xrpl/trades";
 
 export async function GET(request: NextRequest) {
   try {
-    const network = getNetworkParam(request);
+    const network = request.nextUrl.searchParams.get("network") ?? undefined;
 
     const pairOrError = validateCurrencyPair(request);
     if (pairOrError instanceof Response) return pairOrError;
     const { baseCurrency, baseIssuer, quoteCurrency, quoteIssuer } = pairOrError;
 
-    const client = await getClient(resolveNetwork(network));
+    const client = await getXrplClient(request);
 
     const trades = await fetchAndCacheTrades(
       client,
