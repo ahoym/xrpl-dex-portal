@@ -4,6 +4,7 @@ import { SeedWalletAdapter } from "../seed-adapter";
 import { CrossmarkAdapter } from "../crossmark-adapter";
 import { GemWalletAdapter } from "../gemwallet-adapter";
 import { XamanAdapter } from "../xaman-adapter";
+import { MetaMaskSnapAdapter } from "../metamask-snap-adapter";
 
 describe("createSeedAdapter", () => {
   it("returns a SeedWalletAdapter instance", () => {
@@ -21,6 +22,7 @@ describe("getExtensionAdapterTypes", () => {
     expect(types.some((t) => t.type === "crossmark")).toBe(true);
     expect(types.some((t) => t.type === "gemwallet")).toBe(true);
     expect(types.some((t) => t.type === "xaman")).toBe(true);
+    expect(types.some((t) => t.type === "metamask-snap")).toBe(true);
   });
 });
 
@@ -40,11 +42,18 @@ describe("loadExtensionAdapter", () => {
     expect(adapter).toBeInstanceOf(XamanAdapter);
   });
 
+  it("loads MetaMaskSnapAdapter", async () => {
+    const adapter = await loadExtensionAdapter("metamask-snap");
+    expect(adapter).toBeInstanceOf(MetaMaskSnapAdapter);
+  });
+
   it("throws for seed type (not an extension)", async () => {
     await expect(loadExtensionAdapter("seed")).rejects.toThrow("No adapter registered");
   });
 
   it("throws for unregistered types", async () => {
-    await expect(loadExtensionAdapter("metamask-snap")).rejects.toThrow("No adapter registered");
+    // All known types are registered — test a completely unknown type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect(loadExtensionAdapter("unknown-wallet" as any)).rejects.toThrow("No adapter registered");
   });
 });
