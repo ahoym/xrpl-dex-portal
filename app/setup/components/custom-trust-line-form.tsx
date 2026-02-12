@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DEFAULT_TRUST_LINE_LIMIT } from "@/lib/xrpl/constants";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
+import { getSigningLoadingText, extractErrorMessage } from "@/lib/wallet-ui";
 import { inputClass, labelClass, errorTextClass, primaryButtonClass } from "@/lib/ui/ui";
 
 interface CustomTrustLineFormProps {
@@ -48,7 +49,7 @@ export function CustomTrustLineForm({
         onSuccess();
       }
     } catch (err) {
-      setCustomTrustError(err instanceof Error ? err.message : "Network error");
+      setCustomTrustError(extractErrorMessage(err));
     } finally {
       setCustomTrusting(false);
     }
@@ -93,9 +94,7 @@ export function CustomTrustLineForm({
         className={`${primaryButtonClass} px-3 py-1.5 text-xs`}
       >
         {customTrusting
-          ? adapter && adapter.type !== "seed"
-            ? `Confirm in ${adapter.displayName}...`
-            : "Creating..."
+          ? getSigningLoadingText(adapter)
           : "Create Trust Line"}
       </button>
       {customTrustError && (

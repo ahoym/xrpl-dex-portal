@@ -1,4 +1,4 @@
-import { decodeCurrency } from "./decode-currency-client";
+import { matchesCurrency } from "./match-currency";
 import { Assets } from "@/lib/assets";
 
 export interface FilledOrder {
@@ -102,17 +102,6 @@ function getBalanceChangesClient(
   return result;
 }
 
-function matchesCur(
-  bal: { currency: string; issuer?: string },
-  currency: string,
-  issuer: string | undefined,
-): boolean {
-  const decoded = decodeCurrency(bal.currency);
-  if (decoded !== currency && bal.currency !== currency) return false;
-  if (currency === Assets.XRP) return true;
-  return bal.issuer === issuer;
-}
-
 /**
  * Parse filled orders from raw account_tx response for a given currency pair.
  * Returns orders sorted newest-first.
@@ -147,9 +136,9 @@ export function parseFilledOrders(
 
       for (const bal of acctChanges.balances) {
         const val = parseFloat(bal.value);
-        if (matchesCur(bal, baseCurrency, baseIssuer)) {
+        if (matchesCurrency(bal, baseCurrency, baseIssuer)) {
           baseDelta += val;
-        } else if (matchesCur(bal, quoteCurrency, quoteIssuer)) {
+        } else if (matchesCurrency(bal, quoteCurrency, quoteIssuer)) {
           quoteDelta += val;
         }
       }

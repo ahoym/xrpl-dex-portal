@@ -4,6 +4,7 @@ import BigNumber from "bignumber.js";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { EXPLORER_URLS } from "@/lib/xrpl/networks";
 import { cardClass } from "@/lib/ui/ui";
+import { formatTime, formatDateTime } from "@/lib/ui/format-time";
 
 export interface RecentTrade {
   side: "buy" | "sell";
@@ -21,26 +22,6 @@ interface RecentTradesProps {
   pairSelected: boolean;
   baseCurrency?: string;
   quoteCurrency?: string;
-}
-
-function formatTime(iso: string): string {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  } catch {
-    return "—";
-  }
-}
-
-function formatDateTime(iso: string): string {
-  if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString();
-  } catch {
-    return "";
-  }
 }
 
 export function RecentTrades({

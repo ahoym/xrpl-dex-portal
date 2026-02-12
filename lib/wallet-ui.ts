@@ -26,3 +26,24 @@ export function getWalletDisplayName(type: WalletType): string {
   };
   return nameMap[type] ?? type;
 }
+
+/**
+ * Return the appropriate loading text for a wallet signing action.
+ * For hardware/extension wallets, prompts to confirm in the wallet app;
+ * for seed wallets, shows a generic fallback like "Creating..." or "Sending...".
+ */
+export function getSigningLoadingText(
+  adapter: { type: WalletType; displayName: string } | null,
+  fallback: string = "Creating...",
+): string {
+  return adapter && adapter.type !== "seed"
+    ? `Confirm in ${adapter.displayName}...`
+    : fallback;
+}
+
+/**
+ * Extract a human-readable error message from an unknown caught value.
+ */
+export function extractErrorMessage(err: unknown, fallback: string = "Network error"): string {
+  return err instanceof Error ? err.message : fallback;
+}

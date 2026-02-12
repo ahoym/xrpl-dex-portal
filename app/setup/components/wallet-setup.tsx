@@ -10,7 +10,7 @@ import { ExplorerLink } from "@/app/components/explorer-link";
 import { SecretField } from "./secret-field";
 import { WalletConnector } from "./wallet-connector";
 import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
-import { getWalletLogo, getWalletDisplayName } from "@/lib/wallet-ui";
+import { getWalletLogo, getWalletDisplayName, extractErrorMessage } from "@/lib/wallet-ui";
 
 interface WalletSetupProps {
   wallet: WalletInfo | null;
@@ -142,7 +142,7 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
                   try {
                     await connectWallet(wallet.type, network);
                   } catch (err) {
-                    setReconnectError(err instanceof Error ? err.message : "Reconnection failed");
+                    setReconnectError(extractErrorMessage(err, "Reconnection failed"));
                   }
                 }}
                 disabled={connecting}

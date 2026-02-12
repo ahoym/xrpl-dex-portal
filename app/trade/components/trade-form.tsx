@@ -6,6 +6,7 @@ import type { WalletInfo, BalanceEntry } from "@/lib/types";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
+import { getSigningLoadingText, extractErrorMessage } from "@/lib/wallet-ui";
 import type { OfferFlag } from "@/lib/xrpl/types";
 import { toRippleEpoch } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass, SUCCESS_MESSAGE_DURATION_MS } from "@/lib/ui/ui";
@@ -181,7 +182,7 @@ export function TradeForm({
         }, SUCCESS_MESSAGE_DURATION_MS);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error");
+      setError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -330,9 +331,7 @@ export function TradeForm({
             }`}
           >
             {submitting
-              ? adapter && adapter.type !== "seed"
-                ? `Confirm in ${adapter.displayName}...`
-                : "Placing..."
+              ? getSigningLoadingText(adapter, "Placing...")
               : tab === "buy"
                 ? "Place Buy Order"
                 : "Place Sell Order"}

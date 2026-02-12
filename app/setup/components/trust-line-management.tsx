@@ -10,6 +10,7 @@ import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { TrustLineList } from "./trust-line-list";
 import { CustomTrustLineForm } from "./custom-trust-line-form";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
+import { getSigningLoadingText, extractErrorMessage } from "@/lib/wallet-ui";
 import { cardClass, errorTextClass } from "@/lib/ui/ui";
 
 interface TrustLineManagementProps {
@@ -70,7 +71,7 @@ export function TrustLineManagement({
         onRefresh();
       }
     } catch (err) {
-      setTrustError(err instanceof Error ? err.message : "Network error");
+      setTrustError(extractErrorMessage(err));
     } finally {
       setTrusting(null);
     }
@@ -112,9 +113,7 @@ export function TrustLineManagement({
                   }`}
                 >
                   {trusting === key
-                    ? adapter && adapter.type !== "seed"
-                      ? `Confirm in ${adapter.displayName}...`
-                      : "Creating..."
+                    ? getSigningLoadingText(adapter)
                     : exists
                       ? `${currency} (trusted)`
                       : `Trust ${currency}`}

@@ -9,6 +9,7 @@ import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { fromRippleEpoch } from "@/lib/xrpl/constants";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { EXPLORER_URLS } from "@/lib/xrpl/networks";
+import { formatTime, formatDateTime } from "@/lib/ui/format-time";
 
 interface AccountOffer {
   seq: number;
@@ -37,24 +38,6 @@ type Tab = "open" | "filled";
 function formatOfferSide(amt: OrderBookAmount): string {
   const cur = decodeCurrency(amt.currency);
   return `${new BigNumber(amt.value).toFixed(4)} ${cur}`;
-}
-
-function formatTime(iso: string): string {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  } catch {
-    return "—";
-  }
-}
-
-function formatDateTime(iso: string): string {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return "";
-  }
 }
 
 export function OrdersSheet({
