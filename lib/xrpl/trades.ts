@@ -82,19 +82,9 @@ export async function fetchAndCacheTrades(
           if (val.lte(0)) continue;
 
           if (matchesCurrency(bal, baseCurrency, baseIssuer)) {
-            if (baseCurrency === Assets.XRP && acctChanges.account === tx.Account) {
-              const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
-              baseTotal = baseTotal.plus(val.minus(fee));
-            } else {
-              baseTotal = baseTotal.plus(val);
-            }
+            baseTotal = baseTotal.plus(val);
           } else if (matchesCurrency(bal, quoteCurrency, quoteIssuer)) {
-            if (quoteCurrency === Assets.XRP && acctChanges.account === tx.Account) {
-              const fee = new BigNumber(String(tx.Fee ?? "0")).dividedBy(1_000_000);
-              quoteTotal = quoteTotal.plus(val.minus(fee));
-            } else {
-              quoteTotal = quoteTotal.plus(val);
-            }
+            quoteTotal = quoteTotal.plus(val);
           }
         }
       }
