@@ -49,7 +49,9 @@ export function useTradingData({
   refreshKey,
   customCurrencies,
 }: UseTradingDataOptions) {
-  const { state: { network } } = useAppState();
+  const {
+    state: { network },
+  } = useAppState();
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
   const visible = usePageVisible();
   const pollingMarketData = useRef(false);
@@ -89,7 +91,11 @@ export function useTradingData({
         setLoadingTrades(true);
       }
       try {
-        const params = new URLSearchParams({ base_currency: selling.currency, quote_currency: buying.currency, network: net });
+        const params = new URLSearchParams({
+          base_currency: selling.currency,
+          quote_currency: buying.currency,
+          network: net,
+        });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
         if (buying.issuer) params.set("quote_issuer", buying.issuer);
 
@@ -131,25 +137,22 @@ export function useTradingData({
   );
 
   // Fetch account offers
-  const fetchAccountOffers = useCallback(
-    async (addr: string, net: string, silent = false) => {
-      if (!silent) setLoadingOffers(true);
-      try {
-        const res = await fetch(`/api/accounts/${addr}/offers?network=${net}`);
-        const data = await res.json();
-        if (res.ok) {
-          setAccountOffers(data.offers ?? []);
-        } else if (!silent) {
-          setAccountOffers([]);
-        }
-      } catch {
-        if (!silent) setAccountOffers([]);
-      } finally {
-        if (!silent) setLoadingOffers(false);
+  const fetchAccountOffers = useCallback(async (addr: string, net: string, silent = false) => {
+    if (!silent) setLoadingOffers(true);
+    try {
+      const res = await fetch(`/api/accounts/${addr}/offers?network=${net}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAccountOffers(data.offers ?? []);
+      } else if (!silent) {
+        setAccountOffers([]);
       }
-    },
-    [],
-  );
+    } catch {
+      if (!silent) setAccountOffers([]);
+    } finally {
+      if (!silent) setLoadingOffers(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (address) {
@@ -195,11 +198,13 @@ export function useTradingData({
       if (offer.expiration == null) continue;
       const expiresAt = fromRippleEpoch(offer.expiration).getTime();
       const delay = expiresAt - now;
-      // If already expired or expires within the next 5 minutes, schedule a refresh
-      if (delay <= 5 * 60 * 1000) {
+      // Only schedule for offers that expire in the future (within 5 minutes).
+      // Already-expired offers linger on-ledger; re-fetching them causes an
+      // infinite loop because the response still includes them.
+      if (delay > 0 && delay <= 5 * 60 * 1000) {
         const timer = setTimeout(
           () => fetchAccountOffers(address, network, true),
-          Math.max(delay + 1000, 0), // 1s buffer after expiry
+          delay + 1000, // 1s buffer after expiry
         );
         timers.push(timer);
       }
@@ -210,12 +215,7 @@ export function useTradingData({
 
   // Fetch filled orders from account transaction history
   const fetchFilledOrders = useCallback(
-    async (
-      addr: string,
-      net: string,
-      selling: CurrencyOption,
-      buying: CurrencyOption,
-    ) => {
+    async (addr: string, net: string, selling: CurrencyOption, buying: CurrencyOption) => {
       setLoadingFilledOrders(true);
       try {
         const res = await fetch(
@@ -225,7 +225,14 @@ export function useTradingData({
         if (res.ok) {
           const txs = (data.transactions ?? []) as Record<string, unknown>[];
           setFilledOrders(
-            parseFilledOrders(txs, addr, selling.currency, selling.issuer, buying.currency, buying.issuer),
+            parseFilledOrders(
+              txs,
+              addr,
+              selling.currency,
+              selling.issuer,
+              buying.currency,
+              buying.issuer,
+            ),
           );
         } else {
           setFilledOrders([]);
