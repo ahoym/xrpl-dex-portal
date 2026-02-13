@@ -56,9 +56,7 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 /** Build a successful trust-lines API response. */
-function trustLinesResponse(
-  trustLines: { currency: string; account: string }[],
-): Response {
+function trustLinesResponse(trustLines: { currency: string; account: string }[]): Response {
   return new Response(JSON.stringify({ trustLines }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
@@ -67,10 +65,10 @@ function trustLinesResponse(
 
 /** Build a successful account-info API response with given flags. */
 function accountInfoResponse(flags: number): Response {
-  return new Response(
-    JSON.stringify({ account_data: { Flags: flags } }),
-    { status: 200, headers: { "Content-Type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ account_data: { Flags: flags } }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 /** Build a failed (non-ok) response. */
@@ -104,9 +102,7 @@ describe("useTrustLineValidation", () => {
   describe("early exits", () => {
     it("returns all nulls and no loading when selectedBalance is null", () => {
       const { result } = renderHook(() =>
-        useTrustLineValidation(
-          defaultParams({ selectedBalance: null }),
-        ),
+        useTrustLineValidation(defaultParams({ selectedBalance: null })),
       );
 
       expect(result.current.trustLineOk).toBeNull();
@@ -117,9 +113,7 @@ describe("useTrustLineValidation", () => {
 
     it("skips validation for XRP transfers", () => {
       const { result } = renderHook(() =>
-        useTrustLineValidation(
-          defaultParams({ selectedBalance: xrpBalance }),
-        ),
+        useTrustLineValidation(defaultParams({ selectedBalance: xrpBalance })),
       );
 
       expect(result.current.trustLineOk).toBeNull();
@@ -130,9 +124,7 @@ describe("useTrustLineValidation", () => {
 
     it("resets state when destinationAddress becomes empty", () => {
       const { result } = renderHook(() =>
-        useTrustLineValidation(
-          defaultParams({ destinationAddress: "" }),
-        ),
+        useTrustLineValidation(defaultParams({ destinationAddress: "" })),
       );
 
       expect(result.current.trustLineOk).toBeNull();
@@ -142,9 +134,7 @@ describe("useTrustLineValidation", () => {
 
     it("sets trustLineOk=true and skips fetch when sending to the issuer (burn)", () => {
       const { result } = renderHook(() =>
-        useTrustLineValidation(
-          defaultParams({ destinationAddress: ISSUER_ADDRESS }),
-        ),
+        useTrustLineValidation(defaultParams({ destinationAddress: ISSUER_ADDRESS })),
       );
 
       expect(result.current.trustLineOk).toBe(true);
@@ -161,14 +151,10 @@ describe("useTrustLineValidation", () => {
   describe("trust line match detection", () => {
     it("detects a matching trust line by standard 3-char currency code", async () => {
       fetchMock.mockResolvedValueOnce(
-        trustLinesResponse([
-          { currency: "USD", account: ISSUER_ADDRESS },
-        ]),
+        trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
       );
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -181,15 +167,11 @@ describe("useTrustLineValidation", () => {
       // The trust line has the hex-encoded form; the selected balance has "RLUSD".
       // decodeCurrency("524C5553...") returns "RLUSD", so it should match.
       fetchMock.mockResolvedValueOnce(
-        trustLinesResponse([
-          { currency: RLUSD_HEX, account: ISSUER_ADDRESS },
-        ]),
+        trustLinesResponse([{ currency: RLUSD_HEX, account: ISSUER_ADDRESS }]),
       );
 
       const { result } = renderHook(() =>
-        useTrustLineValidation(
-          defaultParams({ selectedBalance: rlusdBalance }),
-        ),
+        useTrustLineValidation(defaultParams({ selectedBalance: rlusdBalance })),
       );
 
       await waitFor(() => {
@@ -207,9 +189,7 @@ describe("useTrustLineValidation", () => {
         ]),
       );
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -221,9 +201,7 @@ describe("useTrustLineValidation", () => {
     it("returns trustLineOk=false when trust lines array is empty", async () => {
       fetchMock.mockResolvedValueOnce(trustLinesResponse([]));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -235,14 +213,10 @@ describe("useTrustLineValidation", () => {
     it("requires both currency AND account (issuer) to match", async () => {
       // Currency matches but issuer is different
       fetchMock.mockResolvedValueOnce(
-        trustLinesResponse([
-          { currency: "USD", account: "rDifferentIssuerXXXXXXXXXXXXXXX" },
-        ]),
+        trustLinesResponse([{ currency: "USD", account: "rDifferentIssuerXXXXXXXXXXXXXXX" }]),
       );
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -259,9 +233,7 @@ describe("useTrustLineValidation", () => {
         }),
       );
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -278,16 +250,10 @@ describe("useTrustLineValidation", () => {
   describe("rippling check", () => {
     it("checks rippling when trust line matches and sender is not the issuer", async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
-        .mockResolvedValueOnce(
-          accountInfoResponse(LSF_DEFAULT_RIPPLE),
-        );
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
+        .mockResolvedValueOnce(accountInfoResponse(LSF_DEFAULT_RIPPLE));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -300,14 +266,10 @@ describe("useTrustLineValidation", () => {
 
     it("sets ripplingOk=false when DefaultRipple flag is not set", async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockResolvedValueOnce(accountInfoResponse(0));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -320,14 +282,10 @@ describe("useTrustLineValidation", () => {
     it("detects DefaultRipple among other flags via bitwise check", async () => {
       const combinedFlags = LSF_DEFAULT_RIPPLE | 0x00100000; // DefaultRipple + some other flag
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockResolvedValueOnce(accountInfoResponse(combinedFlags));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -342,9 +300,7 @@ describe("useTrustLineValidation", () => {
       );
 
       const { result } = renderHook(() =>
-        useTrustLineValidation(
-          defaultParams({ senderAddress: ISSUER_ADDRESS }),
-        ),
+        useTrustLineValidation(defaultParams({ senderAddress: ISSUER_ADDRESS })),
       );
 
       await waitFor(() => {
@@ -360,9 +316,7 @@ describe("useTrustLineValidation", () => {
     it("skips rippling check when trust line does not match", async () => {
       fetchMock.mockResolvedValueOnce(trustLinesResponse([]));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -375,14 +329,10 @@ describe("useTrustLineValidation", () => {
 
     it("leaves ripplingOk as null when issuer account info fetch fails", async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockRejectedValueOnce(new Error("Network error"));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -394,14 +344,10 @@ describe("useTrustLineValidation", () => {
 
     it("leaves ripplingOk as null when issuer account info returns non-ok", async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockResolvedValueOnce(errorResponse(404));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -413,9 +359,7 @@ describe("useTrustLineValidation", () => {
 
     it("defaults to flags=0 when account_data.Flags is missing", async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockResolvedValueOnce(
           new Response(JSON.stringify({ account_data: {} }), {
             status: 200,
@@ -423,9 +367,7 @@ describe("useTrustLineValidation", () => {
           }),
         );
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -443,9 +385,7 @@ describe("useTrustLineValidation", () => {
     it("sets trustLineOk=null when trust lines fetch returns non-ok", async () => {
       fetchMock.mockResolvedValueOnce(errorResponse(500));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -457,9 +397,7 @@ describe("useTrustLineValidation", () => {
     it("sets trustLineOk=null when trust lines fetch throws", async () => {
       fetchMock.mockRejectedValueOnce(new Error("Network error"));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -482,9 +420,7 @@ describe("useTrustLineValidation", () => {
         }),
       );
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(true);
@@ -515,10 +451,9 @@ describe("useTrustLineValidation", () => {
       // First render: fetch starts but doesn't resolve yet
       fetchMock.mockReturnValueOnce(firstFetchPromise);
 
-      const { result, rerender } = renderHook(
-        (props) => useTrustLineValidation(props),
-        { initialProps: defaultParams() },
-      );
+      const { result, rerender } = renderHook((props) => useTrustLineValidation(props), {
+        initialProps: defaultParams(),
+      });
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(true);
@@ -530,9 +465,7 @@ describe("useTrustLineValidation", () => {
       );
 
       // Change destination, triggering cleanup of first effect + new effect
-      rerender(
-        defaultParams({ destinationAddress: "rNewDestXXXXXXXXXXXXXXXXXXXXXXX" }),
-      );
+      rerender(defaultParams({ destinationAddress: "rNewDestXXXXXXXXXXXXXXXXXXXXXXX" }));
 
       // Wait for second fetch to settle
       await waitFor(() => {
@@ -556,15 +489,12 @@ describe("useTrustLineValidation", () => {
 
       // First render: trust line fetch resolves immediately, issuer fetch hangs
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockReturnValueOnce(issuerFetchPromise);
 
-      const { result, rerender } = renderHook(
-        (props) => useTrustLineValidation(props),
-        { initialProps: defaultParams() },
-      );
+      const { result, rerender } = renderHook((props) => useTrustLineValidation(props), {
+        initialProps: defaultParams(),
+      });
 
       // Wait for the trust line check to start (issuer fetch is still pending)
       await waitFor(() => {
@@ -572,9 +502,7 @@ describe("useTrustLineValidation", () => {
       });
 
       // Change to XRP (which resets everything via early exit)
-      rerender(
-        defaultParams({ selectedBalance: xrpBalance }),
-      );
+      rerender(defaultParams({ selectedBalance: xrpBalance }));
 
       // Now resolve the stale issuer fetch -- it should be ignored
       await act(async () => {
@@ -594,9 +522,7 @@ describe("useTrustLineValidation", () => {
     it("passes the correct trust-lines URL with encoded address and network", async () => {
       fetchMock.mockResolvedValueOnce(trustLinesResponse([]));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -609,14 +535,10 @@ describe("useTrustLineValidation", () => {
 
     it("passes the correct issuer account-info URL", async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockResolvedValueOnce(accountInfoResponse(LSF_DEFAULT_RIPPLE));
 
-      const { result } = renderHook(() =>
-        useTrustLineValidation(defaultParams()),
-      );
+      const { result } = renderHook(() => useTrustLineValidation(defaultParams()));
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -636,15 +558,12 @@ describe("useTrustLineValidation", () => {
     it("re-fetches when selectedBalance changes", async () => {
       // First render: USD trust line exists; also triggers rippling check
       fetchMock
-        .mockResolvedValueOnce(
-          trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
-        )
+        .mockResolvedValueOnce(trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]))
         .mockResolvedValueOnce(accountInfoResponse(LSF_DEFAULT_RIPPLE));
 
-      const { result, rerender } = renderHook(
-        (props) => useTrustLineValidation(props),
-        { initialProps: defaultParams() },
-      );
+      const { result, rerender } = renderHook((props) => useTrustLineValidation(props), {
+        initialProps: defaultParams(),
+      });
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -669,10 +588,9 @@ describe("useTrustLineValidation", () => {
         trustLinesResponse([{ currency: "USD", account: ISSUER_ADDRESS }]),
       );
 
-      const { result, rerender } = renderHook(
-        (props) => useTrustLineValidation(props),
-        { initialProps: defaultParams() },
-      );
+      const { result, rerender } = renderHook((props) => useTrustLineValidation(props), {
+        initialProps: defaultParams(),
+      });
 
       await waitFor(() => {
         expect(result.current.checkingTrustLine).toBe(false);
@@ -686,9 +604,7 @@ describe("useTrustLineValidation", () => {
       });
 
       // Verify the second fetch used the new network
-      expect(fetchMock).toHaveBeenLastCalledWith(
-        expect.stringContaining("network=mainnet"),
-      );
+      expect(fetchMock).toHaveBeenLastCalledWith(expect.stringContaining("network=mainnet"));
     });
   });
 });

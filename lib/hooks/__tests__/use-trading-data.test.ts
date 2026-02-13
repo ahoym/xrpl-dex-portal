@@ -81,10 +81,7 @@ describe("buildCurrencyOptions", () => {
     });
 
     it("skips XRP balances (no duplicate XRP entry)", () => {
-      const balances = [
-        makeBalance("XRP", "1000"),
-        makeBalance("USD", "50", CUSTOM_ISSUER),
-      ];
+      const balances = [makeBalance("XRP", "1000"), makeBalance("USD", "50", CUSTOM_ISSUER)];
       const result = buildCurrencyOptions(balances, [], "mainnet");
       const xrpEntries = result.filter((o) => o.currency === "XRP");
       expect(xrpEntries).toHaveLength(1);
@@ -167,9 +164,7 @@ describe("buildCurrencyOptions", () => {
       const balances = [makeBalance(RLUSD_HEX, "200", CUSTOM_ISSUER)];
       const result = buildCurrencyOptions(balances, [], "testnet");
       // The hex code should be decoded to "RLUSD"
-      const decoded = result.find(
-        (o) => o.currency === "RLUSD" && o.issuer === CUSTOM_ISSUER,
-      );
+      const decoded = result.find((o) => o.currency === "RLUSD" && o.issuer === CUSTOM_ISSUER);
       expect(decoded).toBeDefined();
       expect(decoded!.label).toBe(`RLUSD (${CUSTOM_ISSUER})`);
     });
@@ -207,9 +202,7 @@ describe("buildCurrencyOptions", () => {
       const balances = [makeBalance("USD", "50", CUSTOM_ISSUER)];
       const custom = [{ currency: "USD", issuer: CUSTOM_ISSUER }];
       const result = buildCurrencyOptions(balances, custom, "mainnet");
-      const usdEntries = result.filter(
-        (o) => o.currency === "USD" && o.issuer === CUSTOM_ISSUER,
-      );
+      const usdEntries = result.filter((o) => o.currency === "USD" && o.issuer === CUSTOM_ISSUER);
       expect(usdEntries).toHaveLength(1);
     });
 
@@ -239,9 +232,7 @@ describe("buildCurrencyOptions", () => {
       }
 
       // Then balance-derived
-      const usdIdx = result.findIndex(
-        (o) => o.currency === "USD" && o.issuer === CUSTOM_ISSUER,
-      );
+      const usdIdx = result.findIndex((o) => o.currency === "USD" && o.issuer === CUSTOM_ISSUER);
       expect(usdIdx).toBe(1 + wellKnownKeys.length);
 
       // Then custom
@@ -276,9 +267,7 @@ describe("buildCurrencyOptions", () => {
         makeBalance("USD", "200", CUSTOM_ISSUER), // duplicate
       ];
       const result = buildCurrencyOptions(balances, [], "mainnet");
-      const usdEntries = result.filter(
-        (o) => o.currency === "USD" && o.issuer === CUSTOM_ISSUER,
-      );
+      const usdEntries = result.filter((o) => o.currency === "USD" && o.issuer === CUSTOM_ISSUER);
       expect(usdEntries).toHaveLength(1);
     });
   });
@@ -330,10 +319,7 @@ describe("detectNewOwnTrades", () => {
 
     it("does not trigger refresh even when all first-load trades match address", () => {
       const seen = new Set<string>();
-      const trades = [
-        makeTrade("hash1", WALLET),
-        makeTrade("hash2", WALLET),
-      ];
+      const trades = [makeTrade("hash1", WALLET), makeTrade("hash2", WALLET)];
       const result = detectNewOwnTrades(trades, seen, WALLET);
       expect(result.shouldRefresh).toBe(false);
     });
@@ -366,10 +352,7 @@ describe("detectNewOwnTrades", () => {
 
     it("ignores duplicate hashes (already in seen set)", () => {
       const seen = new Set(["hash1", "hash2"]);
-      const trades = [
-        makeTrade("hash1", WALLET),
-        makeTrade("hash2", WALLET),
-      ];
+      const trades = [makeTrade("hash1", WALLET), makeTrade("hash2", WALLET)];
       const result = detectNewOwnTrades(trades, seen, WALLET);
       expect(result.shouldRefresh).toBe(false);
       expect(seen.size).toBe(2); // no change
@@ -417,10 +400,7 @@ describe("detectNewOwnTrades", () => {
   describe("seen set mutation", () => {
     it("mutates the provided seen set in place", () => {
       const seen = new Set(["existing"]);
-      const trades = [
-        makeTrade("existing", WALLET),
-        makeTrade("new_hash", "rOTHER"),
-      ];
+      const trades = [makeTrade("existing", WALLET), makeTrade("new_hash", "rOTHER")];
       detectNewOwnTrades(trades, seen, WALLET);
       // The original set should be mutated
       expect(seen.has("new_hash")).toBe(true);

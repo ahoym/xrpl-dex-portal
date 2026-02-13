@@ -177,11 +177,7 @@ export function useTradingData({
 
   // Reactive fill detection: when a new recent trade matches our address, refresh open orders
   useEffect(() => {
-    const { shouldRefresh } = detectNewOwnTrades(
-      recentTrades,
-      seenTradeHashes.current,
-      address,
-    );
+    const { shouldRefresh } = detectNewOwnTrades(recentTrades, seenTradeHashes.current, address);
     if (shouldRefresh) {
       fetchAccountOffers(address!, network, true);
     }
