@@ -176,14 +176,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       // baseAmount should be exactly 10, NOT 10 - 0.000012
@@ -220,14 +213,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "USD",
-        ISSUER,
-        "XRP",
-        undefined,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "USD", ISSUER, "XRP", undefined);
 
       expect(trades).toHaveLength(1);
       // quoteAmount = counterparty's +40 XRP, should be 40 exactly (no fee deduction)
@@ -251,14 +237,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].side).toBe("buy");
@@ -275,14 +254,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].side).toBe("sell");
@@ -315,14 +287,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "USD",
-        ISSUER,
-        "EUR",
-        ISSUER_B,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "USD", ISSUER, "EUR", ISSUER_B);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].side).toBe("buy");
@@ -340,14 +305,7 @@ describe("fetchAndCacheTrades", () => {
       const entry = makeEntry({ hash: "HASH_FIRST", time: "2025-01-15T12:00:00Z" });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].hash).toBe("HASH_FIRST");
@@ -362,14 +320,7 @@ describe("fetchAndCacheTrades", () => {
       const entry2 = makeEntry({ hash: "HASH_B", time: "2025-01-15T11:00:00Z" });
       const client1 = makeMockClient([entry1, entry2]);
 
-      const trades1 = await fetchAndCacheTrades(
-        client1,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades1 = await fetchAndCacheTrades(client1, network, "XRP", undefined, "USD", ISSUER);
       expect(trades1).toHaveLength(2);
 
       // Second call: one new, one duplicate of HASH_A
@@ -377,14 +328,7 @@ describe("fetchAndCacheTrades", () => {
       const entryDup = makeEntry({ hash: "HASH_A", time: "2025-01-15T10:00:00Z" });
       const client2 = makeMockClient([entry3, entryDup]);
 
-      const trades2 = await fetchAndCacheTrades(
-        client2,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades2 = await fetchAndCacheTrades(client2, network, "XRP", undefined, "USD", ISSUER);
 
       // 3 unique trades after dedup
       expect(trades2).toHaveLength(3);
@@ -407,14 +351,7 @@ describe("fetchAndCacheTrades", () => {
       );
 
       const client = makeMockClient(entries);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(50);
     });
@@ -435,14 +372,7 @@ describe("fetchAndCacheTrades", () => {
       // Second call with different data merges into same cache key
       const entry2 = makeEntry({ hash: "HASH_KEY_TEST_2", time: "2025-01-16T00:00:00Z" });
       const client2 = makeMockClient([entry2]);
-      const trades = await fetchAndCacheTrades(
-        client2,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client2, network, "XRP", undefined, "USD", ISSUER);
 
       // Should have both the cached and new trade
       expect(trades).toHaveLength(2);
@@ -460,14 +390,7 @@ describe("fetchAndCacheTrades", () => {
       const entry = makeEntry({ txType: "Payment", hash: "HASH_PAYMENT" });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
     });
@@ -479,14 +402,7 @@ describe("fetchAndCacheTrades", () => {
       const entry = makeEntry({ txType: "TrustSet", hash: "HASH_TRUSTSET" });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
     });
@@ -506,14 +422,7 @@ describe("fetchAndCacheTrades", () => {
       });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
       // getBalanceChanges should not have been called for a failed tx
@@ -534,14 +443,7 @@ describe("fetchAndCacheTrades", () => {
       };
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
     });
@@ -562,14 +464,7 @@ describe("fetchAndCacheTrades", () => {
       };
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
     });
@@ -579,14 +474,7 @@ describe("fetchAndCacheTrades", () => {
       const entry = makeEntry({ meta: "unavailable" });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
     });
@@ -628,14 +516,7 @@ describe("fetchAndCacheTrades", () => {
       });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       // baseAmount should only reflect non-issuer positive XRP: TRADER's +10
@@ -660,14 +541,7 @@ describe("fetchAndCacheTrades", () => {
       const entry = makeEntry({ hash: "HASH_ONLY_ISSUER" });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(0);
     });
@@ -692,14 +566,7 @@ describe("fetchAndCacheTrades", () => {
       const entry = makeEntry({ hash: "HASH_NEG_ZERO" });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       // No positive changes for base or quote → both totals are 0 → skipped
       expect(trades).toHaveLength(0);
@@ -733,14 +600,7 @@ describe("fetchAndCacheTrades", () => {
       });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       // TRADER's +15 XRP (base) + COUNTERPARTY's +7.5 USD (quote)
@@ -786,14 +646,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "USD",
-        ISSUER,
-        "EUR",
-        ISSUER_B,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "USD", ISSUER, "EUR", ISSUER_B);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].side).toBe("buy");
@@ -832,14 +685,7 @@ describe("fetchAndCacheTrades", () => {
       });
 
       const client = makeMockClient([entry]);
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "USD",
-        ISSUER,
-        "EUR",
-        ISSUER_B,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "USD", ISSUER, "EUR", ISSUER_B);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].side).toBe("sell");
@@ -864,14 +710,7 @@ describe("fetchAndCacheTrades", () => {
       });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       // price = 5 / 25 = 0.2
@@ -895,14 +734,7 @@ describe("fetchAndCacheTrades", () => {
       });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].time).toBe("2025-06-01T14:30:00Z");
@@ -932,14 +764,7 @@ describe("fetchAndCacheTrades", () => {
       };
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].hash).toBe("ENTRY_HASH"); // entry.hash takes priority
@@ -960,14 +785,7 @@ describe("fetchAndCacheTrades", () => {
       });
       const client = makeMockClient([entry]);
 
-      const trades = await fetchAndCacheTrades(
-        client,
-        network,
-        "XRP",
-        undefined,
-        "USD",
-        ISSUER,
-      );
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
 
       expect(trades).toHaveLength(1);
       expect(trades[0].account).toBe(TRADER);
