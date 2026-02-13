@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppState } from "./use-app-state";
 import { useBalances } from "./use-balances";
-import { usePageVisible } from "./use-page-visible";
+import { usePollInterval } from "./use-poll-interval";
+import { useOfferExpirationTimers } from "./use-offer-expiration-timers";
+import { useFetchMarketData } from "./use-fetch-market-data";
 import type { OrderBookAmount, OrderBookEntry, DepthSummary } from "@/lib/types";
 import type { RecentTrade } from "@/app/trade/components/recent-trades";
 import { parseFilledOrders } from "@/lib/xrpl/filled-orders";
 import { buildCurrencyOptions, detectNewOwnTrades } from "./use-trading-data-utils";
 import type { FilledOrder } from "@/lib/xrpl/filled-orders";
-import { fromRippleEpoch } from "@/lib/xrpl/constants";
 
 const POLL_INTERVAL_MS = 3_000;
 
@@ -53,17 +54,10 @@ export function useTradingData({
     state: { network },
   } = useAppState();
   const { balances, loading: loadingBalances } = useBalances(address, network, refreshKey);
-  const visible = usePageVisible();
-  const pollingMarketData = useRef(false);
   const seenTradeHashes = useRef(new Set<string>());
 
-  const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
-  const [loadingOrderBook, setLoadingOrderBook] = useState(false);
   const [accountOffers, setAccountOffers] = useState<AccountOffer[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
-  const [recentTrades, setRecentTrades] = useState<RecentTrade[]>([]);
-  const [loadingTrades, setLoadingTrades] = useState(false);
-  const [depthSummary, setDepthSummary] = useState<DepthSummary | null>(null);
   const [filledOrders, setFilledOrders] = useState<FilledOrder[]>([]);
   const [loadingFilledOrders, setLoadingFilledOrders] = useState(false);
 
@@ -83,58 +77,13 @@ export function useTradingData({
     [currencyOptions, buyingValue],
   );
 
-  // Fetch market data (orderbook + trades in one request)
-  const fetchMarketData = useCallback(
-    async (selling: CurrencyOption, buying: CurrencyOption, net: string, silent = false) => {
-      if (!silent) {
-        setLoadingOrderBook(true);
-        setLoadingTrades(true);
-      }
-      try {
-        const params = new URLSearchParams({
-          base_currency: selling.currency,
-          quote_currency: buying.currency,
-          network: net,
-        });
-        if (selling.issuer) params.set("base_issuer", selling.issuer);
-        if (buying.issuer) params.set("quote_issuer", buying.issuer);
+  // Market data (delegated to focused hook)
+  const { orderBook, loadingOrderBook, recentTrades, loadingTrades, depthSummary, fetchSilent } =
+    useFetchMarketData(sellingCurrency, buyingCurrency, network, refreshKey);
 
-        const res = await fetch(`/api/dex/market-data?${params}`);
-        const data = await res.json();
-        if (res.ok) {
-          if (data.orderbook != null) {
-            setOrderBook({ buy: data.orderbook.buy ?? [], sell: data.orderbook.sell ?? [] });
-          } else if (!silent) {
-            setOrderBook(null);
-          }
-          if (data.depth != null) {
-            setDepthSummary(data.depth);
-          } else if (!silent) {
-            setDepthSummary(null);
-          }
-          if (data.trades != null) {
-            setRecentTrades(data.trades);
-          } else if (!silent) {
-            setRecentTrades([]);
-          }
-        } else if (!silent) {
-          setOrderBook(null);
-          setRecentTrades([]);
-        }
-      } catch {
-        if (!silent) {
-          setOrderBook(null);
-          setRecentTrades([]);
-        }
-      } finally {
-        if (!silent) {
-          setLoadingOrderBook(false);
-          setLoadingTrades(false);
-        }
-      }
-    },
-    [],
-  );
+  // Polling (delegated to generic hook)
+  const pollEnabled = sellingCurrency !== null && buyingCurrency !== null;
+  usePollInterval(fetchSilent, POLL_INTERVAL_MS, pollEnabled);
 
   // Fetch account offers
   const fetchAccountOffers = useCallback(async (addr: string, net: string, silent = false) => {
@@ -160,21 +109,6 @@ export function useTradingData({
     }
   }, [address, network, refreshKey, fetchAccountOffers]);
 
-  useEffect(() => {
-    if (!sellingCurrency || !buyingCurrency) return;
-    fetchMarketData(sellingCurrency, buyingCurrency, network);
-
-    if (!visible) return;
-    const id = setInterval(() => {
-      if (pollingMarketData.current) return;
-      pollingMarketData.current = true;
-      fetchMarketData(sellingCurrency, buyingCurrency, network, true).finally(() => {
-        pollingMarketData.current = false;
-      });
-    }, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [sellingCurrency, buyingCurrency, network, refreshKey, visible, fetchMarketData]);
-
   // Reactive fill detection: when a new recent trade matches our address, refresh open orders
   useEffect(() => {
     const { shouldRefresh } = detectNewOwnTrades(recentTrades, seenTradeHashes.current, address);
@@ -183,31 +117,12 @@ export function useTradingData({
     }
   }, [recentTrades, address, network, fetchAccountOffers]);
 
-  // Expiration tracking: schedule a refresh when an open order's expiration time is reached
-  useEffect(() => {
-    if (!address || accountOffers.length === 0) return;
+  // Offer expiration timers (delegated to focused hook)
+  const handleOfferExpire = useCallback(() => {
+    if (address) fetchAccountOffers(address, network, true);
+  }, [address, network, fetchAccountOffers]);
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    const now = Date.now();
-
-    for (const offer of accountOffers) {
-      if (offer.expiration == null) continue;
-      const expiresAt = fromRippleEpoch(offer.expiration).getTime();
-      const delay = expiresAt - now;
-      // Only schedule for offers that expire in the future (within 5 minutes).
-      // Already-expired offers linger on-ledger; re-fetching them causes an
-      // infinite loop because the response still includes them.
-      if (delay > 0 && delay <= 5 * 60 * 1000) {
-        const timer = setTimeout(
-          () => fetchAccountOffers(address, network, true),
-          delay + 1000, // 1s buffer after expiry
-        );
-        timers.push(timer);
-      }
-    }
-
-    return () => timers.forEach(clearTimeout);
-  }, [accountOffers, address, network, fetchAccountOffers]);
+  useOfferExpirationTimers(address ? accountOffers : [], handleOfferExpire);
 
   // Fetch filled orders from account transaction history
   const fetchFilledOrders = useCallback(
