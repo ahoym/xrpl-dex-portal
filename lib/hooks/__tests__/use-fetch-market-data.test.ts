@@ -20,7 +20,17 @@ function marketDataResponse(overrides: Record<string, unknown> = {}): Response {
     JSON.stringify({
       orderbook: { buy: [{ account: "rBuyer" }], sell: [{ account: "rSeller" }] },
       depth: { bidVolume: "100", bidLevels: 5, askVolume: "200", askLevels: 8 },
-      trades: [{ hash: "AABB", side: "buy", price: "1.0", baseAmount: "10", quoteAmount: "10", account: "rTrader", time: "2025-01-01T00:00:00Z" }],
+      trades: [
+        {
+          hash: "AABB",
+          side: "buy",
+          price: "1.0",
+          baseAmount: "10",
+          quoteAmount: "10",
+          account: "rTrader",
+          time: "2025-01-01T00:00:00Z",
+        },
+      ],
       ...overrides,
     }),
     { status: 200, headers: { "Content-Type": "application/json" } },
@@ -77,7 +87,12 @@ describe("useFetchMarketData", () => {
 
     const { rerender } = renderHook(
       ({ selling, buying }) => useFetchMarketData(selling, buying, "testnet", 0),
-      { initialProps: { selling: XRP as CurrencyOption | null, buying: RLUSD as CurrencyOption | null } },
+      {
+        initialProps: {
+          selling: XRP as CurrencyOption | null,
+          buying: RLUSD as CurrencyOption | null,
+        },
+      },
     );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
