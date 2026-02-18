@@ -199,4 +199,61 @@ describe("useFetchMarketData", () => {
     expect(result.current.orderBook).toBeNull();
     expect(result.current.recentTrades).toEqual([]);
   });
+
+  it("includes domain param in fetch URL when activeDomainID is set", async () => {
+    const domainID = "A".repeat(64);
+    fetchMock.mockResolvedValueOnce(marketDataResponse());
+
+    const { result } = renderHook(() => useFetchMarketData(XRP, RLUSD, "testnet", 0, domainID));
+
+    await waitFor(() => {
+      expect(result.current.orderBook).not.toBeNull();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain(`domain=${domainID}`);
+  });
+
+  it("does not include domain param when activeDomainID is undefined", async () => {
+    fetchMock.mockResolvedValueOnce(marketDataResponse());
+
+    const { result } = renderHook(() => useFetchMarketData(XRP, RLUSD, "testnet", 0));
+
+    await waitFor(() => {
+      expect(result.current.orderBook).not.toBeNull();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).not.toContain("domain=");
+  });
+
+  it("resets orderbook and trades when activeDomainID changes", async () => {
+    const domainID = "A".repeat(64);
+    // Use Once variants so each call gets a fresh Response (Response body is single-use)
+    fetchMock.mockResolvedValueOnce(marketDataResponse());
+    fetchMock.mockResolvedValueOnce(marketDataResponse());
+
+    const { result, rerender } = renderHook(
+      ({ domain }: { domain?: string }) => useFetchMarketData(XRP, RLUSD, "testnet", 0, domain),
+      { initialProps: { domain: undefined } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.orderBook).not.toBeNull();
+    });
+
+    // Change domain — data should reset before new fetch resolves
+    rerender({ domain: domainID });
+
+    await waitFor(() => {
+      expect(result.current.orderBook).not.toBeNull();
+    });
+
+    // At least 2 fetches should have been made
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondUrl = fetchMock.mock.calls[1][0] as string;
+    expect(secondUrl).toContain(`domain=${domainID}`);
+  });
 });

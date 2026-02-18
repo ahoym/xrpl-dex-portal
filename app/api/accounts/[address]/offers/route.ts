@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { DEFAULT_ACCOUNT_OFFERS_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
 import { fromXrplAmount } from "@/lib/xrpl/currency";
-import { getXrplClient, getAndValidateAddress, apiErrorResponse, parseIntQueryParam } from "@/lib/api";
+import {
+  getXrplClient,
+  getAndValidateAddress,
+  apiErrorResponse,
+  parseIntQueryParam,
+} from "@/lib/api";
 
 export async function GET(
   request: NextRequest,
@@ -30,14 +35,21 @@ export async function GET(
       ledger_index: "validated",
     });
 
-    const offers = response.result.offers?.map((offer) => ({
-      seq: offer.seq,
-      flags: offer.flags,
-      taker_gets: fromXrplAmount(offer.taker_gets),
-      taker_pays: fromXrplAmount(offer.taker_pays),
-      quality: offer.quality,
-      expiration: offer.expiration,
-    })) ?? [];
+    const offers =
+      response.result.offers?.map((offer) => {
+        const domainID = (offer as unknown as Record<string, unknown>).DomainID as
+          | string
+          | undefined;
+        return {
+          seq: offer.seq,
+          flags: offer.flags,
+          taker_gets: fromXrplAmount(offer.taker_gets),
+          taker_pays: fromXrplAmount(offer.taker_pays),
+          quality: offer.quality,
+          expiration: offer.expiration,
+          ...(domainID ? { domainID } : {}),
+        };
+      }) ?? [];
 
     const result: Record<string, unknown> = { address, offers };
     if (response.result.marker) {

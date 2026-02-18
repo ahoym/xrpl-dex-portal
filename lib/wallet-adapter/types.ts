@@ -21,6 +21,7 @@ export interface CreateOfferParams {
   takerPays: DexAmount;
   flags?: OfferFlag[];
   expiration?: number;
+  domainID?: string;
   network: string;
 }
 

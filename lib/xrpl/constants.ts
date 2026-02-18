@@ -40,6 +40,12 @@ export const MAX_CURRENCY_CODE_LENGTH = 40;
 /** Length of a hex-encoded XRPL currency code. */
 export const HEX_CURRENCY_CODE_LENGTH = 40;
 
+/** Length of a permissioned domain ID (64 uppercase hex characters). */
+export const DOMAIN_ID_LENGTH = 64;
+
+/** Regex that matches a valid permissioned domain ID (64 uppercase hex characters). */
+export const DOMAIN_ID_REGEX = /^[0-9A-F]{64}$/;
+
 // ---------------------------------------------------------------------------
 // Epoch conversion helpers
 // ---------------------------------------------------------------------------

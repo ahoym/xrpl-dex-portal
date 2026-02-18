@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { buildPaymentTx, buildOfferCreateTx, buildOfferCancelTx, buildTrustSetTx } from "../build-transactions";
+import {
+  buildPaymentTx,
+  buildOfferCreateTx,
+  buildOfferCancelTx,
+  buildTrustSetTx,
+} from "../build-transactions";
 
 describe("buildPaymentTx", () => {
   it("builds an XRP payment (amount in drops)", () => {
@@ -30,7 +35,13 @@ describe("buildPaymentTx", () => {
 
   it("includes DestinationTag when provided", () => {
     const tx = buildPaymentTx(
-      { recipientAddress: "rDEST", currencyCode: "XRP", amount: "1", destinationTag: 99, network: "testnet" },
+      {
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "1",
+        destinationTag: 99,
+        network: "testnet",
+      },
       "rSENDER",
     );
     expect(tx.DestinationTag).toBe(99);
@@ -38,7 +49,13 @@ describe("buildPaymentTx", () => {
 
   it("hex-encodes non-standard currency codes (4+ chars)", () => {
     const tx = buildPaymentTx(
-      { recipientAddress: "rDEST", currencyCode: "RLUSD", amount: "100", issuerAddress: "rI", network: "testnet" },
+      {
+        recipientAddress: "rDEST",
+        currencyCode: "RLUSD",
+        amount: "100",
+        issuerAddress: "rI",
+        network: "testnet",
+      },
       "rSENDER",
     );
     const amt = tx.Amount as { currency: string };
@@ -92,6 +109,31 @@ describe("buildOfferCreateTx", () => {
     );
     expect(tx.Expiration).toBe(700000000);
   });
+
+  it("sets DomainID when domainID is provided", () => {
+    const tx = buildOfferCreateTx(
+      {
+        takerGets: { currency: "XRP", value: "1" },
+        takerPays: { currency: "USD", issuer: "rI", value: "1" },
+        domainID: "B".repeat(64),
+        network: "testnet",
+      },
+      "rACCOUNT",
+    );
+    expect((tx as Record<string, unknown>).DomainID).toBe("B".repeat(64));
+  });
+
+  it("does not set DomainID when domainID is not provided", () => {
+    const tx = buildOfferCreateTx(
+      {
+        takerGets: { currency: "XRP", value: "1" },
+        takerPays: { currency: "USD", issuer: "rI", value: "1" },
+        network: "testnet",
+      },
+      "rACCOUNT",
+    );
+    expect((tx as Record<string, unknown>).DomainID).toBeUndefined();
+  });
 });
 
 describe("buildOfferCancelTx", () => {
@@ -106,7 +148,13 @@ describe("buildOfferCancelTx", () => {
 describe("buildTrustSetTx", () => {
   it("builds a TrustSet with standard currency code", () => {
     const tx = buildTrustSetTx(
-      { address: "rADDR", currency: "USD", issuer: "rISSUER", limit: "1000000", network: "testnet" },
+      {
+        address: "rADDR",
+        currency: "USD",
+        issuer: "rISSUER",
+        limit: "1000000",
+        network: "testnet",
+      },
       "rADDR",
     );
     expect(tx.TransactionType).toBe("TrustSet");
@@ -116,7 +164,13 @@ describe("buildTrustSetTx", () => {
 
   it("hex-encodes non-standard currency codes", () => {
     const tx = buildTrustSetTx(
-      { address: "rADDR", currency: "RLUSD", issuer: "rISSUER", limit: "1000000", network: "testnet" },
+      {
+        address: "rADDR",
+        currency: "RLUSD",
+        issuer: "rISSUER",
+        limit: "1000000",
+        network: "testnet",
+      },
       "rADDR",
     );
     const limit = tx.LimitAmount as { currency: string };

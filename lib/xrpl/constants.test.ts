@@ -2,6 +2,8 @@ import {
   RIPPLE_EPOCH_OFFSET,
   toRippleEpoch,
   fromRippleEpoch,
+  DOMAIN_ID_LENGTH,
+  DOMAIN_ID_REGEX,
 } from "./constants";
 
 describe("RIPPLE_EPOCH_OFFSET", () => {
@@ -62,6 +64,26 @@ describe("fromRippleEpoch", () => {
     // -1 Ripple second = 1999-12-31T23:59:59Z
     const date = fromRippleEpoch(-1);
     expect(date.toISOString()).toBe("1999-12-31T23:59:59.000Z");
+  });
+});
+
+describe("DOMAIN_ID_REGEX", () => {
+  it("matches a valid 64-char uppercase hex string", () => {
+    expect(DOMAIN_ID_REGEX.test("A".repeat(64))).toBe(true);
+    expect(DOMAIN_ID_REGEX.test("0123456789ABCDEF".repeat(4))).toBe(true);
+  });
+
+  it("rejects lowercase hex", () => {
+    expect(DOMAIN_ID_REGEX.test("a".repeat(64))).toBe(false);
+  });
+
+  it("rejects wrong length", () => {
+    expect(DOMAIN_ID_REGEX.test("A".repeat(63))).toBe(false);
+    expect(DOMAIN_ID_REGEX.test("A".repeat(65))).toBe(false);
+  });
+
+  it("DOMAIN_ID_LENGTH equals 64", () => {
+    expect(DOMAIN_ID_LENGTH).toBe(64);
   });
 });
 

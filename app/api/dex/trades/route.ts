@@ -5,6 +5,7 @@ import { fetchAndCacheTrades } from "@/lib/xrpl/trades";
 export async function GET(request: NextRequest) {
   try {
     const network = request.nextUrl.searchParams.get("network") ?? undefined;
+    const domain = request.nextUrl.searchParams.get("domain") ?? undefined;
 
     const pairOrError = validateCurrencyPair(request);
     if (pairOrError instanceof Response) return pairOrError;
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
       baseIssuer,
       quoteCurrency,
       quoteIssuer,
+      domain,
     );
 
     return Response.json(

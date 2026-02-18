@@ -33,6 +33,7 @@ export interface AccountOffer {
   taker_pays: OrderBookAmount;
   quality: string;
   expiration?: number;
+  domainID?: string;
 }
 
 interface UseTradingDataOptions {
@@ -41,6 +42,7 @@ interface UseTradingDataOptions {
   buyingValue: string;
   refreshKey: number;
   customCurrencies: { currency: string; issuer: string }[];
+  activeDomainID?: string;
 }
 
 export function useTradingData({
@@ -49,6 +51,7 @@ export function useTradingData({
   buyingValue,
   refreshKey,
   customCurrencies,
+  activeDomainID,
 }: UseTradingDataOptions) {
   const {
     state: { network },
@@ -79,7 +82,7 @@ export function useTradingData({
 
   // Market data (delegated to focused hook)
   const { orderBook, loadingOrderBook, recentTrades, loadingTrades, depthSummary, fetchSilent } =
-    useFetchMarketData(sellingCurrency, buyingCurrency, network, refreshKey);
+    useFetchMarketData(sellingCurrency, buyingCurrency, network, refreshKey, activeDomainID);
 
   // Polling (delegated to generic hook)
   const pollEnabled = sellingCurrency !== null && buyingCurrency !== null;

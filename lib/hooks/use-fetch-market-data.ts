@@ -18,6 +18,7 @@ export function useFetchMarketData(
   buyingCurrency: CurrencyOption | null,
   network: string,
   refreshKey: number,
+  activeDomainID?: string,
 ) {
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [loadingOrderBook, setLoadingOrderBook] = useState(false);
@@ -26,7 +27,13 @@ export function useFetchMarketData(
   const [depthSummary, setDepthSummary] = useState<DepthSummary | null>(null);
 
   const fetchMarketData = useCallback(
-    async (selling: CurrencyOption, buying: CurrencyOption, net: string, silent = false) => {
+    async (
+      selling: CurrencyOption,
+      buying: CurrencyOption,
+      net: string,
+      domainID?: string,
+      silent = false,
+    ) => {
       if (!silent) {
         setLoadingOrderBook(true);
         setLoadingTrades(true);
@@ -39,6 +46,7 @@ export function useFetchMarketData(
         });
         if (selling.issuer) params.set("base_issuer", selling.issuer);
         if (buying.issuer) params.set("quote_issuer", buying.issuer);
+        if (domainID) params.set("domain", domainID);
 
         const res = await fetch(`/api/dex/market-data?${params}`);
         const data = await res.json();
@@ -77,17 +85,24 @@ export function useFetchMarketData(
     [],
   );
 
-  // Initial fetch + re-fetch on currency/network/refreshKey change
+  // Reset stale data when activeDomainID changes (Amendment 4)
+  useEffect(() => {
+    setOrderBook(null);
+    setRecentTrades([]);
+    setDepthSummary(null);
+  }, [activeDomainID]);
+
+  // Initial fetch + re-fetch on currency/network/refreshKey/activeDomainID change
   useEffect(() => {
     if (!sellingCurrency || !buyingCurrency) return;
-    fetchMarketData(sellingCurrency, buyingCurrency, network);
-  }, [sellingCurrency, buyingCurrency, network, refreshKey, fetchMarketData]);
+    fetchMarketData(sellingCurrency, buyingCurrency, network, activeDomainID);
+  }, [sellingCurrency, buyingCurrency, network, refreshKey, activeDomainID, fetchMarketData]);
 
   // Stable callback for the poller (always uses latest currencies/network)
   const fetchSilent = useCallback(async () => {
     if (!sellingCurrency || !buyingCurrency) return;
-    await fetchMarketData(sellingCurrency, buyingCurrency, network, true);
-  }, [sellingCurrency, buyingCurrency, network, fetchMarketData]);
+    await fetchMarketData(sellingCurrency, buyingCurrency, network, activeDomainID, true);
+  }, [sellingCurrency, buyingCurrency, network, activeDomainID, fetchMarketData]);
 
   return {
     orderBook,

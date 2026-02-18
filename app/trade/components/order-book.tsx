@@ -26,6 +26,7 @@ interface OrderBookProps {
   onDepthChange: (d: number) => void;
   depthSummary: DepthSummary | null;
   onSelectOrder?: (price: string, amount: string, tab: "buy" | "sell") => void;
+  activeDomainID?: string;
 }
 
 export function OrderBook({
@@ -39,12 +40,9 @@ export function OrderBook({
   onDepthChange,
   depthSummary,
   onSelectOrder,
+  activeDomainID,
 }: OrderBookProps) {
-
-  const allOffers = [
-    ...(orderBook?.buy ?? []),
-    ...(orderBook?.sell ?? []),
-  ];
+  const allOffers = [...(orderBook?.buy ?? []), ...(orderBook?.sell ?? [])];
 
   // Asks: creator sells base (taker_gets = base)
   // Use funded amounts when available to reflect actual fillable size; drop unfunded offers
@@ -100,25 +98,27 @@ export function OrderBook({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-          Order Book
-        </h3>
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Order Book</h3>
         <select
           value={depth}
           onChange={(e) => onDepthChange(Number(e.target.value))}
           className="rounded border border-zinc-200 bg-white px-2 py-0.5 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
         >
           {DEPTH_OPTIONS.map((d) => (
-            <option key={d} value={d}>{d}</option>
+            <option key={d} value={d}>
+              {d}
+            </option>
           ))}
         </select>
       </div>
 
       {depthSummary && (
         <p className="mt-1.5 text-[11px] text-zinc-400 dark:text-zinc-500">
-          {depthSummary.bidLevels} bids · {formatCompact(depthSummary.bidVolume)} {quoteCurrency} depth
+          {depthSummary.bidLevels} bids · {formatCompact(depthSummary.bidVolume)} {quoteCurrency}{" "}
+          depth
           <span className="mx-1.5 text-zinc-300 dark:text-zinc-600">|</span>
-          {depthSummary.askLevels} asks · {formatCompact(depthSummary.askVolume)} {baseCurrency} depth
+          {depthSummary.askLevels} asks · {formatCompact(depthSummary.askVolume)} {baseCurrency}{" "}
+          depth
         </p>
       )}
 
@@ -136,7 +136,7 @@ export function OrderBook({
         </div>
         {visibleAsks.length === 0 ? (
           <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
-            No asks
+            {activeDomainID ? "No orders in this permissioned domain" : "No asks"}
           </p>
         ) : (
           visibleAsks.map((a, i) => {
@@ -146,10 +146,21 @@ export function OrderBook({
             return (
               <div
                 key={`ask-${i}`}
-                onClick={clickable ? () => onSelectOrder(a.price.toFixed(6), a.amount.toFixed(6), "buy") : undefined}
+                onClick={
+                  clickable
+                    ? () => onSelectOrder(a.price.toFixed(6), a.amount.toFixed(6), "buy")
+                    : undefined
+                }
                 role={clickable ? "button" : undefined}
                 tabIndex={clickable ? 0 : undefined}
-                onKeyDown={clickable ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onSelectOrder(a.price.toFixed(6), a.amount.toFixed(6), "buy"); } : undefined}
+                onKeyDown={
+                  clickable
+                    ? (e: React.KeyboardEvent) => {
+                        if (e.key === "Enter" || e.key === " ")
+                          onSelectOrder(a.price.toFixed(6), a.amount.toFixed(6), "buy");
+                      }
+                    : undefined
+                }
                 className={`relative grid grid-cols-[0.65fr_1fr_1fr_1fr_7rem] py-0.5 text-xs font-mono ${
                   clickable
                     ? "cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -191,13 +202,17 @@ export function OrderBook({
               <span className="font-bold text-zinc-900 dark:text-zinc-100">{mid.toFixed(6)}</span>
               <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
               <span className="text-zinc-400 dark:text-zinc-500">
-                Spread: {spread.toFixed(6)}{" "}
-                ({new BigNumber(spread).div(mid).times(10_000).toFixed(1)} bps)
+                Spread: {spread.toFixed(6)} (
+                {new BigNumber(spread).div(mid).times(10_000).toFixed(1)} bps)
               </span>
             </span>
           ) : (
             <span className="text-zinc-400 dark:text-zinc-500">
-              {bestAsk !== null ? `Best ask: ${bestAsk.toFixed(6)}` : bestBid !== null ? `Best bid: ${bestBid.toFixed(6)}` : "No orders"}
+              {bestAsk !== null
+                ? `Best ask: ${bestAsk.toFixed(6)}`
+                : bestBid !== null
+                  ? `Best bid: ${bestBid.toFixed(6)}`
+                  : "No orders"}
             </span>
           )}
         </div>
@@ -207,7 +222,7 @@ export function OrderBook({
         </div>
         {visibleBids.length === 0 ? (
           <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
-            No bids
+            {activeDomainID ? "No orders in this permissioned domain" : "No bids"}
           </p>
         ) : (
           visibleBids.map((b, i) => {
@@ -217,10 +232,21 @@ export function OrderBook({
             return (
               <div
                 key={`bid-${i}`}
-                onClick={clickable ? () => onSelectOrder(b.price.toFixed(6), b.amount.toFixed(6), "sell") : undefined}
+                onClick={
+                  clickable
+                    ? () => onSelectOrder(b.price.toFixed(6), b.amount.toFixed(6), "sell")
+                    : undefined
+                }
                 role={clickable ? "button" : undefined}
                 tabIndex={clickable ? 0 : undefined}
-                onKeyDown={clickable ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onSelectOrder(b.price.toFixed(6), b.amount.toFixed(6), "sell"); } : undefined}
+                onKeyDown={
+                  clickable
+                    ? (e: React.KeyboardEvent) => {
+                        if (e.key === "Enter" || e.key === " ")
+                          onSelectOrder(b.price.toFixed(6), b.amount.toFixed(6), "sell");
+                      }
+                    : undefined
+                }
                 className={`relative grid grid-cols-[0.65fr_1fr_1fr_1fr_7rem] py-0.5 text-xs font-mono ${
                   clickable
                     ? "cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20"
