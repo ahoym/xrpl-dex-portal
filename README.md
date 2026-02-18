@@ -2,6 +2,8 @@
 
 A self-custodial trading portal for the [XRP Ledger](https://xrpl.org/) decentralized exchange. Trade tokens, manage trust lines, and send payments — all from a single wallet you control, with no sign-ups, no databases, and no third-party custody.
 
+- App link: https://xrpl-dex-portal.vercel.app/setup
+
 ## What It Does
 
 ### Wallet Management (Setup)
