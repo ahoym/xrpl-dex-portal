@@ -3,14 +3,25 @@ import type { CredentialDelete } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeCredentialType } from "@/lib/xrpl/credentials";
-import { validateRequired, validateAddress, validateCredentialType, requireWallet, submitTxAndRespond, apiErrorResponse } from "@/lib/api";
+import {
+  validateRequired,
+  validateAddress,
+  validateCredentialType,
+  requireWallet,
+  submitTxAndRespond,
+  apiErrorResponse,
+} from "@/lib/api";
 import type { DeleteCredentialRequest } from "@/lib/xrpl/types";
 
 export async function POST(request: NextRequest) {
   try {
     const body: DeleteCredentialRequest = await request.json();
 
-    const invalid = validateRequired(body as unknown as Record<string, unknown>, ["seed", "issuer", "credentialType"]);
+    const invalid = validateRequired(body as unknown as Record<string, unknown>, [
+      "seed",
+      "issuer",
+      "credentialType",
+    ]);
     if (invalid) return invalid;
 
     const badIssuer = validateAddress(body.issuer, "issuer");

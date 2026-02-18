@@ -1,9 +1,26 @@
 "use client";
 
-import { createContext, useContext, useMemo, useCallback, useState, useEffect, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import type { ReactNode } from "react";
 import type { WalletType } from "../types";
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "../wallet-adapter/types";
+import type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "../wallet-adapter/types";
 import { createSeedAdapter, loadExtensionAdapter } from "../wallet-adapter";
 import { useAppState } from "./use-app-state";
 
@@ -149,22 +166,34 @@ export function WalletAdapterProvider({ children }: { children: ReactNode }) {
       acceptCredential,
       deleteCredential,
     }),
-    [adapter, connecting, needsReconnect, xamanPayload, connectWallet, disconnectWallet, sendPayment, createOffer, cancelOffer, setTrustline, acceptCredential, deleteCredential],
+    [
+      adapter,
+      connecting,
+      needsReconnect,
+      xamanPayload,
+      connectWallet,
+      disconnectWallet,
+      sendPayment,
+      createOffer,
+      cancelOffer,
+      setTrustline,
+      acceptCredential,
+      deleteCredential,
+    ],
   );
 
   // Expose setXamanPayload for the xaman adapter (avoids circular deps)
   useEffect(() => {
     if (adapter && adapter.type === "xaman" && "setPayloadCallback" in adapter) {
-      (adapter as WalletAdapter & { setPayloadCallback: (cb: (p: XamanPayload | null) => void) => void })
-        .setPayloadCallback(setXamanPayload);
+      (
+        adapter as WalletAdapter & {
+          setPayloadCallback: (cb: (p: XamanPayload | null) => void) => void;
+        }
+      ).setPayloadCallback(setXamanPayload);
     }
   }, [adapter]);
 
-  return (
-    <WalletAdapterContext.Provider value={value}>
-      {children}
-    </WalletAdapterContext.Provider>
-  );
+  return <WalletAdapterContext.Provider value={value}>{children}</WalletAdapterContext.Provider>;
 }
 
 export function useWalletAdapter() {

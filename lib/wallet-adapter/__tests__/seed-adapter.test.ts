@@ -55,10 +55,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("sendPayment includes optional issuerAddress and destinationTag", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "H" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "H" } }),
+      }),
+    );
 
     await adapter.sendPayment({
       recipientAddress: "rDEST",
@@ -75,10 +78,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("createOffer calls /api/dex/offers with correct payload", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "OFFER_HASH" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "OFFER_HASH" } }),
+      }),
+    );
 
     const result = await adapter.createOffer({
       takerGets: { currency: "XRP", value: "100" },
@@ -99,10 +105,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("cancelOffer calls /api/dex/offers/cancel", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "CANCEL_HASH" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "CANCEL_HASH" } }),
+      }),
+    );
 
     const result = await adapter.cancelOffer({
       offerSequence: 42,
@@ -118,10 +127,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("setTrustline calls /api/accounts/{address}/trustlines", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "TRUST_HASH" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "TRUST_HASH" } }),
+      }),
+    );
 
     const result = await adapter.setTrustline({
       address: "rMYADDR",
@@ -192,16 +204,21 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("throws on API error response", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: "Insufficient balance" }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: "Insufficient balance" }),
+      }),
+    );
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "10",
-      network: "testnet",
-    })).rejects.toThrow("Insufficient balance");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "10",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("Insufficient balance");
   });
 });

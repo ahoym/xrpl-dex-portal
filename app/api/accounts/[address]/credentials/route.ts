@@ -1,5 +1,10 @@
 import { NextRequest } from "next/server";
-import { getAndValidateAddress, getXrplClient, apiErrorResponse, isAccountNotFound } from "@/lib/api";
+import {
+  getAndValidateAddress,
+  getXrplClient,
+  apiErrorResponse,
+  isAccountNotFound,
+} from "@/lib/api";
 import { LSF_ACCEPTED, fromRippleEpoch } from "@/lib/xrpl/constants";
 import { decodeCredentialType } from "@/lib/xrpl/credentials";
 import type { CredentialInfo } from "@/lib/types";

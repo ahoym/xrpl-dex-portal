@@ -331,15 +331,11 @@ describe("validateDexAmount", () => {
 
 describe("getTransactionResult", () => {
   it("extracts TransactionResult string for tesSUCCESS", () => {
-    expect(getTransactionResult({ TransactionResult: "tesSUCCESS" })).toBe(
-      "tesSUCCESS",
-    );
+    expect(getTransactionResult({ TransactionResult: "tesSUCCESS" })).toBe("tesSUCCESS");
   });
 
   it("extracts TransactionResult string for tecPATH_DRY", () => {
-    expect(getTransactionResult({ TransactionResult: "tecPATH_DRY" })).toBe(
-      "tecPATH_DRY",
-    );
+    expect(getTransactionResult({ TransactionResult: "tecPATH_DRY" })).toBe("tecPATH_DRY");
   });
 
   it("returns undefined for null", () => {

@@ -6,11 +6,27 @@
  * injected page globals — no network requests leave the browser.
  */
 
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "./types";
-import { buildPaymentTx, buildOfferCreateTx, buildOfferCancelTx, buildTrustSetTx, buildCredentialAcceptTx, buildCredentialDeleteTx } from "./build-transactions";
+import type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "./types";
+import {
+  buildPaymentTx,
+  buildOfferCreateTx,
+  buildOfferCancelTx,
+  buildTrustSetTx,
+  buildCredentialAcceptTx,
+  buildCredentialDeleteTx,
+} from "./build-transactions";
 
 // Lazy-loaded SDK instance (loaded on first use)
-let sdkPromise: Promise<typeof import("@crossmarkio/sdk")["default"]> | null = null;
+let sdkPromise: Promise<(typeof import("@crossmarkio/sdk"))["default"]> | null = null;
 
 function getSdk() {
   if (!sdkPromise) {
@@ -116,7 +132,8 @@ export class CrossmarkAdapter implements WalletAdapter {
 
     // txResp is an xrpl TxResponse — hash lives at result.hash
     const hash = (txResp as { result?: { hash?: string } })?.result?.hash ?? "";
-    const resultCode = (txResp as { result?: { meta?: { TransactionResult?: string } } })?.result?.meta?.TransactionResult;
+    const resultCode = (txResp as { result?: { meta?: { TransactionResult?: string } } })?.result
+      ?.meta?.TransactionResult;
 
     return {
       hash,

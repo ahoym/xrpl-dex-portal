@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "../types";
+import type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "../types";
 
 describe("wallet-adapter/types", () => {
   it("TxResult shape is correct", () => {

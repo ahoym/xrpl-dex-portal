@@ -13,14 +13,7 @@ import { cardClass, errorTextClass } from "@/lib/ui/ui";
 import { BalanceDisplay } from "../components/balance-display";
 
 export default function SetupPage() {
-  const {
-    state,
-    hydrated,
-    contacts,
-    setWallet,
-    importState,
-    clearAll,
-  } = useAppState();
+  const { state, hydrated, contacts, setWallet, importState, clearAll } = useAppState();
 
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -33,11 +26,7 @@ export default function SetupPage() {
       <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Setup</h1>
 
       <div className="mt-6 space-y-5">
-        <WalletSetup
-          wallet={state.wallet}
-          network={state.network}
-          onSetWallet={setWallet}
-        >
+        <WalletSetup wallet={state.wallet} network={state.network} onSetWallet={setWallet}>
           {state.wallet && (
             <BalanceDisplay address={state.wallet.address} refreshKey={refreshKey} />
           )}
@@ -53,7 +42,13 @@ export default function SetupPage() {
         )}
 
         {state.wallet && (
-          <ErrorBoundary fallback={<div className={cardClass}><p className={errorTextClass}>Failed to load credentials section.</p></div>}>
+          <ErrorBoundary
+            fallback={
+              <div className={cardClass}>
+                <p className={errorTextClass}>Failed to load credentials section.</p>
+              </div>
+            }
+          >
             <CredentialManagement
               wallet={state.wallet}
               network={state.network}
@@ -62,7 +57,6 @@ export default function SetupPage() {
             />
           </ErrorBoundary>
         )}
-
       </div>
 
       <div className="mt-8 space-y-5">

@@ -98,9 +98,7 @@ export function CredentialManagement({
     <div className={cardClass}>
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-            Credentials
-          </h2>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Credentials</h2>
           <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
             Credentials issued to your wallet by third parties
           </p>
@@ -120,10 +118,9 @@ export function CredentialManagement({
 
       {!loading && credentials.length === 0 && (
         <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-          No credentials found. Credentials are on-ledger attestations issued to
-          your wallet by third parties (e.g., identity verifiers, compliance
-          providers). When someone issues a credential to you, it will appear
-          here for you to accept or reject.
+          No credentials found. Credentials are on-ledger attestations issued to your wallet by
+          third parties (e.g., identity verifiers, compliance providers). When someone issues a
+          credential to you, it will appear here for you to accept or reject.
         </p>
       )}
 
@@ -146,9 +143,7 @@ export function CredentialManagement({
                     </p>
 
                     <div className="mt-1">
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Issuer:{" "}
-                      </span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">Issuer: </span>
                       <ExplorerLink address={cred.issuer} />
                     </div>
 
@@ -209,9 +204,7 @@ export function CredentialManagement({
                         disabled={isActing || acting !== null}
                         className="bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:hover:shadow-sm disabled:active:scale-100"
                       >
-                        {isActing
-                          ? getSigningLoadingText(adapter, "Accepting...")
-                          : "Accept"}
+                        {isActing ? getSigningLoadingText(adapter, "Accepting...") : "Accept"}
                       </button>
                     )}
                     <button
@@ -219,9 +212,7 @@ export function CredentialManagement({
                       disabled={isActing || acting !== null}
                       className="border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 dark:hover:border-red-700"
                     >
-                      {isActing
-                        ? getSigningLoadingText(adapter, "Deleting...")
-                        : "Delete"}
+                      {isActing ? getSigningLoadingText(adapter, "Deleting...") : "Delete"}
                     </button>
                   </div>
                 </div>

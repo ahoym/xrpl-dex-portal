@@ -6,13 +6,27 @@
  * raw XRPL transaction JSON to pass to their sign-and-submit methods.
  */
 
-import type { Payment, OfferCreate, OfferCancel, TrustSet, CredentialAccept, CredentialDelete } from "xrpl";
+import type {
+  Payment,
+  OfferCreate,
+  OfferCancel,
+  TrustSet,
+  CredentialAccept,
+  CredentialDelete,
+} from "xrpl";
 import { xrpToDrops } from "xrpl";
 import { toXrplAmount } from "../xrpl/currency";
 import { resolveOfferFlags } from "../xrpl/offers";
 import { encodeXrplCurrency } from "../xrpl/currency";
 import { Assets } from "../assets";
-import type { PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "./types";
+import type {
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "./types";
 
 export function buildPaymentTx(params: PaymentParams, account: string): Payment {
   const isXrp = params.currencyCode === Assets.XRP;
@@ -91,10 +105,15 @@ export function buildTrustSetTx(params: TrustlineParams, account: string): Trust
  */
 function encodeCredentialTypeClient(type: string): string {
   const bytes = new TextEncoder().encode(type);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
 }
 
-export function buildCredentialAcceptTx(params: AcceptCredentialParams, account: string): CredentialAccept {
+export function buildCredentialAcceptTx(
+  params: AcceptCredentialParams,
+  account: string,
+): CredentialAccept {
   return {
     TransactionType: "CredentialAccept",
     Account: account,
@@ -103,7 +122,10 @@ export function buildCredentialAcceptTx(params: AcceptCredentialParams, account:
   };
 }
 
-export function buildCredentialDeleteTx(params: DeleteCredentialParams, account: string): CredentialDelete {
+export function buildCredentialDeleteTx(
+  params: DeleteCredentialParams,
+  account: string,
+): CredentialDelete {
   return {
     TransactionType: "CredentialDelete",
     Account: account,

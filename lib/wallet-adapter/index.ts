@@ -2,7 +2,16 @@ import type { WalletType } from "../types";
 import type { WalletAdapter } from "./types";
 import { SeedWalletAdapter } from "./seed-adapter";
 
-export type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "./types";
+export type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "./types";
 
 interface AdapterInfo {
   type: WalletType;
@@ -16,10 +25,26 @@ interface AdapterInfo {
  * Extension adapters are lazily loaded only when selected.
  */
 const ADAPTER_REGISTRY: AdapterInfo[] = [
-  { type: "crossmark", displayName: "Crossmark", load: () => import("./crossmark-adapter").then(m => m.CrossmarkAdapter) },
-  { type: "gemwallet", displayName: "GemWallet", load: () => import("./gemwallet-adapter").then(m => m.GemWalletAdapter) },
-  { type: "xaman", displayName: "Xaman", load: () => import("./xaman-adapter").then(m => m.XamanAdapter) },
-  { type: "metamask-snap", displayName: "MetaMask (XRPL)", load: () => import("./metamask-snap-adapter").then(m => m.MetaMaskSnapAdapter) },
+  {
+    type: "crossmark",
+    displayName: "Crossmark",
+    load: () => import("./crossmark-adapter").then((m) => m.CrossmarkAdapter),
+  },
+  {
+    type: "gemwallet",
+    displayName: "GemWallet",
+    load: () => import("./gemwallet-adapter").then((m) => m.GemWalletAdapter),
+  },
+  {
+    type: "xaman",
+    displayName: "Xaman",
+    load: () => import("./xaman-adapter").then((m) => m.XamanAdapter),
+  },
+  {
+    type: "metamask-snap",
+    displayName: "MetaMask (XRPL)",
+    load: () => import("./metamask-snap-adapter").then((m) => m.MetaMaskSnapAdapter),
+  },
 ];
 
 /** Create a seed-based adapter. */
