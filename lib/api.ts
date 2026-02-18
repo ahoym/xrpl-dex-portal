@@ -3,6 +3,7 @@ import { Wallet, isValidClassicAddress } from "xrpl";
 import type { SubmittableTransaction, Client as XrplClient, TxResponse } from "xrpl";
 import type { ApiError, DexAmount } from "./xrpl/types";
 import { Assets } from "./assets";
+import { MAX_CREDENTIAL_TYPE_LENGTH } from "./xrpl/constants";
 import { friendlyTxError } from "./xrpl/transaction-errors";
 import { getClient } from "./xrpl/client";
 import { resolveNetwork } from "./xrpl/networks";
@@ -49,10 +50,7 @@ export function parseIntQueryParam(
  * Validate that all `fields` are truthy on `data`.
  * Returns a 400 Response listing missing fields, or null if all present.
  */
-export function validateRequired(
-  data: Record<string, unknown>,
-  fields: string[],
-): Response | null {
+export function validateRequired(data: Record<string, unknown>, fields: string[]): Response | null {
   const missing = fields.filter((f) => !data[f]);
   if (missing.length > 0) {
     return Response.json(
@@ -76,10 +74,7 @@ export function walletFromSeed(seed: string): { wallet: Wallet } | { error: Resp
     return { wallet: Wallet.fromSeed(seed) };
   } catch {
     return {
-      error: Response.json(
-        { error: "Invalid seed format" } satisfies ApiError,
-        { status: 400 },
-      ),
+      error: Response.json({ error: "Invalid seed format" } satisfies ApiError, { status: 400 }),
     };
   }
 }
@@ -111,10 +106,7 @@ export function requireWallet(
  */
 export function validateAddress(address: string, fieldName: string): Response | null {
   if (!isValidClassicAddress(address)) {
-    return Response.json(
-      { error: `Invalid ${fieldName}` } satisfies ApiError,
-      { status: 400 },
-    );
+    return Response.json({ error: `Invalid ${fieldName}` } satisfies ApiError, { status: 400 });
   }
   return null;
 }
@@ -143,8 +135,27 @@ export function validateSeedMatchesAddress(wallet: Wallet, address: string): Res
 export function validatePositiveAmount(amount: string, fieldName: string): Response | null {
   const parsed = Number(amount);
   if (!Number.isFinite(parsed) || parsed <= 0) {
+    return Response.json({ error: `${fieldName} must be a positive number` } satisfies ApiError, {
+      status: 400,
+    });
+  }
+  return null;
+}
+
+/**
+ * Return a 400 Response if `credentialType` is empty or exceeds the max length.
+ */
+export function validateCredentialType(credentialType: string): Response | null {
+  if (!credentialType || credentialType.length === 0) {
+    return Response.json({ error: "credentialType is required" } satisfies ApiError, {
+      status: 400,
+    });
+  }
+  if (credentialType.length > MAX_CREDENTIAL_TYPE_LENGTH) {
     return Response.json(
-      { error: `${fieldName} must be a positive number` } satisfies ApiError,
+      {
+        error: `credentialType exceeds maximum length of ${MAX_CREDENTIAL_TYPE_LENGTH}`,
+      } satisfies ApiError,
       { status: 400 },
     );
   }
@@ -236,17 +247,15 @@ export function validateCurrencyPair(request: NextRequest): Response | CurrencyP
   }
 
   if (baseIssuer && !isValidClassicAddress(baseIssuer)) {
-    return Response.json(
-      { error: "Invalid base_issuer address" } satisfies ApiError,
-      { status: 400 },
-    );
+    return Response.json({ error: "Invalid base_issuer address" } satisfies ApiError, {
+      status: 400,
+    });
   }
 
   if (quoteIssuer && !isValidClassicAddress(quoteIssuer)) {
-    return Response.json(
-      { error: "Invalid quote_issuer address" } satisfies ApiError,
-      { status: 400 },
-    );
+    return Response.json({ error: "Invalid quote_issuer address" } satisfies ApiError, {
+      status: 400,
+    });
   }
 
   return { baseCurrency, baseIssuer, quoteCurrency, quoteIssuer };
@@ -321,9 +330,10 @@ export function apiErrorResponse(
   fallbackMessage: string,
   { checkNotFound = false } = {},
 ): Response {
-  const message = process.env.NODE_ENV === "production" || !(err instanceof Error)
-    ? fallbackMessage
-    : err.message;
+  const message =
+    process.env.NODE_ENV === "production" || !(err instanceof Error)
+      ? fallbackMessage
+      : err.message;
   const status = checkNotFound && isAccountNotFound(err) ? 404 : 500;
   return Response.json({ error: message } satisfies ApiError, { status });
 }

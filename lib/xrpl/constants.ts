@@ -40,6 +40,12 @@ export const MAX_CURRENCY_CODE_LENGTH = 40;
 /** Length of a hex-encoded XRPL currency code. */
 export const HEX_CURRENCY_CODE_LENGTH = 40;
 
+/** Ledger flag: credential has been accepted by the subject (lsfAccepted). */
+export const LSF_ACCEPTED = 0x00010000;
+
+/** Maximum length of a credential type string (before hex encoding). */
+export const MAX_CREDENTIAL_TYPE_LENGTH = 128;
+
 // ---------------------------------------------------------------------------
 // Epoch conversion helpers
 // ---------------------------------------------------------------------------

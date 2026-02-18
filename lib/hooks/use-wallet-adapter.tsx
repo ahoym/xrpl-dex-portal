@@ -1,9 +1,26 @@
 "use client";
 
-import { createContext, useContext, useMemo, useCallback, useState, useEffect, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import type { ReactNode } from "react";
 import type { WalletType } from "../types";
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "../wallet-adapter/types";
+import type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "../wallet-adapter/types";
 import { createSeedAdapter, loadExtensionAdapter } from "../wallet-adapter";
 import { useAppState } from "./use-app-state";
 
@@ -32,6 +49,8 @@ interface WalletAdapterContextValue {
   createOffer(params: CreateOfferParams): Promise<TxResult>;
   cancelOffer(params: CancelOfferParams): Promise<TxResult>;
   setTrustline(params: TrustlineParams): Promise<TxResult>;
+  acceptCredential(params: AcceptCredentialParams): Promise<TxResult>;
+  deleteCredential(params: DeleteCredentialParams): Promise<TxResult>;
 }
 
 const WalletAdapterContext = createContext<WalletAdapterContextValue | null>(null);
@@ -123,6 +142,14 @@ export function WalletAdapterProvider({ children }: { children: ReactNode }) {
     (params: TrustlineParams) => requireAdapter().setTrustline(params),
     [requireAdapter],
   );
+  const acceptCredential = useCallback(
+    (params: AcceptCredentialParams) => requireAdapter().acceptCredential(params),
+    [requireAdapter],
+  );
+  const deleteCredential = useCallback(
+    (params: DeleteCredentialParams) => requireAdapter().deleteCredential(params),
+    [requireAdapter],
+  );
 
   const value = useMemo<WalletAdapterContextValue>(
     () => ({
@@ -136,23 +163,37 @@ export function WalletAdapterProvider({ children }: { children: ReactNode }) {
       createOffer,
       cancelOffer,
       setTrustline,
+      acceptCredential,
+      deleteCredential,
     }),
-    [adapter, connecting, needsReconnect, xamanPayload, connectWallet, disconnectWallet, sendPayment, createOffer, cancelOffer, setTrustline],
+    [
+      adapter,
+      connecting,
+      needsReconnect,
+      xamanPayload,
+      connectWallet,
+      disconnectWallet,
+      sendPayment,
+      createOffer,
+      cancelOffer,
+      setTrustline,
+      acceptCredential,
+      deleteCredential,
+    ],
   );
 
   // Expose setXamanPayload for the xaman adapter (avoids circular deps)
   useEffect(() => {
     if (adapter && adapter.type === "xaman" && "setPayloadCallback" in adapter) {
-      (adapter as WalletAdapter & { setPayloadCallback: (cb: (p: XamanPayload | null) => void) => void })
-        .setPayloadCallback(setXamanPayload);
+      (
+        adapter as WalletAdapter & {
+          setPayloadCallback: (cb: (p: XamanPayload | null) => void) => void;
+        }
+      ).setPayloadCallback(setXamanPayload);
     }
   }, [adapter]);
 
-  return (
-    <WalletAdapterContext.Provider value={value}>
-      {children}
-    </WalletAdapterContext.Provider>
-  );
+  return <WalletAdapterContext.Provider value={value}>{children}</WalletAdapterContext.Provider>;
 }
 
 export function useWalletAdapter() {

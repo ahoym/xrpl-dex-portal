@@ -37,6 +37,18 @@ export interface TrustlineParams {
   network: string;
 }
 
+export interface AcceptCredentialParams {
+  issuer: string;
+  credentialType: string;
+  network: string;
+}
+
+export interface DeleteCredentialParams {
+  issuer: string;
+  credentialType: string;
+  network: string;
+}
+
 export interface WalletAdapter {
   readonly type: WalletType;
   readonly displayName: string;
@@ -54,4 +66,6 @@ export interface WalletAdapter {
   createOffer(params: CreateOfferParams): Promise<TxResult>;
   cancelOffer(params: CancelOfferParams): Promise<TxResult>;
   setTrustline(params: TrustlineParams): Promise<TxResult>;
+  acceptCredential(params: AcceptCredentialParams): Promise<TxResult>;
+  deleteCredential(params: DeleteCredentialParams): Promise<TxResult>;
 }

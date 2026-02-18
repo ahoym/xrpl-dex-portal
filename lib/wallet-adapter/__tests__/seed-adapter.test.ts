@@ -55,10 +55,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("sendPayment includes optional issuerAddress and destinationTag", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "H" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "H" } }),
+      }),
+    );
 
     await adapter.sendPayment({
       recipientAddress: "rDEST",
@@ -75,10 +78,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("createOffer calls /api/dex/offers with correct payload", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "OFFER_HASH" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "OFFER_HASH" } }),
+      }),
+    );
 
     const result = await adapter.createOffer({
       takerGets: { currency: "XRP", value: "100" },
@@ -99,10 +105,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("cancelOffer calls /api/dex/offers/cancel", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "CANCEL_HASH" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "CANCEL_HASH" } }),
+      }),
+    );
 
     const result = await adapter.cancelOffer({
       offerSequence: 42,
@@ -118,10 +127,13 @@ describe("SeedWalletAdapter", () => {
   });
 
   it("setTrustline calls /api/accounts/{address}/trustlines", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { hash: "TRUST_HASH" } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: { hash: "TRUST_HASH" } }),
+      }),
+    );
 
     const result = await adapter.setTrustline({
       address: "rMYADDR",
@@ -141,17 +153,72 @@ describe("SeedWalletAdapter", () => {
     expect(result.hash).toBe("TRUST_HASH");
   });
 
-  it("throws on API error response", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: "Insufficient balance" }),
-    }));
+  it("acceptCredential calls /api/credentials/accept with correct payload", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ result: { hash: "ACCEPT_HASH" } }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "10",
+    const result = await adapter.acceptCredential({
+      issuer: "rISSUER",
+      credentialType: "KYC",
       network: "testnet",
-    })).rejects.toThrow("Insufficient balance");
+    });
+
+    expect(mockFetch).toHaveBeenCalledOnce();
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/credentials/accept");
+    const body = JSON.parse(options.body);
+    expect(body.seed).toBe(mockSeed);
+    expect(body.issuer).toBe("rISSUER");
+    expect(body.credentialType).toBe("KYC");
+    expect(body.network).toBe("testnet");
+    expect(result.hash).toBe("ACCEPT_HASH");
+    expect(result.success).toBe(true);
+  });
+
+  it("deleteCredential calls /api/credentials/delete with correct payload", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ result: { hash: "DELETE_HASH" } }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const result = await adapter.deleteCredential({
+      issuer: "rISSUER",
+      credentialType: "KYC",
+      network: "testnet",
+    });
+
+    expect(mockFetch).toHaveBeenCalledOnce();
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/credentials/delete");
+    const body = JSON.parse(options.body);
+    expect(body.seed).toBe(mockSeed);
+    expect(body.issuer).toBe("rISSUER");
+    expect(body.credentialType).toBe("KYC");
+    expect(body.network).toBe("testnet");
+    expect(result.hash).toBe("DELETE_HASH");
+    expect(result.success).toBe(true);
+  });
+
+  it("throws on API error response", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: "Insufficient balance" }),
+      }),
+    );
+
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "10",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("Insufficient balance");
   });
 });

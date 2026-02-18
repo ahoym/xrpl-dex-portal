@@ -1,4 +1,13 @@
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "./types";
+import type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "./types";
 
 /**
  * Wallet adapter that wraps the existing API routes for seed-based wallets.
@@ -71,6 +80,24 @@ export class SeedWalletAdapter implements WalletAdapter {
     });
   }
 
+  async acceptCredential(params: AcceptCredentialParams): Promise<TxResult> {
+    return this.postAndParse("/api/credentials/accept", {
+      seed: this.getSeed(),
+      issuer: params.issuer,
+      credentialType: params.credentialType,
+      network: params.network,
+    });
+  }
+
+  async deleteCredential(params: DeleteCredentialParams): Promise<TxResult> {
+    return this.postAndParse("/api/credentials/delete", {
+      seed: this.getSeed(),
+      issuer: params.issuer,
+      credentialType: params.credentialType,
+      network: params.network,
+    });
+  }
+
   private async postAndParse(url: string, payload: Record<string, unknown>): Promise<TxResult> {
     const res = await fetch(url, {
       method: "POST",
@@ -89,16 +116,14 @@ export class SeedWalletAdapter implements WalletAdapter {
     // Check engine_result to determine success (may be in meta or at result level)
     const meta = data.result?.meta ?? data.result?.tx_json?.meta;
     const engineResult =
-      typeof meta === "string" ? meta :
-      meta?.TransactionResult ??
-      data.result?.engine_result;
+      typeof meta === "string" ? meta : (meta?.TransactionResult ?? data.result?.engine_result);
 
     const isSuccess = engineResult === "tesSUCCESS" || engineResult === undefined;
 
     return {
       hash,
       success: isSuccess,
-      resultCode: engineResult
+      resultCode: engineResult,
     };
   }
 }
