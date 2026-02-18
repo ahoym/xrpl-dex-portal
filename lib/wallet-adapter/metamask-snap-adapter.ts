@@ -9,8 +9,8 @@
  * triggers installation automatically on connect if needed.
  */
 
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "./types";
-import { buildPaymentTx, buildOfferCreateTx, buildOfferCancelTx, buildTrustSetTx } from "./build-transactions";
+import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "./types";
+import { buildPaymentTx, buildOfferCreateTx, buildOfferCancelTx, buildTrustSetTx, buildCredentialAcceptTx, buildCredentialDeleteTx } from "./build-transactions";
 
 const SNAP_ID = "npm:xrpl-snap";
 
@@ -125,6 +125,18 @@ export class MetaMaskSnapAdapter implements WalletAdapter {
   async setTrustline(params: TrustlineParams): Promise<TxResult> {
     this.requireConnected();
     const tx = buildTrustSetTx(params, this.address!);
+    return this.signAndSubmit(tx);
+  }
+
+  async acceptCredential(params: AcceptCredentialParams): Promise<TxResult> {
+    this.requireConnected();
+    const tx = buildCredentialAcceptTx(params, this.address!);
+    return this.signAndSubmit(tx);
+  }
+
+  async deleteCredential(params: DeleteCredentialParams): Promise<TxResult> {
+    this.requireConnected();
+    const tx = buildCredentialDeleteTx(params, this.address!);
     return this.signAndSubmit(tx);
   }
 

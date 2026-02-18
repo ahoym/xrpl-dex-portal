@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildPaymentTx, buildOfferCreateTx, buildOfferCancelTx, buildTrustSetTx } from "../build-transactions";
+import { buildPaymentTx, buildOfferCreateTx, buildOfferCancelTx, buildTrustSetTx, buildCredentialAcceptTx, buildCredentialDeleteTx } from "../build-transactions";
 
 describe("buildPaymentTx", () => {
   it("builds an XRP payment (amount in drops)", () => {
@@ -122,5 +122,47 @@ describe("buildTrustSetTx", () => {
     const limit = tx.LimitAmount as { currency: string };
     expect(limit.currency).toHaveLength(40);
     expect(limit.currency).toMatch(/^[0-9A-F]+$/);
+  });
+});
+
+describe("buildCredentialAcceptTx", () => {
+  it("builds a CredentialAccept with hex-encoded credential type", () => {
+    const tx = buildCredentialAcceptTx(
+      { issuer: "rISSUER", credentialType: "KYC", network: "testnet" },
+      "rACCOUNT",
+    );
+    expect(tx.TransactionType).toBe("CredentialAccept");
+    expect(tx.Account).toBe("rACCOUNT");
+    expect(tx.Issuer).toBe("rISSUER");
+    expect(tx.CredentialType).toBe("4B5943");
+  });
+
+  it("hex-encodes multi-word credential types correctly", () => {
+    const tx = buildCredentialAcceptTx(
+      { issuer: "rISSUER", credentialType: "AML Check", network: "testnet" },
+      "rACCOUNT",
+    );
+    expect(tx.CredentialType).toBe("414D4C20436865636B");
+  });
+});
+
+describe("buildCredentialDeleteTx", () => {
+  it("builds a CredentialDelete with hex-encoded credential type", () => {
+    const tx = buildCredentialDeleteTx(
+      { issuer: "rISSUER", credentialType: "KYC", network: "testnet" },
+      "rACCOUNT",
+    );
+    expect(tx.TransactionType).toBe("CredentialDelete");
+    expect(tx.Account).toBe("rACCOUNT");
+    expect(tx.Issuer).toBe("rISSUER");
+    expect(tx.CredentialType).toBe("4B5943");
+  });
+
+  it("hex-encodes multi-word credential types correctly", () => {
+    const tx = buildCredentialDeleteTx(
+      { issuer: "rISSUER", credentialType: "AML Check", network: "testnet" },
+      "rACCOUNT",
+    );
+    expect(tx.CredentialType).toBe("414D4C20436865636B");
   });
 });

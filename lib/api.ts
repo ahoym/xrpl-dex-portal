@@ -3,6 +3,7 @@ import { Wallet, isValidClassicAddress } from "xrpl";
 import type { SubmittableTransaction, Client as XrplClient, TxResponse } from "xrpl";
 import type { ApiError, DexAmount } from "./xrpl/types";
 import { Assets } from "./assets";
+import { MAX_CREDENTIAL_TYPE_LENGTH } from "./xrpl/constants";
 import { friendlyTxError } from "./xrpl/transaction-errors";
 import { getClient } from "./xrpl/client";
 import { resolveNetwork } from "./xrpl/networks";
@@ -145,6 +146,25 @@ export function validatePositiveAmount(amount: string, fieldName: string): Respo
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return Response.json(
       { error: `${fieldName} must be a positive number` } satisfies ApiError,
+      { status: 400 },
+    );
+  }
+  return null;
+}
+
+/**
+ * Return a 400 Response if `credentialType` is empty or exceeds the max length.
+ */
+export function validateCredentialType(credentialType: string): Response | null {
+  if (!credentialType || credentialType.length === 0) {
+    return Response.json(
+      { error: "credentialType is required" } satisfies ApiError,
+      { status: 400 },
+    );
+  }
+  if (credentialType.length > MAX_CREDENTIAL_TYPE_LENGTH) {
+    return Response.json(
+      { error: `credentialType exceeds maximum length of ${MAX_CREDENTIAL_TYPE_LENGTH}` } satisfies ApiError,
       { status: 400 },
     );
   }

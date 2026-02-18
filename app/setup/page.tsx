@@ -6,7 +6,10 @@ import { LoadingScreen } from "../components/loading-screen";
 import { SecurityWarning } from "./components/security-warning";
 import { WalletSetup } from "./components/wallet-setup";
 import { TrustLineManagement } from "./components/trust-line-management";
+import { CredentialManagement } from "./components/credential-management";
+import { ErrorBoundary } from "./components/error-boundary";
 import { DataManagement } from "./components/data-management";
+import { cardClass, errorTextClass } from "@/lib/ui/ui";
 import { BalanceDisplay } from "../components/balance-display";
 
 export default function SetupPage() {
@@ -47,6 +50,17 @@ export default function SetupPage() {
             refreshKey={refreshKey}
             onRefresh={() => setRefreshKey((k) => k + 1)}
           />
+        )}
+
+        {state.wallet && (
+          <ErrorBoundary fallback={<div className={cardClass}><p className={errorTextClass}>Failed to load credentials section.</p></div>}>
+            <CredentialManagement
+              wallet={state.wallet}
+              network={state.network}
+              refreshKey={refreshKey}
+              onRefresh={() => setRefreshKey((k) => k + 1)}
+            />
+          </ErrorBoundary>
         )}
 
       </div>

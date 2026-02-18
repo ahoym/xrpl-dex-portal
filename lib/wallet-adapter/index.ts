@@ -2,7 +2,7 @@ import type { WalletType } from "../types";
 import type { WalletAdapter } from "./types";
 import { SeedWalletAdapter } from "./seed-adapter";
 
-export type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "./types";
+export type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "./types";
 
 interface AdapterInfo {
   type: WalletType;

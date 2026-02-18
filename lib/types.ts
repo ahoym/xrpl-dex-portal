@@ -53,3 +53,11 @@ export interface DepthSummary {
   askVolume: string;   // total ask volume in base currency
   askLevels: number;   // number of ask levels in full scan
 }
+
+export interface CredentialInfo {
+  issuer: string;
+  credentialType: string;
+  accepted: boolean;
+  expiresAtMs?: number;
+  uri?: string;
+}

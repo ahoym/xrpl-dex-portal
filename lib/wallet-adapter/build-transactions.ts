@@ -6,13 +6,13 @@
  * raw XRPL transaction JSON to pass to their sign-and-submit methods.
  */
 
-import type { Payment, OfferCreate, OfferCancel, TrustSet } from "xrpl";
+import type { Payment, OfferCreate, OfferCancel, TrustSet, CredentialAccept, CredentialDelete } from "xrpl";
 import { xrpToDrops } from "xrpl";
 import { toXrplAmount } from "../xrpl/currency";
 import { resolveOfferFlags } from "../xrpl/offers";
 import { encodeXrplCurrency } from "../xrpl/currency";
 import { Assets } from "../assets";
-import type { PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "./types";
+import type { PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "./types";
 
 export function buildPaymentTx(params: PaymentParams, account: string): Payment {
   const isXrp = params.currencyCode === Assets.XRP;
@@ -82,5 +82,32 @@ export function buildTrustSetTx(params: TrustlineParams, account: string): Trust
       issuer: params.issuer,
       value: params.limit,
     },
+  };
+}
+
+/**
+ * Client-safe credential type encoding (TextEncoder instead of Buffer).
+ * MUST stay in sync with server-side encodeCredentialType in lib/xrpl/credentials.ts.
+ */
+function encodeCredentialTypeClient(type: string): string {
+  const bytes = new TextEncoder().encode(type);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+export function buildCredentialAcceptTx(params: AcceptCredentialParams, account: string): CredentialAccept {
+  return {
+    TransactionType: "CredentialAccept",
+    Account: account,
+    Issuer: params.issuer,
+    CredentialType: encodeCredentialTypeClient(params.credentialType),
+  };
+}
+
+export function buildCredentialDeleteTx(params: DeleteCredentialParams, account: string): CredentialDelete {
+  return {
+    TransactionType: "CredentialDelete",
+    Account: account,
+    Issuer: params.issuer,
+    CredentialType: encodeCredentialTypeClient(params.credentialType),
   };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "../types";
+import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams, AcceptCredentialParams, DeleteCredentialParams } from "../types";
 
 describe("wallet-adapter/types", () => {
   it("TxResult shape is correct", () => {
@@ -53,6 +53,28 @@ describe("wallet-adapter/types", () => {
     expect(params.currency).toBe("USD");
   });
 
+  it("AcceptCredentialParams includes all required fields", () => {
+    const params: AcceptCredentialParams = {
+      issuer: "rISSUER",
+      credentialType: "KYC",
+      network: "testnet",
+    };
+    expect(params.issuer).toBe("rISSUER");
+    expect(params.credentialType).toBe("KYC");
+    expect(params.network).toBe("testnet");
+  });
+
+  it("DeleteCredentialParams includes all required fields", () => {
+    const params: DeleteCredentialParams = {
+      issuer: "rISSUER",
+      credentialType: "KYC",
+      network: "testnet",
+    };
+    expect(params.issuer).toBe("rISSUER");
+    expect(params.credentialType).toBe("KYC");
+    expect(params.network).toBe("testnet");
+  });
+
   it("WalletAdapter interface has the expected methods", () => {
     // This test verifies the interface compiles correctly with a mock
     const mockAdapter: WalletAdapter = {
@@ -65,6 +87,8 @@ describe("wallet-adapter/types", () => {
       createOffer: async () => ({ hash: "h2", success: true }),
       cancelOffer: async () => ({ hash: "h3", success: true }),
       setTrustline: async () => ({ hash: "h4", success: true }),
+      acceptCredential: async () => ({ hash: "h5", success: true }),
+      deleteCredential: async () => ({ hash: "h6", success: true }),
     };
     expect(mockAdapter.type).toBe("seed");
     expect(mockAdapter.displayName).toBe("Test");
