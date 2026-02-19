@@ -30,6 +30,8 @@ function TradePageInner() {
     domainID,
     setDomainID,
     clearDomain,
+    enabled: domainEnabled,
+    setEnabled: setDomainEnabled,
     expanded,
     setExpanded,
     isActive: domainActive,
@@ -181,6 +183,8 @@ function TradePageInner() {
         domainID={domainID}
         onDomainChange={setDomainID}
         onClear={clearDomain}
+        enabled={domainEnabled}
+        onToggleEnabled={setDomainEnabled}
         expanded={expanded}
         onToggleExpanded={setExpanded}
         isActive={domainActive}

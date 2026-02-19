@@ -8,6 +8,8 @@ interface DomainSelectorProps {
   domainID: string | null;
   onDomainChange: (id: string) => void;
   onClear: () => void;
+  enabled: boolean;
+  onToggleEnabled: (enabled: boolean) => void;
   expanded: boolean;
   onToggleExpanded: (expanded: boolean) => void;
   isActive: boolean;
@@ -17,6 +19,8 @@ export function DomainSelector({
   domainID,
   onDomainChange,
   onClear,
+  enabled,
+  onToggleEnabled,
   expanded,
   onToggleExpanded,
   isActive,
@@ -77,12 +81,24 @@ export function DomainSelector({
           <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
             Permissioned Domain
           </span>
-          {isActive && domainID && (
+          {domainID && (
             <>
-              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                Active
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  isActive
+                    ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                    : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                }`}
+              >
+                {isActive ? "Active" : "Disabled"}
               </span>
-              <span className="break-all text-[10px] font-mono text-zinc-600 dark:text-zinc-300">
+              <span
+                className={`break-all text-[10px] font-mono ${
+                  isActive
+                    ? "text-zinc-600 dark:text-zinc-300"
+                    : "text-zinc-400 dark:text-zinc-500"
+                }`}
+              >
                 {domainID}
               </span>
             </>
@@ -121,7 +137,7 @@ export function DomainSelector({
             {validationError && <p className={`mt-1 ${errorTextClass}`}>{validationError}</p>}
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex items-center gap-2">
             <button
               type="button"
               onClick={handleApply}
@@ -130,7 +146,20 @@ export function DomainSelector({
             >
               Apply
             </button>
-            {isActive && (
+            {domainID && (
+              <button
+                type="button"
+                onClick={() => onToggleEnabled(!enabled)}
+                className={`border px-3 py-1.5 text-xs font-semibold ${
+                  enabled
+                    ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                    : "border-green-300 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/40"
+                }`}
+              >
+                {enabled ? "Disable" : "Enable"}
+              </button>
+            )}
+            {domainID && (
               <button
                 type="button"
                 onClick={handleClear}
