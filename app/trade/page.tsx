@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { useTradingData } from "@/lib/hooks/use-trading-data";
+import { useDomainMode } from "@/lib/hooks/use-domain-mode";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { CustomCurrencyForm } from "./components/custom-currency-form";
 import { CurrencyPairSelector } from "./components/currency-pair-selector";
+import { DomainSelector } from "./components/domain-selector";
 import { TradeGrid } from "./components/trade-grid";
 import { OrdersSheet, OrdersSection } from "./components/orders-sheet";
 import { LoadingScreen } from "../components/loading-screen";
@@ -14,14 +16,32 @@ import { Assets, WELL_KNOWN_CURRENCIES } from "@/lib/assets";
 import { DEPTH_OPTIONS } from "./components/order-book";
 
 export default function TradePage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <TradePageInner />
+    </Suspense>
+  );
+}
+
+function TradePageInner() {
   const { state, hydrated } = useAppState();
   const { cancelOffer: adapterCancelOffer } = useWalletAdapter();
+  const {
+    domainID,
+    setDomainID,
+    clearDomain,
+    enabled: domainEnabled,
+    setEnabled: setDomainEnabled,
+    expanded,
+    setExpanded,
+    isActive: domainActive,
+  } = useDomainMode();
 
   const [sellingValue, setSellingValue] = useState("");
   const [buyingValue, setBuyingValue] = useState("");
-  const [customCurrencies, setCustomCurrencies] = useState<
-    { currency: string; issuer: string }[]
-  >([]);
+  const [customCurrencies, setCustomCurrencies] = useState<{ currency: string; issuer: string }[]>(
+    [],
+  );
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[1]);
@@ -65,16 +85,34 @@ export default function TradePage() {
     buyingValue,
     refreshKey,
     customCurrencies,
+    activeDomainID: domainActive ? domainID! : undefined,
   });
 
   // Filter offers to selected pair (shared by TradeGrid + OrdersSheet)
+  // Shows ALL user offers for the pair regardless of domain — these are the user's own orders.
   const pairOffers = useMemo(() => {
     if (!sellingCurrency || !buyingCurrency) return [];
     return accountOffers.filter((o) => {
-      const getsMatchesSelling = matchesCurrency(o.taker_gets, sellingCurrency.currency, sellingCurrency.issuer);
-      const paysMatchesBuying = matchesCurrency(o.taker_pays, buyingCurrency.currency, buyingCurrency.issuer);
-      const getsMatchesBuying = matchesCurrency(o.taker_gets, buyingCurrency.currency, buyingCurrency.issuer);
-      const paysMatchesSelling = matchesCurrency(o.taker_pays, sellingCurrency.currency, sellingCurrency.issuer);
+      const getsMatchesSelling = matchesCurrency(
+        o.taker_gets,
+        sellingCurrency.currency,
+        sellingCurrency.issuer,
+      );
+      const paysMatchesBuying = matchesCurrency(
+        o.taker_pays,
+        buyingCurrency.currency,
+        buyingCurrency.issuer,
+      );
+      const getsMatchesBuying = matchesCurrency(
+        o.taker_gets,
+        buyingCurrency.currency,
+        buyingCurrency.issuer,
+      );
+      const paysMatchesSelling = matchesCurrency(
+        o.taker_pays,
+        sellingCurrency.currency,
+        sellingCurrency.issuer,
+      );
       return (getsMatchesSelling && paysMatchesBuying) || (getsMatchesBuying && paysMatchesSelling);
     });
   }, [accountOffers, sellingCurrency, buyingCurrency]);
@@ -114,6 +152,7 @@ export default function TradePage() {
     quoteCurrency: buyingCurrency?.currency,
     cancellingSeq,
     onCancel: handleCancel,
+    activeDomainID: domainActive ? domainID! : undefined,
   };
 
   return (
@@ -138,6 +177,17 @@ export default function TradePage() {
         />
       )}
 
+      <DomainSelector
+        domainID={domainID}
+        onDomainChange={setDomainID}
+        onClear={clearDomain}
+        enabled={domainEnabled}
+        onToggleEnabled={setDomainEnabled}
+        expanded={expanded}
+        onToggleExpanded={setExpanded}
+        isActive={domainActive}
+      />
+
       <TradeGrid
         focusedWallet={focusedWallet}
         sellingCurrency={sellingCurrency}
@@ -155,6 +205,7 @@ export default function TradePage() {
         depth={depth}
         onDepthChange={setDepth}
         depthSummary={depthSummary}
+        activeDomainID={domainActive ? domainID! : undefined}
       />
 
       {/* Mobile: in-flow orders section */}

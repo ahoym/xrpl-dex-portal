@@ -104,6 +104,49 @@ describe("SeedWalletAdapter", () => {
     expect(result.hash).toBe("OFFER_HASH");
   });
 
+  describe("createOffer domainID", () => {
+    it("includes domainID in payload when provided", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ result: { hash: "OFFER_HASH_DOMAIN" } }),
+        }),
+      );
+
+      await adapter.createOffer({
+        takerGets: { currency: "XRP", value: "100" },
+        takerPays: { currency: "USD", issuer: "rISSUER", value: "50" },
+        domainID: "A".repeat(64),
+        network: "testnet",
+      });
+
+      const [, options] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.domainID).toBe("A".repeat(64));
+    });
+
+    it("omits domainID from payload when not provided", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ result: { hash: "OFFER_HASH_NO_DOMAIN" } }),
+        }),
+      );
+
+      await adapter.createOffer({
+        takerGets: { currency: "XRP", value: "100" },
+        takerPays: { currency: "USD", issuer: "rISSUER", value: "50" },
+        network: "testnet",
+      });
+
+      const [, options] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body).not.toHaveProperty("domainID");
+    });
+  });
+
   it("cancelOffer calls /api/dex/offers/cancel", async () => {
     vi.stubGlobal(
       "fetch",
@@ -211,7 +254,6 @@ describe("SeedWalletAdapter", () => {
         json: async () => ({ error: "Insufficient balance" }),
       }),
     );
-
     await expect(
       adapter.sendPayment({
         recipientAddress: "rDEST",

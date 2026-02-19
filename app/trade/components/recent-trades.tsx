@@ -22,6 +22,7 @@ interface RecentTradesProps {
   pairSelected: boolean;
   baseCurrency?: string;
   quoteCurrency?: string;
+  activeDomainID?: string;
 }
 
 export function RecentTrades({
@@ -30,6 +31,7 @@ export function RecentTrades({
   pairSelected,
   baseCurrency,
   quoteCurrency,
+  activeDomainID,
 }: RecentTradesProps) {
   const { state } = useAppState();
   const explorerBase = EXPLORER_URLS[state.network];
@@ -56,18 +58,30 @@ export function RecentTrades({
         </p>
       ) : trades.length === 0 ? (
         <p className="mt-4 text-sm text-zinc-400 dark:text-zinc-500">
-          No recent trades for this pair
+          {activeDomainID
+            ? "No recent trades in this permissioned domain"
+            : "No recent trades for this pair"}
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-zinc-200 text-left dark:border-zinc-700">
-                <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Side</th>
-                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Price</th>
-                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Amount</th>
-                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Total</th>
-                <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Time</th>
+                <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                  Side
+                </th>
+                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                  Price
+                </th>
+                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                  Amount
+                </th>
+                <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                  Total
+                </th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                  Time
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -75,7 +89,13 @@ export function RecentTrades({
                 <tr
                   key={trade.hash}
                   className="cursor-pointer border-b border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
-                  onClick={() => window.open(`${explorerBase}/transactions/${trade.hash}`, "_blank", "noopener,noreferrer")}
+                  onClick={() =>
+                    window.open(
+                      `${explorerBase}/transactions/${trade.hash}`,
+                      "_blank",
+                      "noopener,noreferrer",
+                    )
+                  }
                 >
                   <td className="py-2 pr-2">
                     <span

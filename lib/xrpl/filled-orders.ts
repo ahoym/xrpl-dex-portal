@@ -10,6 +10,7 @@ export interface FilledOrder {
   quoteAmount: string;
   time: string;
   hash: string;
+  domainID?: string;
 }
 
 /**
@@ -65,6 +66,7 @@ export function parseFilledOrders(
 
     const time = (entry.close_time_iso as string) ?? (entry.date as string) ?? "";
     const hash = (entry.hash as string) ?? (tx.hash as string) ?? "";
+    const domainID = tx.DomainID as string | undefined;
 
     if (baseAmount.gt(0) && quoteAmount.gt(0)) {
       const price = quoteAmount.dividedBy(baseAmount);
@@ -75,6 +77,7 @@ export function parseFilledOrders(
         quoteAmount: quoteAmount.toPrecision(6),
         time,
         hash,
+        ...(domainID ? { domainID } : {}),
       });
     } else if (baseAmount.gt(0) || quoteAmount.gt(0)) {
       filled.push({
@@ -84,6 +87,7 @@ export function parseFilledOrders(
         quoteAmount: quoteAmount.gt(0) ? quoteAmount.toPrecision(6) : "—",
         time,
         hash,
+        ...(domainID ? { domainID } : {}),
       });
     }
   }

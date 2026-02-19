@@ -39,7 +39,7 @@ export interface DexAmount {
   value: string;
 }
 
-export type OfferFlag = "passive" | "immediateOrCancel" | "fillOrKill" | "sell";
+export type OfferFlag = "passive" | "immediateOrCancel" | "fillOrKill" | "sell" | "hybrid";
 
 export interface CreateOfferRequest {
   seed: string;
@@ -48,6 +48,7 @@ export interface CreateOfferRequest {
   flags?: OfferFlag[];
   expiration?: number;
   offerSequence?: number;
+  domainID?: string;
   network?: string;
 }
 

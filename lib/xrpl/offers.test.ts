@@ -3,12 +3,13 @@ import { VALID_OFFER_FLAGS, resolveOfferFlags } from "./offers";
 import type { OfferFlag } from "./types";
 
 describe("VALID_OFFER_FLAGS", () => {
-  it("contains all 4 flag names", () => {
-    expect(VALID_OFFER_FLAGS).toHaveLength(4);
+  it("contains all 5 flag names", () => {
+    expect(VALID_OFFER_FLAGS).toHaveLength(5);
     expect(VALID_OFFER_FLAGS).toContain("passive");
     expect(VALID_OFFER_FLAGS).toContain("immediateOrCancel");
     expect(VALID_OFFER_FLAGS).toContain("fillOrKill");
     expect(VALID_OFFER_FLAGS).toContain("sell");
+    expect(VALID_OFFER_FLAGS).toContain("hybrid");
   });
 });
 
@@ -26,15 +27,11 @@ describe("resolveOfferFlags", () => {
   });
 
   it("returns correct numeric value for immediateOrCancel flag", () => {
-    expect(resolveOfferFlags(["immediateOrCancel"])).toBe(
-      OfferCreateFlags.tfImmediateOrCancel,
-    );
+    expect(resolveOfferFlags(["immediateOrCancel"])).toBe(OfferCreateFlags.tfImmediateOrCancel);
   });
 
   it("returns correct numeric value for fillOrKill flag", () => {
-    expect(resolveOfferFlags(["fillOrKill"])).toBe(
-      OfferCreateFlags.tfFillOrKill,
-    );
+    expect(resolveOfferFlags(["fillOrKill"])).toBe(OfferCreateFlags.tfFillOrKill);
   });
 
   it("returns correct numeric value for sell flag", () => {
@@ -47,13 +44,18 @@ describe("resolveOfferFlags", () => {
     expect(resolveOfferFlags(flags)).toBe(expected);
   });
 
-  it("returns bitwise OR of all four flags combined", () => {
-    const flags: OfferFlag[] = ["passive", "immediateOrCancel", "fillOrKill", "sell"];
+  it("returns correct numeric value for hybrid flag", () => {
+    expect(resolveOfferFlags(["hybrid"])).toBe(OfferCreateFlags.tfHybrid);
+  });
+
+  it("returns bitwise OR of all five flags combined", () => {
+    const flags: OfferFlag[] = ["passive", "immediateOrCancel", "fillOrKill", "sell", "hybrid"];
     const expected =
       OfferCreateFlags.tfPassive |
       OfferCreateFlags.tfImmediateOrCancel |
       OfferCreateFlags.tfFillOrKill |
-      OfferCreateFlags.tfSell;
+      OfferCreateFlags.tfSell |
+      OfferCreateFlags.tfHybrid;
     expect(resolveOfferFlags(flags)).toBe(expected);
   });
 

@@ -40,6 +40,15 @@ export const MAX_CURRENCY_CODE_LENGTH = 40;
 /** Length of a hex-encoded XRPL currency code. */
 export const HEX_CURRENCY_CODE_LENGTH = 40;
 
+/** Length of a permissioned domain ID (64 uppercase hex characters). */
+export const DOMAIN_ID_LENGTH = 64;
+
+/** Regex that matches a valid permissioned domain ID (64 uppercase hex characters). */
+export const DOMAIN_ID_REGEX = /^[0-9A-F]{64}$/;
+
+/** Ledger flag: offer is hybrid — visible in both open and permissioned books (lsfHybrid). */
+export const LSF_HYBRID = 0x00040000;
+
 /** Ledger flag: credential has been accepted by the subject (lsfAccepted). */
 export const LSF_ACCEPTED = 0x00010000;
 

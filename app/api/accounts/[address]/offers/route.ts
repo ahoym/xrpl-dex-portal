@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { DEFAULT_ACCOUNT_OFFERS_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
 import { fromXrplAmount } from "@/lib/xrpl/currency";
-import { getXrplClient, getAndValidateAddress, apiErrorResponse, parseIntQueryParam } from "@/lib/api";
+import {
+  getXrplClient,
+  getAndValidateAddress,
+  apiErrorResponse,
+  parseIntQueryParam,
+} from "@/lib/api";
 
 export async function GET(
   request: NextRequest,
@@ -22,22 +27,33 @@ export async function GET(
 
     const client = await getXrplClient(request);
 
+    // Use account_objects instead of account_offers to get full ledger entries
+    // which include DomainID for permissioned domain offers.
     const response = await client.request({
-      command: "account_offers",
+      command: "account_objects",
       account: address,
+      type: "offer",
       limit,
       marker,
       ledger_index: "validated",
     });
 
-    const offers = response.result.offers?.map((offer) => ({
-      seq: offer.seq,
-      flags: offer.flags,
-      taker_gets: fromXrplAmount(offer.taker_gets),
-      taker_pays: fromXrplAmount(offer.taker_pays),
-      quality: offer.quality,
-      expiration: offer.expiration,
-    })) ?? [];
+    const offers = (response.result.account_objects ?? []).map((obj) => {
+      const raw = obj as unknown as Record<string, unknown>;
+      return {
+        seq: raw.Sequence as number,
+        flags: raw.Flags as number,
+        taker_gets: fromXrplAmount(
+          raw.TakerGets as string | { currency: string; issuer: string; value: string },
+        ),
+        taker_pays: fromXrplAmount(
+          raw.TakerPays as string | { currency: string; issuer: string; value: string },
+        ),
+        quality: raw.quality as string | undefined,
+        expiration: raw.Expiration as number | undefined,
+        ...(raw.DomainID ? { domainID: raw.DomainID as string } : {}),
+      };
+    });
 
     const result: Record<string, unknown> = { address, offers };
     if (response.result.marker) {

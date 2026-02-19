@@ -6,7 +6,7 @@ import type { OrderBookAmount } from "@/lib/types";
 import type { FilledOrder } from "@/lib/xrpl/filled-orders";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
-import { fromRippleEpoch } from "@/lib/xrpl/constants";
+import { fromRippleEpoch, LSF_HYBRID } from "@/lib/xrpl/constants";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { EXPLORER_URLS } from "@/lib/xrpl/networks";
 import { formatTime, formatDateTime } from "@/lib/ui/format-time";
@@ -18,6 +18,7 @@ interface AccountOffer {
   taker_pays: OrderBookAmount;
   quality: string;
   expiration?: number;
+  domainID?: string;
 }
 
 interface OrdersSheetProps {
@@ -31,6 +32,7 @@ interface OrdersSheetProps {
   quoteCurrency?: string;
   cancellingSeq: number | null;
   onCancel: (seq: number) => void;
+  activeDomainID?: string;
 }
 
 type Tab = "open" | "filled";
@@ -51,6 +53,7 @@ export function OrdersSheet({
   quoteCurrency,
   cancellingSeq,
   onCancel,
+  activeDomainID,
 }: OrdersSheetProps) {
   const [activeTab, setActiveTab] = useState<Tab>("open");
   const [collapsed, setCollapsed] = useState(true);
@@ -61,7 +64,9 @@ export function OrdersSheet({
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 hidden border-t border-zinc-200 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.06)] dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)] lg:block">
-      <div className={`mx-auto flex max-w-[1800px] flex-col transition-[height] duration-200 ${collapsed ? "h-11" : "h-[33vh]"}`}>
+      <div
+        className={`mx-auto flex max-w-[1800px] flex-col transition-[height] duration-200 ${collapsed ? "h-11" : "h-[33vh]"}`}
+      >
         {/* Tab bar */}
         <div className="flex items-center gap-1 border-b border-zinc-100 px-4 dark:border-zinc-800">
           <button
@@ -87,6 +92,11 @@ export function OrdersSheet({
           {pairLabel && (
             <span className="ml-2 text-xs text-zinc-400 dark:text-zinc-500">
               {pairLabel}
+              {activeDomainID && (
+                <span className="ml-1.5 font-mono text-purple-500 dark:text-purple-400">
+                  {activeDomainID}
+                </span>
+              )}
             </span>
           )}
           <button
@@ -101,7 +111,11 @@ export function OrdersSheet({
               fill="currentColor"
               className={`h-3.5 w-3.5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}
             >
-              <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -118,6 +132,7 @@ export function OrdersSheet({
                 baseIssuer={baseIssuer}
                 cancellingSeq={cancellingSeq}
                 onCancel={onCancel}
+                activeDomainID={activeDomainID}
               />
             ) : (
               <FilledOrdersContent
@@ -149,6 +164,7 @@ export function OrdersSection({
   quoteCurrency,
   cancellingSeq,
   onCancel,
+  activeDomainID,
 }: OrdersSheetProps) {
   const [activeTab, setActiveTab] = useState<Tab>("open");
   const { state } = useAppState();
@@ -181,9 +197,7 @@ export function OrdersSection({
           Filled{pairSelected && !loadingFilled ? ` (${filledOrders.length})` : ""}
         </button>
         {pairLabel && (
-          <span className="ml-2 text-xs text-zinc-400 dark:text-zinc-500">
-            {pairLabel}
-          </span>
+          <span className="ml-2 text-xs text-zinc-400 dark:text-zinc-500">{pairLabel}</span>
         )}
       </div>
 
@@ -198,6 +212,7 @@ export function OrdersSection({
             baseIssuer={baseIssuer}
             cancellingSeq={cancellingSeq}
             onCancel={onCancel}
+            activeDomainID={activeDomainID}
           />
         ) : (
           <FilledOrdersContent
@@ -231,9 +246,7 @@ function EmptyMessage({ text }: { text: string }) {
 }
 
 function computeOfferFields(offer: AccountOffer, baseCurrency?: string, baseIssuer?: string) {
-  const isBuy = baseCurrency
-    ? matchesCurrency(offer.taker_pays, baseCurrency, baseIssuer)
-    : false;
+  const isBuy = baseCurrency ? matchesCurrency(offer.taker_pays, baseCurrency, baseIssuer) : false;
 
   const baseAmt = isBuy
     ? new BigNumber(offer.taker_pays.value)
@@ -254,6 +267,7 @@ function OpenOrdersContent({
   baseIssuer,
   cancellingSeq,
   onCancel,
+  activeDomainID,
 }: {
   offers: AccountOffer[];
   loading: boolean;
@@ -262,7 +276,16 @@ function OpenOrdersContent({
   baseIssuer?: string;
   cancellingSeq: number | null;
   onCancel: (seq: number) => void;
+  activeDomainID?: string;
 }) {
+  const [copiedSeq, setCopiedSeq] = useState<number | null>(null);
+
+  function handleCopyDomain(seq: number, domainID: string) {
+    navigator.clipboard.writeText(domainID);
+    setCopiedSeq(seq);
+    setTimeout(() => setCopiedSeq(null), 1500);
+  }
+
   if (loading) return <LoadingSkeleton rows={3} />;
   if (!pairSelected) return <EmptyMessage text="Select a pair to see your orders" />;
   if (offers.length === 0) return <EmptyMessage text="No open orders for this pair" />;
@@ -272,17 +295,40 @@ function OpenOrdersContent({
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-zinc-200 text-left dark:border-zinc-700">
-            <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Side</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Price</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Amount</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Total</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Expiry</th>
+            <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Side
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Price
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Amount
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Total
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Expiry
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Domain
+            </th>
             <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500"></th>
           </tr>
         </thead>
         <tbody>
           {offers.map((offer) => {
-            const { isBuy, price, baseAmt, quoteAmt } = computeOfferFields(offer, baseCurrency, baseIssuer);
+            const { isBuy, price, baseAmt, quoteAmt } = computeOfferFields(
+              offer,
+              baseCurrency,
+              baseIssuer,
+            );
+            const isHybrid = (offer.flags & LSF_HYBRID) !== 0;
+            const canCancel = isHybrid
+              ? true
+              : activeDomainID
+                ? offer.domainID === activeDomainID
+                : !offer.domainID;
             return (
               <tr
                 key={offer.seq}
@@ -324,14 +370,41 @@ function OpenOrdersContent({
                     <span className="text-zinc-300 dark:text-zinc-600">—</span>
                   )}
                 </td>
+                <td className="py-2 pr-2 text-right font-mono text-zinc-500 dark:text-zinc-400">
+                  {offer.domainID ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        title={`${offer.domainID}\nClick to copy`}
+                        onClick={() => handleCopyDomain(offer.seq, offer.domainID!)}
+                        className="cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-200"
+                      >
+                        {copiedSeq === offer.seq ? (
+                          <span className="text-green-600 dark:text-green-400">Copied!</span>
+                        ) : (
+                          <>{offer.domainID.slice(0, 8)}...</>
+                        )}
+                      </button>
+                      {isHybrid && (
+                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                          Hybrid
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-300 dark:text-zinc-600">—</span>
+                  )}
+                </td>
                 <td className="py-2 text-right">
-                  <button
-                    onClick={() => onCancel(offer.seq)}
-                    disabled={cancellingSeq !== null}
-                    className="border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 disabled:opacity-50 active:scale-[0.98] dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
-                  >
-                    {cancellingSeq === offer.seq ? "Cancelling..." : "Cancel"}
-                  </button>
+                  {canCancel && (
+                    <button
+                      onClick={() => onCancel(offer.seq)}
+                      disabled={cancellingSeq !== null}
+                      className="border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:border-red-300 hover:bg-red-50 disabled:opacity-50 active:scale-[0.98] dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
+                    >
+                      {cancellingSeq === offer.seq ? "Cancelling..." : "Cancel"}
+                    </button>
+                  )}
                 </td>
               </tr>
             );
@@ -362,11 +435,24 @@ function FilledOrdersContent({
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-zinc-200 text-left dark:border-zinc-700">
-            <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Side</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Price</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Amount</th>
-            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Total</th>
-            <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Time</th>
+            <th className="pb-2 pr-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Side
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Price
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Amount
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Total
+            </th>
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Time
+            </th>
+            <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Domain
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -378,7 +464,13 @@ function FilledOrdersContent({
                   ? "border-green-100 bg-green-50/40 hover:bg-green-50 dark:border-green-900/30 dark:bg-green-950/20 dark:hover:bg-green-950/40"
                   : "border-red-100 bg-red-50/40 hover:bg-red-50 dark:border-red-900/30 dark:bg-red-950/20 dark:hover:bg-red-950/40"
               }`}
-              onClick={() => window.open(`${explorerBase}/transactions/${order.hash}`, "_blank", "noopener,noreferrer")}
+              onClick={() =>
+                window.open(
+                  `${explorerBase}/transactions/${order.hash}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
             >
               <td className="py-2 pr-2">
                 <span
@@ -400,13 +492,20 @@ function FilledOrdersContent({
               <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
                 {order.quoteAmount === "—" ? "—" : new BigNumber(order.quoteAmount).toFixed(4)}
               </td>
-              <td className="py-2 text-right text-zinc-500 dark:text-zinc-400">
+              <td className="py-2 pr-2 text-right text-zinc-500 dark:text-zinc-400">
                 <span className="group relative cursor-default">
                   {formatTime(order.time)}
                   <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap bg-zinc-800 px-2.5 py-1 text-xs text-white shadow-lg group-hover:block dark:bg-zinc-700">
                     {formatDateTime(order.time)}
                   </span>
                 </span>
+              </td>
+              <td className="py-2 text-right font-mono text-zinc-500 dark:text-zinc-400">
+                {order.domainID ? (
+                  <span title={order.domainID}>{order.domainID.slice(0, 8)}...</span>
+                ) : (
+                  <span className="text-zinc-300 dark:text-zinc-600">—</span>
+                )}
               </td>
             </tr>
           ))}

@@ -358,8 +358,8 @@ describe("fetchAndCacheTrades", () => {
 
     it("uses cache key matching tradesCacheKey output format", async () => {
       const network = uniqueNetwork();
-      const expectedKey = tradesCacheKey(network, "XRP", undefined, "USD", ISSUER);
-      expect(expectedKey).toBe(`${network}:XRP::USD:${ISSUER}`);
+      const expectedKey = tradesCacheKey(network, "XRP", undefined, "USD", ISSUER, undefined);
+      expect(expectedKey).toBe(`${network}:XRP::USD:${ISSUER}:`);
 
       mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("5", "2.5"));
 
@@ -822,6 +822,189 @@ describe("fetchAndCacheTrades", () => {
         account: ISSUER, // baseIssuer since base is not XRP
         limit: 250,
       });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // 10. Cache key with domain
+  // -----------------------------------------------------------------------
+  describe("cache key with domain", () => {
+    it("includes domain in cache key", () => {
+      const key = tradesCacheKey("net", "XRP", undefined, "USD", "rI", "ABCD".repeat(16));
+      expect(key).toContain("ABCD");
+    });
+
+    it("uses different cache keys for domain vs no-domain", () => {
+      const keyWithDomain = tradesCacheKey("net", "XRP", undefined, "USD", "rI", "ABCD".repeat(16));
+      const keyNoDomain = tradesCacheKey("net", "XRP", undefined, "USD", "rI", undefined);
+      expect(keyWithDomain).not.toBe(keyNoDomain);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // 11. Domain filtering
+  // -----------------------------------------------------------------------
+  describe("domain filtering", () => {
+    const DOMAIN_A = "A".repeat(64);
+    const DOMAIN_B = "B".repeat(64);
+    const TF_HYBRID = 0x00100000;
+
+    it("includes trades with matching DomainID when domain is set", async () => {
+      const network = uniqueNetwork();
+      mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("10", "5"));
+
+      const entry = makeEntry({
+        tx_json: {
+          TransactionType: "OfferCreate",
+          Account: TRADER,
+          TakerPays: "10000000",
+          TakerGets: { currency: "USD", issuer: ISSUER, value: "5" },
+          Fee: "12",
+          hash: "DOMAIN_HASH_MATCH",
+          DomainID: DOMAIN_A,
+        },
+      });
+
+      const client = makeMockClient([entry]);
+      const trades = await fetchAndCacheTrades(
+        client,
+        network,
+        "XRP",
+        undefined,
+        "USD",
+        ISSUER,
+        DOMAIN_A,
+      );
+
+      expect(trades).toHaveLength(1);
+    });
+
+    it("excludes trades with non-matching DomainID when domain is set", async () => {
+      const network = uniqueNetwork();
+      mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("10", "5"));
+
+      const entry = makeEntry({
+        tx_json: {
+          TransactionType: "OfferCreate",
+          Account: TRADER,
+          TakerPays: "10000000",
+          TakerGets: { currency: "USD", issuer: ISSUER, value: "5" },
+          Fee: "12",
+          hash: "DOMAIN_HASH_MISMATCH",
+          DomainID: DOMAIN_B,
+        },
+      });
+
+      const client = makeMockClient([entry]);
+      const trades = await fetchAndCacheTrades(
+        client,
+        network,
+        "XRP",
+        undefined,
+        "USD",
+        ISSUER,
+        DOMAIN_A,
+      );
+
+      expect(trades).toHaveLength(0);
+    });
+
+    it("excludes trades with DomainID when no domain is set", async () => {
+      const network = uniqueNetwork();
+      mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("10", "5"));
+
+      const entry = makeEntry({
+        tx_json: {
+          TransactionType: "OfferCreate",
+          Account: TRADER,
+          TakerPays: "10000000",
+          TakerGets: { currency: "USD", issuer: ISSUER, value: "5" },
+          Fee: "12",
+          hash: "DOMAIN_HASH_NO_DOMAIN",
+          DomainID: DOMAIN_A,
+        },
+      });
+
+      const client = makeMockClient([entry]);
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
+
+      expect(trades).toHaveLength(0);
+    });
+
+    it("includes trades without DomainID when no domain is set", async () => {
+      const network = uniqueNetwork();
+      mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("10", "5"));
+
+      const entry = makeEntry({
+        hash: "HASH_NO_DOMAIN_ID",
+      });
+
+      const client = makeMockClient([entry]);
+      const trades = await fetchAndCacheTrades(client, network, "XRP", undefined, "USD", ISSUER);
+
+      expect(trades).toHaveLength(1);
+    });
+
+    it("includes hybrid trades in open-DEX mode", async () => {
+      const network = uniqueNetwork();
+      mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("10", "5"));
+
+      const entry = makeEntry({
+        tx_json: {
+          TransactionType: "OfferCreate",
+          Account: TRADER,
+          TakerPays: "10000000",
+          TakerGets: { currency: "USD", issuer: ISSUER, value: "5" },
+          Fee: "12",
+          hash: "HASH_HYBRID_OPEN_DEX",
+          DomainID: DOMAIN_A,
+          Flags: TF_HYBRID,
+        },
+      });
+
+      const client = makeMockClient([entry]);
+      const trades = await fetchAndCacheTrades(
+        client,
+        network,
+        "XRP",
+        undefined,
+        "USD",
+        ISSUER,
+        // no domain — open-DEX mode
+      );
+
+      expect(trades).toHaveLength(1);
+    });
+
+    it("includes hybrid trades in permissioned mode even with non-matching domain", async () => {
+      const network = uniqueNetwork();
+      mockGetBalanceChanges.mockReturnValue(xrpUsdBuyChanges("10", "5"));
+
+      const entry = makeEntry({
+        tx_json: {
+          TransactionType: "OfferCreate",
+          Account: TRADER,
+          TakerPays: "10000000",
+          TakerGets: { currency: "USD", issuer: ISSUER, value: "5" },
+          Fee: "12",
+          hash: "HASH_HYBRID_PERMISSIONED",
+          DomainID: DOMAIN_B,
+          Flags: TF_HYBRID,
+        },
+      });
+
+      const client = makeMockClient([entry]);
+      const trades = await fetchAndCacheTrades(
+        client,
+        network,
+        "XRP",
+        undefined,
+        "USD",
+        ISSUER,
+        DOMAIN_A, // domain set but doesn't match — hybrid should still be included
+      );
+
+      expect(trades).toHaveLength(1);
     });
   });
 });

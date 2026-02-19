@@ -3,14 +3,8 @@ import { tradesCacheKey, amountCurrency } from "./trades";
 
 describe("tradesCacheKey", () => {
   it("formats key with XRP base (no issuer) and token quote", () => {
-    const key = tradesCacheKey(
-      "mainnet",
-      "XRP",
-      undefined,
-      "USD",
-      "rIssuerAddress123",
-    );
-    expect(key).toBe("mainnet:XRP::USD:rIssuerAddress123");
+    const key = tradesCacheKey("mainnet", "XRP", undefined, "USD", "rIssuerAddress123");
+    expect(key).toBe("mainnet:XRP::USD:rIssuerAddress123:");
   });
 
   it("formats key with token base and XRP quote (no issuer)", () => {
@@ -21,9 +15,7 @@ describe("tradesCacheKey", () => {
       "XRP",
       undefined,
     );
-    expect(key).toBe(
-      "testnet:RLUSD:rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV:XRP:",
-    );
+    expect(key).toBe("testnet:RLUSD:rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV:XRP::");
   });
 
   it("formats key with both token base and token quote (both have issuers)", () => {
@@ -35,27 +27,21 @@ describe("tradesCacheKey", () => {
       "rH5CJsqvNqZGxrMyGaqLEoMWRYcVTAPZMt",
     );
     expect(key).toBe(
-      "mainnet:RLUSD:rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De:BBRL:rH5CJsqvNqZGxrMyGaqLEoMWRYcVTAPZMt",
+      "mainnet:RLUSD:rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De:BBRL:rH5CJsqvNqZGxrMyGaqLEoMWRYcVTAPZMt:",
     );
   });
 
   it("formats key with both sides as XRP (both issuers undefined)", () => {
     const key = tradesCacheKey("devnet", "XRP", undefined, "XRP", undefined);
-    expect(key).toBe("devnet:XRP::XRP:");
+    expect(key).toBe("devnet:XRP::XRP::");
   });
 
   it("produces empty strings for undefined issuers", () => {
-    const key = tradesCacheKey(
-      "mainnet",
-      "USD",
-      undefined,
-      "EUR",
-      undefined,
-    );
-    // Both issuer slots should be empty strings
-    expect(key).toBe("mainnet:USD::EUR:");
+    const key = tradesCacheKey("mainnet", "USD", undefined, "EUR", undefined);
+    // Both issuer slots should be empty strings, domain slot also empty
+    expect(key).toBe("mainnet:USD::EUR::");
     const parts = key.split(":");
-    expect(parts).toEqual(["mainnet", "USD", "", "EUR", ""]);
+    expect(parts).toEqual(["mainnet", "USD", "", "EUR", "", ""]);
   });
 
   it("includes the network in the key", () => {
@@ -64,6 +50,25 @@ describe("tradesCacheKey", () => {
     expect(keyA).not.toBe(keyB);
     expect(keyA).toContain("mainnet");
     expect(keyB).toContain("testnet");
+  });
+
+  it("includes domain in key when provided", () => {
+    const key = tradesCacheKey("mainnet", "XRP", undefined, "USD", "rIssuer", "ABCD".repeat(16));
+    expect(key).toContain("ABCD");
+    expect(key).toBe(`mainnet:XRP::USD:rIssuer:${"ABCD".repeat(16)}`);
+  });
+
+  it("produces different keys for domain vs no-domain", () => {
+    const keyWithDomain = tradesCacheKey(
+      "mainnet",
+      "XRP",
+      undefined,
+      "USD",
+      "rIssuer",
+      "A".repeat(64),
+    );
+    const keyNoDomain = tradesCacheKey("mainnet", "XRP", undefined, "USD", "rIssuer");
+    expect(keyWithDomain).not.toBe(keyNoDomain);
   });
 });
 

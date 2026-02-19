@@ -76,6 +76,10 @@ export function buildOfferCreateTx(params: CreateOfferParams, account: string): 
     tx.Expiration = params.expiration;
   }
 
+  if (params.domainID) {
+    tx.DomainID = params.domainID;
+  }
+
   return tx;
 }
 

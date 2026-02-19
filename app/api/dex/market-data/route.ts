@@ -1,16 +1,25 @@
 import { NextRequest } from "next/server";
 import { getXrplClient, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
 import type { CurrencyPair } from "@/lib/api";
-import { fetchAndNormalizeOrderbook } from "@/lib/xrpl/orderbook-helpers";
+import {
+  fetchAndNormalizeOrderbook,
+  fetchPermissionedOrderbook,
+} from "@/lib/xrpl/orderbook-helpers";
 import { fetchAndCacheTrades } from "@/lib/xrpl/trades";
+import { DOMAIN_ID_REGEX } from "@/lib/xrpl/constants";
 
 export async function GET(request: NextRequest) {
   try {
     const network = request.nextUrl.searchParams.get("network") ?? undefined;
+    const domain = request.nextUrl.searchParams.get("domain") ?? undefined;
 
     const pairOrError = validateCurrencyPair(request);
     if (pairOrError instanceof Response) return pairOrError;
     const { baseCurrency, baseIssuer, quoteCurrency, quoteIssuer } = pairOrError;
+
+    if (domain && !DOMAIN_ID_REGEX.test(domain)) {
+      return Response.json({ error: "Invalid domain ID format" }, { status: 400 });
+    }
 
     const client = await getXrplClient(request);
 
@@ -20,7 +29,9 @@ export async function GET(request: NextRequest) {
     let orderbook: Awaited<ReturnType<typeof fetchAndNormalizeOrderbook>> | null = null;
     let depth: Awaited<ReturnType<typeof fetchAndNormalizeOrderbook>>["depth"] | null = null;
     try {
-      const result = await fetchAndNormalizeOrderbook(client, pairOrError as CurrencyPair);
+      const result = domain
+        ? await fetchPermissionedOrderbook(client, pairOrError as CurrencyPair, domain)
+        : await fetchAndNormalizeOrderbook(client, pairOrError as CurrencyPair);
       // Note: getOrderbook splits by lsfSell flag, not currency direction.
       // The client re-categorises into asks/bids by currency, so we must
       // send the full arrays — trimming here would discard cross-flagged offers.
@@ -39,6 +50,7 @@ export async function GET(request: NextRequest) {
         baseIssuer,
         quoteCurrency,
         quoteIssuer,
+        domain,
       );
     } catch {
       // trades stays null — partial failure

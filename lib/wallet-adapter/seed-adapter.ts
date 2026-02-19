@@ -58,6 +58,7 @@ export class SeedWalletAdapter implements WalletAdapter {
     };
     if (params.flags && params.flags.length > 0) payload.flags = params.flags;
     if (params.expiration !== undefined) payload.expiration = params.expiration;
+    if (params.domainID) payload.domainID = params.domainID;
 
     return this.postAndParse("/api/dex/offers", payload);
   }

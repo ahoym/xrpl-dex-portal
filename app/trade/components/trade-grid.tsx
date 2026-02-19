@@ -28,6 +28,7 @@ interface TradeGridProps {
   depth: number;
   onDepthChange: (d: number) => void;
   depthSummary: DepthSummary | null;
+  activeDomainID?: string;
 }
 
 export function TradeGrid({
@@ -44,6 +45,7 @@ export function TradeGrid({
   depth,
   onDepthChange,
   depthSummary,
+  activeDomainID,
 }: TradeGridProps) {
   const [prefill, setPrefill] = useState<TradeFormPrefill | undefined>(undefined);
   const prefillKeyRef = useRef(0);
@@ -59,6 +61,7 @@ export function TradeGrid({
           pairSelected={pairSelected}
           baseCurrency={sellingCurrency?.currency}
           quoteCurrency={buyingCurrency?.currency}
+          activeDomainID={activeDomainID}
         />
       </div>
 
@@ -76,6 +79,7 @@ export function TradeGrid({
               depth={depth}
               onDepthChange={onDepthChange}
               depthSummary={depthSummary}
+              activeDomainID={activeDomainID}
               onSelectOrder={(price, amount, tab) => {
                 prefillKeyRef.current += 1;
                 setPrefill({ price, amount, tab, key: prefillKeyRef.current });
@@ -106,6 +110,7 @@ export function TradeGrid({
               balances={balances}
               prefill={prefill}
               onSubmitted={onRefresh}
+              activeDomainID={activeDomainID}
             />
           ) : !focusedWallet ? (
             <div className="py-12 text-center">

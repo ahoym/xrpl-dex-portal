@@ -29,8 +29,9 @@ export function tradesCacheKey(
   baseIssuer: string | undefined,
   quoteCurrency: string,
   quoteIssuer: string | undefined,
+  domain?: string,
 ): string {
-  return `${network}:${baseCurrency}:${baseIssuer ?? ""}:${quoteCurrency}:${quoteIssuer ?? ""}`;
+  return `${network}:${baseCurrency}:${baseIssuer ?? ""}:${quoteCurrency}:${quoteIssuer ?? ""}:${domain ?? ""}`;
 }
 
 /** Convert an XRPL Amount to {currency, issuer} for comparison. */
@@ -47,6 +48,7 @@ export async function fetchAndCacheTrades(
   baseIssuer: string | undefined,
   quoteCurrency: string,
   quoteIssuer: string | undefined,
+  domain?: string,
 ): Promise<Trade[]> {
   const issuerAccount = baseCurrency !== Assets.XRP ? baseIssuer! : quoteIssuer!;
 
@@ -66,6 +68,16 @@ export async function fetchAndCacheTrades(
       const meta = entry.meta as TransactionMetadata | undefined;
       if (!tx || !meta) continue;
       if (tx.TransactionType !== "OfferCreate") continue;
+      const txDomainID = (tx as Record<string, unknown>).DomainID as string | undefined;
+      const txFlags = (tx as Record<string, unknown>).Flags as number | undefined;
+      const isHybrid = ((txFlags ?? 0) & 0x00100000) !== 0;
+      if (!isHybrid) {
+        if (domain) {
+          if (txDomainID !== domain) continue;
+        } else {
+          if (txDomainID) continue;
+        }
+      }
       if (typeof meta === "string") continue;
       if (meta.TransactionResult !== "tesSUCCESS") continue;
 
@@ -119,7 +131,14 @@ export async function fetchAndCacheTrades(
   }
 
   // Merge new trades into cache, dedup by hash, sort by time desc, cap at limit
-  const key = tradesCacheKey(network ?? "", baseCurrency, baseIssuer, quoteCurrency, quoteIssuer);
+  const key = tradesCacheKey(
+    network ?? "",
+    baseCurrency,
+    baseIssuer,
+    quoteCurrency,
+    quoteIssuer,
+    domain,
+  );
   const cached = tradesCache.get(key) ?? [];
   const merged = deduplicateByHash([...newTrades, ...cached]);
   merged.sort((a, b) => (b.time > a.time ? 1 : b.time < a.time ? -1 : 0));

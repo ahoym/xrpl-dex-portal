@@ -32,6 +32,7 @@ interface TradeFormProps {
   balances: BalanceEntry[];
   prefill?: TradeFormPrefill;
   onSubmitted: () => void;
+  activeDomainID?: string;
 }
 
 type ExecutionType = "" | "passive" | "immediateOrCancel" | "fillOrKill";
@@ -50,14 +51,18 @@ export function TradeForm({
   balances,
   prefill,
   onSubmitted,
+  activeDomainID,
 }: TradeFormProps) {
-  const { state: { network } } = useAppState();
+  const {
+    state: { network },
+  } = useAppState();
   const { adapter, createOffer: adapterCreateOffer } = useWalletAdapter();
   const [tab, setTab] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
   const [executionType, setExecutionType] = useState<ExecutionType>("");
   const [sellMode, setSellMode] = useState(false);
+  const [hybridMode, setHybridMode] = useState(false);
   const [expiration, setExpiration] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,10 +80,12 @@ export function TradeForm({
     }
   }, [prefill]);
 
-  const total =
-    amount && price
-      ? new BigNumber(amount).times(new BigNumber(price)).toFixed(6)
-      : "";
+  // Reset hybrid mode when domain context changes
+  useEffect(() => {
+    setHybridMode(false);
+  }, [activeDomainID]);
+
+  const total = amount && price ? new BigNumber(amount).times(new BigNumber(price)).toFixed(6) : "";
 
   // Determine what currency and how much the user is spending
   const spendCurrency = tab === "buy" ? buyingCurrency : sellingCurrency;
@@ -108,6 +115,7 @@ export function TradeForm({
     const flags: OfferFlag[] = [];
     if (executionType) flags.push(executionType);
     if (sellMode) flags.push("sell");
+    if (hybridMode && activeDomainID) flags.push("hybrid");
     return flags;
   }
 
@@ -123,19 +131,23 @@ export function TradeForm({
     let takerPays;
 
     if (tab === "buy") {
-      takerGets = buyingCurrency.currency === "XRP"
-        ? { currency: "XRP", value: total }
-        : { currency: buyingCurrency.currency, issuer: buyingCurrency.issuer, value: total };
-      takerPays = sellingCurrency.currency === "XRP"
-        ? { currency: "XRP", value: amount }
-        : { currency: sellingCurrency.currency, issuer: sellingCurrency.issuer, value: amount };
+      takerGets =
+        buyingCurrency.currency === "XRP"
+          ? { currency: "XRP", value: total }
+          : { currency: buyingCurrency.currency, issuer: buyingCurrency.issuer, value: total };
+      takerPays =
+        sellingCurrency.currency === "XRP"
+          ? { currency: "XRP", value: amount }
+          : { currency: sellingCurrency.currency, issuer: sellingCurrency.issuer, value: amount };
     } else {
-      takerGets = sellingCurrency.currency === "XRP"
-        ? { currency: "XRP", value: amount }
-        : { currency: sellingCurrency.currency, issuer: sellingCurrency.issuer, value: amount };
-      takerPays = buyingCurrency.currency === "XRP"
-        ? { currency: "XRP", value: total }
-        : { currency: buyingCurrency.currency, issuer: buyingCurrency.issuer, value: total };
+      takerGets =
+        sellingCurrency.currency === "XRP"
+          ? { currency: "XRP", value: amount }
+          : { currency: sellingCurrency.currency, issuer: sellingCurrency.issuer, value: amount };
+      takerPays =
+        buyingCurrency.currency === "XRP"
+          ? { currency: "XRP", value: total }
+          : { currency: buyingCurrency.currency, issuer: buyingCurrency.issuer, value: total };
     }
 
     const flags = buildFlags();
@@ -156,6 +168,10 @@ export function TradeForm({
       }
     }
 
+    if (activeDomainID) {
+      offerParams.domainID = activeDomainID;
+    }
+
     try {
       const result = await adapterCreateOffer(offerParams);
       if (!result.success) {
@@ -166,6 +182,7 @@ export function TradeForm({
         setPrice("");
         setExecutionType("");
         setSellMode(false);
+        setHybridMode(false);
         setExpiration("");
         setTimeout(() => {
           setSuccess(false);
@@ -181,9 +198,7 @@ export function TradeForm({
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-        Place Order
-      </h3>
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Place Order</h3>
 
       <div className="mt-3 flex gap-1.5">
         <button
@@ -216,10 +231,14 @@ export function TradeForm({
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          {activeDomainID && (
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+              Placing offers in a permissioned domain requires valid credentials for that domain.
+            </div>
+          )}
+
           <div>
-            <label className={labelClass}>
-              Amount ({sellingCurrency.currency})
-            </label>
+            <label className={labelClass}>Amount ({sellingCurrency.currency})</label>
             <input
               type="number"
               step="any"
@@ -247,9 +266,7 @@ export function TradeForm({
           </div>
 
           <div>
-            <label className={labelClass}>
-              Total ({buyingCurrency.currency})
-            </label>
+            <label className={labelClass}>Total ({buyingCurrency.currency})</label>
             <div className="mt-1 border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-mono text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300">
               {total || "—"}
             </div>
@@ -258,17 +275,33 @@ export function TradeForm({
           {amount && price && total && (
             <div className="bg-zinc-100 px-3 py-2.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
               {tab === "buy" ? (
-                <>Pay <span className="font-bold text-zinc-900 dark:text-zinc-100">{total} {buyingCurrency.currency}</span> to receive <span className="font-bold text-zinc-900 dark:text-zinc-100">{amount} {sellingCurrency.currency}</span></>
+                <>
+                  Pay{" "}
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    {total} {buyingCurrency.currency}
+                  </span>{" "}
+                  to receive{" "}
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    {amount} {sellingCurrency.currency}
+                  </span>
+                </>
               ) : (
-                <>Sell <span className="font-bold text-zinc-900 dark:text-zinc-100">{amount} {sellingCurrency.currency}</span> to receive <span className="font-bold text-zinc-900 dark:text-zinc-100">{total} {buyingCurrency.currency}</span></>
+                <>
+                  Sell{" "}
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    {amount} {sellingCurrency.currency}
+                  </span>{" "}
+                  to receive{" "}
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    {total} {buyingCurrency.currency}
+                  </span>
+                </>
               )}
             </div>
           )}
 
           <div>
-            <label className={labelClass}>
-              Execution Type
-            </label>
+            <label className={labelClass}>Execution Type</label>
             <CustomSelect
               value={executionType}
               onChange={(val) => setExecutionType(val as ExecutionType)}
@@ -287,12 +320,21 @@ export function TradeForm({
               />
               Sell Mode
             </label>
+            {activeDomainID && (
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                <input
+                  type="checkbox"
+                  checked={hybridMode}
+                  onChange={(e) => setHybridMode(e.target.checked)}
+                  className="rounded border-zinc-300 dark:border-zinc-600"
+                />
+                Hybrid — Places offer on both open DEX and permissioned domain order books
+              </label>
+            )}
           </div>
 
           <div>
-            <label className={labelClass}>
-              Expiration (optional)
-            </label>
+            <label className={labelClass}>Expiration (optional)</label>
             <input
               type="datetime-local"
               value={expiration}
@@ -303,14 +345,12 @@ export function TradeForm({
 
           {insufficientBalance && (
             <p className={errorTextClass}>
-              Insufficient {spendCurrency.currency} balance — you have{" "}
-              {availableBalance.toFixed(6)} but need {new BigNumber(spendAmount).toFixed(6)}
+              Insufficient {spendCurrency.currency} balance — you have {availableBalance.toFixed(6)}{" "}
+              but need {new BigNumber(spendAmount).toFixed(6)}
             </p>
           )}
 
-          {error && (
-            <p className={errorTextClass}>{error}</p>
-          )}
+          {error && <p className={errorTextClass}>{error}</p>}
 
           <button
             type="submit"

@@ -1,16 +1,28 @@
 import { NextRequest } from "next/server";
 import { getXrplClient, validateCurrencyPair, apiErrorResponse } from "@/lib/api";
 import type { CurrencyPair } from "@/lib/api";
-import { fetchAndNormalizeOrderbook } from "@/lib/xrpl/orderbook-helpers";
+import {
+  fetchAndNormalizeOrderbook,
+  fetchPermissionedOrderbook,
+} from "@/lib/xrpl/orderbook-helpers";
+import { DOMAIN_ID_REGEX } from "@/lib/xrpl/constants";
 
 export async function GET(request: NextRequest) {
   try {
+    const domain = request.nextUrl.searchParams.get("domain") ?? undefined;
+
     const pairOrError = validateCurrencyPair(request);
     if (pairOrError instanceof Response) return pairOrError;
 
+    if (domain && !DOMAIN_ID_REGEX.test(domain)) {
+      return Response.json({ error: "Invalid domain ID format" }, { status: 400 });
+    }
+
     const client = await getXrplClient(request);
 
-    const { buy, sell, depth } = await fetchAndNormalizeOrderbook(client, pairOrError as CurrencyPair);
+    const { buy, sell, depth } = domain
+      ? await fetchPermissionedOrderbook(client, pairOrError as CurrencyPair, domain)
+      : await fetchAndNormalizeOrderbook(client, pairOrError as CurrencyPair);
 
     return Response.json(
       {

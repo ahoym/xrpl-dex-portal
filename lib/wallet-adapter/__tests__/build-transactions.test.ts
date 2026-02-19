@@ -111,6 +111,31 @@ describe("buildOfferCreateTx", () => {
     );
     expect(tx.Expiration).toBe(700000000);
   });
+
+  it("sets DomainID when domainID is provided", () => {
+    const tx = buildOfferCreateTx(
+      {
+        takerGets: { currency: "XRP", value: "1" },
+        takerPays: { currency: "USD", issuer: "rI", value: "1" },
+        domainID: "B".repeat(64),
+        network: "testnet",
+      },
+      "rACCOUNT",
+    );
+    expect((tx as Record<string, unknown>).DomainID).toBe("B".repeat(64));
+  });
+
+  it("does not set DomainID when domainID is not provided", () => {
+    const tx = buildOfferCreateTx(
+      {
+        takerGets: { currency: "XRP", value: "1" },
+        takerPays: { currency: "USD", issuer: "rI", value: "1" },
+        network: "testnet",
+      },
+      "rACCOUNT",
+    );
+    expect((tx as Record<string, unknown>).DomainID).toBeUndefined();
+  });
 });
 
 describe("buildOfferCancelTx", () => {
