@@ -6,7 +6,7 @@ import type { OrderBookAmount } from "@/lib/types";
 import type { FilledOrder } from "@/lib/xrpl/filled-orders";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
-import { fromRippleEpoch } from "@/lib/xrpl/constants";
+import { fromRippleEpoch, LSF_HYBRID } from "@/lib/xrpl/constants";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { EXPLORER_URLS } from "@/lib/xrpl/networks";
 import { formatTime, formatDateTime } from "@/lib/ui/format-time";
@@ -90,7 +90,14 @@ export function OrdersSheet({
             Filled{pairSelected && !loadingFilled ? ` (${filledOrders.length})` : ""}
           </button>
           {pairLabel && (
-            <span className="ml-2 text-xs text-zinc-400 dark:text-zinc-500">{pairLabel}</span>
+            <span className="ml-2 text-xs text-zinc-400 dark:text-zinc-500">
+              {pairLabel}
+              {activeDomainID && (
+                <span className="ml-1.5 font-mono text-purple-500 dark:text-purple-400">
+                  {activeDomainID}
+                </span>
+              )}
+            </span>
           )}
           <button
             onClick={() => setCollapsed((c) => !c)}
@@ -271,6 +278,14 @@ function OpenOrdersContent({
   onCancel: (seq: number) => void;
   activeDomainID?: string;
 }) {
+  const [copiedSeq, setCopiedSeq] = useState<number | null>(null);
+
+  function handleCopyDomain(seq: number, domainID: string) {
+    navigator.clipboard.writeText(domainID);
+    setCopiedSeq(seq);
+    setTimeout(() => setCopiedSeq(null), 1500);
+  }
+
   if (loading) return <LoadingSkeleton rows={3} />;
   if (!pairSelected) return <EmptyMessage text="Select a pair to see your orders" />;
   if (offers.length === 0) return <EmptyMessage text="No open orders for this pair" />;
@@ -308,7 +323,7 @@ function OpenOrdersContent({
               baseCurrency,
               baseIssuer,
             );
-            const isHybrid = (offer.flags & 0x00100000) !== 0;
+            const isHybrid = (offer.flags & LSF_HYBRID) !== 0;
             const canCancel = isHybrid
               ? true
               : activeDomainID
@@ -357,7 +372,25 @@ function OpenOrdersContent({
                 </td>
                 <td className="py-2 pr-2 text-right font-mono text-zinc-500 dark:text-zinc-400">
                   {offer.domainID ? (
-                    <span title={offer.domainID}>{offer.domainID.slice(0, 8)}...</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        title={`${offer.domainID}\nClick to copy`}
+                        onClick={() => handleCopyDomain(offer.seq, offer.domainID!)}
+                        className="cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-200"
+                      >
+                        {copiedSeq === offer.seq ? (
+                          <span className="text-green-600 dark:text-green-400">Copied!</span>
+                        ) : (
+                          <>{offer.domainID.slice(0, 8)}...</>
+                        )}
+                      </button>
+                      {isHybrid && (
+                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                          Hybrid
+                        </span>
+                      )}
+                    </span>
                   ) : (
                     <span className="text-zinc-300 dark:text-zinc-600">—</span>
                   )}
@@ -414,8 +447,11 @@ function FilledOrdersContent({
             <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
               Total
             </th>
-            <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            <th className="pb-2 pr-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
               Time
+            </th>
+            <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Domain
             </th>
           </tr>
         </thead>
@@ -456,13 +492,20 @@ function FilledOrdersContent({
               <td className="py-2 pr-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
                 {order.quoteAmount === "—" ? "—" : new BigNumber(order.quoteAmount).toFixed(4)}
               </td>
-              <td className="py-2 text-right text-zinc-500 dark:text-zinc-400">
+              <td className="py-2 pr-2 text-right text-zinc-500 dark:text-zinc-400">
                 <span className="group relative cursor-default">
                   {formatTime(order.time)}
                   <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap bg-zinc-800 px-2.5 py-1 text-xs text-white shadow-lg group-hover:block dark:bg-zinc-700">
                     {formatDateTime(order.time)}
                   </span>
                 </span>
+              </td>
+              <td className="py-2 text-right font-mono text-zinc-500 dark:text-zinc-400">
+                {order.domainID ? (
+                  <span title={order.domainID}>{order.domainID.slice(0, 8)}...</span>
+                ) : (
+                  <span className="text-zinc-300 dark:text-zinc-600">—</span>
+                )}
               </td>
             </tr>
           ))}

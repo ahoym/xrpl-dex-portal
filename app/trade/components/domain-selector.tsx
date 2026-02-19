@@ -77,10 +77,15 @@ export function DomainSelector({
           <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
             Permissioned Domain
           </span>
-          {isActive && (
-            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-              Active
-            </span>
+          {isActive && domainID && (
+            <>
+              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                Active
+              </span>
+              <span className="break-all text-[10px] font-mono text-zinc-600 dark:text-zinc-300">
+                {domainID}
+              </span>
+            </>
           )}
         </div>
         <svg

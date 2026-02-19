@@ -13,7 +13,7 @@ const links = [
 
 export function NavBar() {
   const pathname = usePathname();
-  const { state, setNetwork } = useAppState();
+  const { state, hydrated, setNetwork } = useAppState();
 
   return (
     <nav className="sticky top-0 z-40 border-b border-zinc-200/60 bg-white/80 backdrop-blur-xl dark:border-zinc-800/60 dark:bg-zinc-950/80">
@@ -46,7 +46,9 @@ export function NavBar() {
           })}
         </div>
         <div className="ml-auto">
-          <NetworkSelector network={state.network} walletAddress={state.wallet?.address} onChange={setNetwork} />
+          {hydrated && (
+            <NetworkSelector network={state.network} walletAddress={state.wallet?.address} onChange={setNetwork} />
+          )}
         </div>
       </div>
     </nav>

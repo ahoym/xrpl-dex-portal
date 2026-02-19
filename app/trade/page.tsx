@@ -87,6 +87,7 @@ function TradePageInner() {
   });
 
   // Filter offers to selected pair (shared by TradeGrid + OrdersSheet)
+  // Shows ALL user offers for the pair regardless of domain — these are the user's own orders.
   const pairOffers = useMemo(() => {
     if (!sellingCurrency || !buyingCurrency) return [];
     return accountOffers.filter((o) => {
@@ -110,18 +111,11 @@ function TradePageInner() {
         sellingCurrency.currency,
         sellingCurrency.issuer,
       );
-      const pairMatch =
-        (getsMatchesSelling && paysMatchesBuying) || (getsMatchesBuying && paysMatchesSelling);
-      if (!pairMatch) return false;
-
-      const isHybrid = (o.flags & 0x00100000) !== 0;
-      if (domainActive && domainID) {
-        return o.domainID === domainID || isHybrid;
-      } else {
-        return !o.domainID || isHybrid;
-      }
+      return (
+        (getsMatchesSelling && paysMatchesBuying) || (getsMatchesBuying && paysMatchesSelling)
+      );
     });
-  }, [accountOffers, sellingCurrency, buyingCurrency, domainActive, domainID]);
+  }, [accountOffers, sellingCurrency, buyingCurrency]);
 
   // Cancel offer handler (shared by TradeGrid + OrdersSheet)
   const [cancellingSeq, setCancellingSeq] = useState<number | null>(null);
@@ -174,15 +168,6 @@ function TradePageInner() {
         onToggleCustomForm={() => setShowCustomForm(!showCustomForm)}
       />
 
-      <DomainSelector
-        domainID={domainID}
-        onDomainChange={setDomainID}
-        onClear={clearDomain}
-        expanded={expanded}
-        onToggleExpanded={setExpanded}
-        isActive={domainActive}
-      />
-
       {showCustomForm && (
         <CustomCurrencyForm
           onAdd={(currency, issuer) =>
@@ -191,6 +176,15 @@ function TradePageInner() {
           onClose={() => setShowCustomForm(false)}
         />
       )}
+
+      <DomainSelector
+        domainID={domainID}
+        onDomainChange={setDomainID}
+        onClear={clearDomain}
+        expanded={expanded}
+        onToggleExpanded={setExpanded}
+        isActive={domainActive}
+      />
 
       <TradeGrid
         focusedWallet={focusedWallet}
