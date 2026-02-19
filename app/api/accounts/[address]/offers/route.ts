@@ -43,8 +43,12 @@ export async function GET(
       return {
         seq: raw.Sequence as number,
         flags: raw.Flags as number,
-        taker_gets: fromXrplAmount(raw.TakerGets as string | { currency: string; issuer: string; value: string }),
-        taker_pays: fromXrplAmount(raw.TakerPays as string | { currency: string; issuer: string; value: string }),
+        taker_gets: fromXrplAmount(
+          raw.TakerGets as string | { currency: string; issuer: string; value: string },
+        ),
+        taker_pays: fromXrplAmount(
+          raw.TakerPays as string | { currency: string; issuer: string; value: string },
+        ),
         quality: raw.quality as string | undefined,
         expiration: raw.Expiration as number | undefined,
         ...(raw.DomainID ? { domainID: raw.DomainID as string } : {}),

@@ -113,9 +113,7 @@ function TradePageInner() {
         sellingCurrency.currency,
         sellingCurrency.issuer,
       );
-      return (
-        (getsMatchesSelling && paysMatchesBuying) || (getsMatchesBuying && paysMatchesSelling)
-      );
+      return (getsMatchesSelling && paysMatchesBuying) || (getsMatchesBuying && paysMatchesSelling);
     });
   }, [accountOffers, sellingCurrency, buyingCurrency]);
 

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAppState } from '@/lib/hooks/use-app-state';
-import { NetworkSelector } from './network-selector';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAppState } from "@/lib/hooks/use-app-state";
+import { NetworkSelector } from "./network-selector";
 
 const links = [
-  { href: '/setup', label: 'Setup' },
-  { href: '/trade', label: 'Trade' },
-  { href: '/transact', label: 'Transact' },
+  { href: "/setup", label: "Setup" },
+  { href: "/trade", label: "Trade" },
+  { href: "/transact", label: "Transact" },
 ];
 
 export function NavBar() {
@@ -28,7 +28,7 @@ export function NavBar() {
         </Link>
         <div className="flex items-center gap-0.5">
           {links.map((link) => {
-            const active = pathname === link.href || pathname.startsWith(link.href + '/');
+            const active = pathname === link.href || pathname.startsWith(link.href + "/");
             return (
               <Link
                 key={link.href}
@@ -36,8 +36,8 @@ export function NavBar() {
                 aria-current={active ? "page" : undefined}
                 className={`px-3 py-1.5 text-sm font-medium ${
                   active
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400'
-                    : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200'
+                    ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200"
                 }`}
               >
                 {link.label}
@@ -47,7 +47,11 @@ export function NavBar() {
         </div>
         <div className="ml-auto">
           {hydrated && (
-            <NetworkSelector network={state.network} walletAddress={state.wallet?.address} onChange={setNetwork} />
+            <NetworkSelector
+              network={state.network}
+              walletAddress={state.wallet?.address}
+              onChange={setNetwork}
+            />
           )}
         </div>
       </div>
