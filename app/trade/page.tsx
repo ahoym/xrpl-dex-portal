@@ -5,6 +5,7 @@ import { useAppState } from "@/lib/hooks/use-app-state";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { useTradingData } from "@/lib/hooks/use-trading-data";
 import { useDomainMode } from "@/lib/hooks/use-domain-mode";
+import { useDomainAuthorization } from "@/lib/hooks/use-domain-authorization";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { CustomCurrencyForm } from "./components/custom-currency-form";
 import { CurrencyPairSelector } from "./components/currency-pair-selector";
@@ -44,6 +45,12 @@ function TradePageInner() {
   );
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { status: domainAuthStatus, credentialExpiresAtMs } = useDomainAuthorization(
+    domainActive ? domainID! : undefined,
+    state.wallet?.address,
+    state.network,
+    refreshKey,
+  );
   const [depth, setDepth] = useState<number>(DEPTH_OPTIONS[1]);
 
   // Set default pair based on network — RLUSD/XRP when available, XRP otherwise
@@ -206,6 +213,8 @@ function TradePageInner() {
         onDepthChange={setDepth}
         depthSummary={depthSummary}
         activeDomainID={domainActive ? domainID! : undefined}
+        domainAuthStatus={domainActive ? domainAuthStatus : undefined}
+        credentialExpiresAtMs={domainActive ? credentialExpiresAtMs : undefined}
       />
 
       {/* Mobile: in-flow orders section */}

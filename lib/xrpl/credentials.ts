@@ -1,4 +1,5 @@
 import { MAX_CREDENTIAL_TYPE_LENGTH } from "./constants";
+import type { CredentialInfo } from "../types";
 
 /**
  * Encode a credential type string to uppercase hex.
@@ -31,4 +32,8 @@ export function decodeCredentialType(hex: string): string {
     return decoded;
   }
   return hex;
+}
+
+export function isCredentialExpired(cred: CredentialInfo): boolean {
+  return cred.expiresAtMs !== undefined && cred.expiresAtMs < Date.now();
 }

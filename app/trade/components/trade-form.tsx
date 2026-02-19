@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import BigNumber from "bignumber.js";
 import type { WalletInfo, BalanceEntry } from "@/lib/types";
+import type { DomainAuthStatus } from "@/lib/hooks/use-domain-authorization";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
@@ -33,6 +34,8 @@ interface TradeFormProps {
   prefill?: TradeFormPrefill;
   onSubmitted: () => void;
   activeDomainID?: string;
+  domainAuthStatus?: DomainAuthStatus;
+  credentialExpiresAtMs?: number;
 }
 
 type ExecutionType = "" | "passive" | "immediateOrCancel" | "fillOrKill";
@@ -52,6 +55,8 @@ export function TradeForm({
   prefill,
   onSubmitted,
   activeDomainID,
+  domainAuthStatus,
+  credentialExpiresAtMs,
 }: TradeFormProps) {
   const {
     state: { network },
@@ -101,9 +106,12 @@ export function TradeForm({
     new BigNumber(spendAmount).gt(0) &&
     new BigNumber(spendAmount).gt(availableBalance);
 
+  const domainBlocked = activeDomainID !== undefined && domainAuthStatus === "unauthorized";
+
   const canSubmit =
     !submitting &&
     !insufficientBalance &&
+    !domainBlocked &&
     amount !== "" &&
     !new BigNumber(amount).isNaN() &&
     new BigNumber(amount).gt(0) &&
@@ -231,9 +239,30 @@ export function TradeForm({
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-          {activeDomainID && (
+          {activeDomainID && domainAuthStatus === "unauthorized" && (
+            <div className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+              Your wallet does not hold valid credentials for this permissioned domain.
+            </div>
+          )}
+          {activeDomainID && domainAuthStatus === "loading" && (
+            <div className="mb-3 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400">
+              Checking domain credentials…
+            </div>
+          )}
+          {activeDomainID && domainAuthStatus === "error" && (
             <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-              Placing offers in a permissioned domain requires valid credentials for that domain.
+              Could not verify domain credentials. Placing offers may fail.
+            </div>
+          )}
+          {activeDomainID && domainAuthStatus === "authorized" && credentialExpiresAtMs && (
+            <div className="mb-3 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400">
+              Your credential for this domain expires on{" "}
+              {new Date(credentialExpiresAtMs).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+              .
             </div>
           )}
 

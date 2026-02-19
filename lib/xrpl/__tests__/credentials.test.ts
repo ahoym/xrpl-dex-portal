@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { encodeCredentialType, decodeCredentialType } from "../credentials";
+import { encodeCredentialType, decodeCredentialType, isCredentialExpired } from "../credentials";
 
 describe("encodeCredentialType", () => {
   it("encodes UTF-8 string to uppercase hex", () => {
@@ -29,5 +29,32 @@ describe("credential type round-trip", () => {
     for (const val of values) {
       expect(decodeCredentialType(encodeCredentialType(val))).toBe(val);
     }
+  });
+});
+
+describe("isCredentialExpired", () => {
+  it("returns true when expiresAtMs is in the past", () => {
+    const cred = {
+      issuer: "rTestIssuer",
+      credentialType: "KYC",
+      accepted: true,
+      expiresAtMs: Date.now() - 1000,
+    };
+    expect(isCredentialExpired(cred)).toBe(true);
+  });
+
+  it("returns false when expiresAtMs is in the future", () => {
+    const cred = {
+      issuer: "rTestIssuer",
+      credentialType: "KYC",
+      accepted: true,
+      expiresAtMs: Date.now() + 100000,
+    };
+    expect(isCredentialExpired(cred)).toBe(false);
+  });
+
+  it("returns false when expiresAtMs is undefined", () => {
+    const cred = { issuer: "rTestIssuer", credentialType: "KYC", accepted: true };
+    expect(isCredentialExpired(cred)).toBe(false);
   });
 });

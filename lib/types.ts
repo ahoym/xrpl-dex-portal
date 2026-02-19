@@ -61,3 +61,8 @@ export interface CredentialInfo {
   expiresAtMs?: number;
   uri?: string;
 }
+
+export interface AcceptedCredentialInfo {
+  issuer: string;
+  credentialType: string; // decoded from hex
+}

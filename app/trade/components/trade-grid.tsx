@@ -7,6 +7,7 @@ import { RecentTrades } from "./recent-trades";
 import { BalancesPanel } from "./balances-panel";
 import type { TradeFormPrefill } from "./trade-form";
 import type { WalletInfo, BalanceEntry, DepthSummary } from "@/lib/types";
+import type { DomainAuthStatus } from "@/lib/hooks/use-domain-authorization";
 import type { CurrencyOption, OrderBookData, AccountOffer } from "@/lib/hooks/use-trading-data";
 import type { RecentTrade } from "./recent-trades";
 import { cardClass } from "@/lib/ui/ui";
@@ -29,6 +30,8 @@ interface TradeGridProps {
   onDepthChange: (d: number) => void;
   depthSummary: DepthSummary | null;
   activeDomainID?: string;
+  domainAuthStatus?: DomainAuthStatus;
+  credentialExpiresAtMs?: number;
 }
 
 export function TradeGrid({
@@ -46,6 +49,8 @@ export function TradeGrid({
   onDepthChange,
   depthSummary,
   activeDomainID,
+  domainAuthStatus,
+  credentialExpiresAtMs,
 }: TradeGridProps) {
   const [prefill, setPrefill] = useState<TradeFormPrefill | undefined>(undefined);
   const prefillKeyRef = useRef(0);
@@ -111,6 +116,8 @@ export function TradeGrid({
               prefill={prefill}
               onSubmitted={onRefresh}
               activeDomainID={activeDomainID}
+              domainAuthStatus={domainAuthStatus}
+              credentialExpiresAtMs={credentialExpiresAtMs}
             />
           ) : !focusedWallet ? (
             <div className="py-12 text-center">

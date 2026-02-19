@@ -7,6 +7,7 @@ import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { getSigningLoadingText, extractErrorMessage } from "@/lib/wallet-ui";
 import { ExplorerLink } from "@/app/components/explorer-link";
 import { cardClass, errorTextClass } from "@/lib/ui/ui";
+import { isCredentialExpired } from "@/lib/xrpl/credentials";
 
 interface CredentialManagementProps {
   wallet: WalletInfo;
@@ -22,10 +23,6 @@ function isSafeHttpUrl(uri: string): boolean {
   } catch {
     return false;
   }
-}
-
-function isExpired(cred: CredentialInfo): boolean {
-  return cred.expiresAtMs !== undefined && cred.expiresAtMs < Date.now();
 }
 
 export function CredentialManagement({
@@ -128,7 +125,7 @@ export function CredentialManagement({
         <div className="mt-4 space-y-3">
           {sorted.map((cred) => {
             const key = `${cred.issuer}:${cred.credentialType}`;
-            const expired = isExpired(cred);
+            const expired = isCredentialExpired(cred);
             const isActing = acting === key;
 
             return (
