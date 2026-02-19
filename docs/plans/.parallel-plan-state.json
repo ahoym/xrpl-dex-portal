@@ -6,11 +6,41 @@
   "build": "pass",
   "integration": "pass (build + test + lint)",
   "agents": {
-    "A": { "status": "completed", "agentId": "ad3c4dd", "duration": null, "notes": "4/4 TDD steps. Discoveries: OfferCreateFlags.tfHybrid=1048576 confirmed, Record<OfferFlag,number> enforces exhaustiveness" },
-    "B": { "status": "completed", "agentId": "abb4670", "duration": null, "notes": "4/4 TDD steps. Discoveries: BookOffersRequest.domain native in xrpl.js v4.5.0, satisfies works; tradesCacheKey now ends with : or :domainID; tx_json doesn't expose DomainID statically" },
-    "C": { "status": "completed", "agentId": "a9c9214", "duration": null, "notes": "3/3 TDD steps. Discoveries: xrpl.js v4.5.0 natively supports OfferCreate.DomainID (no cast needed)" },
-    "D": { "status": "completed", "agentId": "a082702", "duration": null, "notes": "1/1 build-verify. Discoveries: OfferCreate.DomainID native on xrpl.js OfferCreate type; parallel agent F had build errors visible but not D's fault" },
-    "E": { "status": "completed", "agentId": "a629828", "duration": null, "notes": "4/4 TDD steps. Discoveries: Response body single-use gotcha with vi.fn; Amendment 4 reset effect ordering matters; DOMAIN_ID_REGEX from Agent A worked seamlessly" },
-    "F": { "status": "completed", "agentId": "a06cb5c", "duration": null, "notes": "1/1 build-verify. Coordinator fixed 2 lint errors (setState in useEffect) in domain-selector.tsx and use-domain-mode.ts" }
+    "A": {
+      "status": "completed",
+      "agentId": "ad3c4dd",
+      "duration": null,
+      "notes": "4/4 TDD steps. Discoveries: OfferCreateFlags.tfHybrid=1048576 confirmed, Record<OfferFlag,number> enforces exhaustiveness"
+    },
+    "B": {
+      "status": "completed",
+      "agentId": "abb4670",
+      "duration": null,
+      "notes": "4/4 TDD steps. Discoveries: BookOffersRequest.domain native in xrpl.js v4.5.0, satisfies works; tradesCacheKey now ends with : or :domainID; tx_json doesn't expose DomainID statically"
+    },
+    "C": {
+      "status": "completed",
+      "agentId": "a9c9214",
+      "duration": null,
+      "notes": "3/3 TDD steps. Discoveries: xrpl.js v4.5.0 natively supports OfferCreate.DomainID (no cast needed)"
+    },
+    "D": {
+      "status": "completed",
+      "agentId": "a082702",
+      "duration": null,
+      "notes": "1/1 build-verify. Discoveries: OfferCreate.DomainID native on xrpl.js OfferCreate type; parallel agent F had build errors visible but not D's fault"
+    },
+    "E": {
+      "status": "completed",
+      "agentId": "a629828",
+      "duration": null,
+      "notes": "4/4 TDD steps. Discoveries: Response body single-use gotcha with vi.fn; Amendment 4 reset effect ordering matters; DOMAIN_ID_REGEX from Agent A worked seamlessly"
+    },
+    "F": {
+      "status": "completed",
+      "agentId": "a06cb5c",
+      "duration": null,
+      "notes": "1/1 build-verify. Coordinator fixed 2 lint errors (setState in useEffect) in domain-selector.tsx and use-domain-mode.ts"
+    }
   }
 }

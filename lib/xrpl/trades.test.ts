@@ -3,13 +3,7 @@ import { tradesCacheKey, amountCurrency } from "./trades";
 
 describe("tradesCacheKey", () => {
   it("formats key with XRP base (no issuer) and token quote", () => {
-    const key = tradesCacheKey(
-      "mainnet",
-      "XRP",
-      undefined,
-      "USD",
-      "rIssuerAddress123",
-    );
+    const key = tradesCacheKey("mainnet", "XRP", undefined, "USD", "rIssuerAddress123");
     expect(key).toBe("mainnet:XRP::USD:rIssuerAddress123:");
   });
 
@@ -21,9 +15,7 @@ describe("tradesCacheKey", () => {
       "XRP",
       undefined,
     );
-    expect(key).toBe(
-      "testnet:RLUSD:rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV:XRP::",
-    );
+    expect(key).toBe("testnet:RLUSD:rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV:XRP::");
   });
 
   it("formats key with both token base and token quote (both have issuers)", () => {
@@ -45,13 +37,7 @@ describe("tradesCacheKey", () => {
   });
 
   it("produces empty strings for undefined issuers", () => {
-    const key = tradesCacheKey(
-      "mainnet",
-      "USD",
-      undefined,
-      "EUR",
-      undefined,
-    );
+    const key = tradesCacheKey("mainnet", "USD", undefined, "EUR", undefined);
     // Both issuer slots should be empty strings, domain slot also empty
     expect(key).toBe("mainnet:USD::EUR::");
     const parts = key.split(":");
@@ -73,7 +59,14 @@ describe("tradesCacheKey", () => {
   });
 
   it("produces different keys for domain vs no-domain", () => {
-    const keyWithDomain = tradesCacheKey("mainnet", "XRP", undefined, "USD", "rIssuer", "A".repeat(64));
+    const keyWithDomain = tradesCacheKey(
+      "mainnet",
+      "XRP",
+      undefined,
+      "USD",
+      "rIssuer",
+      "A".repeat(64),
+    );
     const keyNoDomain = tradesCacheKey("mainnet", "XRP", undefined, "USD", "rIssuer");
     expect(keyWithDomain).not.toBe(keyNoDomain);
   });
