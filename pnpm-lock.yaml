@@ -30,8 +30,8 @@ importers:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
       xrpl:
-        specifier: ^4.5.0
-        version: 4.5.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+        specifier: ^4.6.0
+        version: 4.6.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       xumm:
         specifier: ^1.8.0
         version: 1.8.0
@@ -2694,8 +2694,8 @@ packages:
     resolution: {integrity: sha512-g7+gs3T+NfoeW6vIq5dcN0CkIT4t/zwRzFxz8X2RzfbrWRnewPUKqQbmBgs05tXLX5NuWPaneiaAVpFpYBcdfw==}
     engines: {node: '>= 10'}
 
-  ripple-binary-codec@2.6.0:
-    resolution: {integrity: sha512-OJBRxjjalO7SrIwydHhcC9wOFLoeKcawoqSEfGZilAtXROYTWHx5kTly2VcUMmMMSEYIh1+yEstBtLBObNjeKQ==}
+  ripple-binary-codec@2.7.0:
+    resolution: {integrity: sha512-gEBqan5muVp+q7jgZ6aUniSyN+e4FKRzn9uFAeFSIW7IgvkezP1cUolNtpahQ+jvaSK/33hxZA7wNmn1mc330g==}
     engines: {node: '>= 18'}
 
   ripple-keypairs@1.3.1:
@@ -3190,8 +3190,8 @@ packages:
     resolution: {integrity: sha512-82BfMubEd4DOEiHM1scEZr2AzONXO0x8xVJovPbw6ffXPX6W4JPTKR57VCcSwR0S+KRUGP+uPevr/BgC9cOWKA==}
     engines: {node: '>=10.13.0'}
 
-  xrpl@4.5.0:
-    resolution: {integrity: sha512-fH3mmRMAiio53JaiPOhbaBLPo9H5qLpgHLkt2YWfrwppjvw70wjRcMBXGB67yEl4KWVi7yDhnZBbrtUdZrNHhA==}
+  xrpl@4.6.0:
+    resolution: {integrity: sha512-0nXZfqDHRJ6bsDv1WtA9MdCYalMtXuxVa9mtLdqT3xypRKf2LwT5DbuGL/kHcVfuqk3B+ly+SFARlrnX+LHtRQ==}
     engines: {node: '>=18.0.0'}
 
   xumm-js-pkce@1.0.2:
@@ -5908,7 +5908,7 @@ snapshots:
       decimal.js: 10.6.0
       ripple-address-codec: 4.3.1
 
-  ripple-binary-codec@2.6.0(bufferutil@4.1.0)(utf-8-validate@5.0.10):
+  ripple-binary-codec@2.7.0(bufferutil@4.1.0)(utf-8-validate@5.0.10):
     dependencies:
       '@xrplf/isomorphic': 1.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       bignumber.js: 9.3.1
@@ -6564,7 +6564,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  xrpl@4.5.0(bufferutil@4.1.0)(utf-8-validate@5.0.10):
+  xrpl@4.6.0(bufferutil@4.1.0)(utf-8-validate@5.0.10):
     dependencies:
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
@@ -6574,7 +6574,7 @@ snapshots:
       eventemitter3: 5.0.4
       fast-json-stable-stringify: 2.1.0
       ripple-address-codec: 5.0.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
-      ripple-binary-codec: 2.6.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      ripple-binary-codec: 2.7.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       ripple-keypairs: 2.0.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
