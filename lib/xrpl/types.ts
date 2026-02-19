@@ -57,3 +57,17 @@ export interface CancelOfferRequest {
   offerSequence: number;
   network?: string;
 }
+
+export interface AcceptCredentialRequest {
+  seed: string;
+  issuer: string;
+  credentialType: string;
+  network?: string;
+}
+
+export interface DeleteCredentialRequest {
+  seed: string;
+  issuer: string;
+  credentialType: string;
+  network?: string;
+}

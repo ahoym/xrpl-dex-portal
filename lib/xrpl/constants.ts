@@ -46,6 +46,12 @@ export const DOMAIN_ID_LENGTH = 64;
 /** Regex that matches a valid permissioned domain ID (64 uppercase hex characters). */
 export const DOMAIN_ID_REGEX = /^[0-9A-F]{64}$/;
 
+/** Ledger flag: credential has been accepted by the subject (lsfAccepted). */
+export const LSF_ACCEPTED = 0x00010000;
+
+/** Maximum length of a credential type string (before hex encoding). */
+export const MAX_CREDENTIAL_TYPE_LENGTH = 128;
+
 // ---------------------------------------------------------------------------
 // Epoch conversion helpers
 // ---------------------------------------------------------------------------

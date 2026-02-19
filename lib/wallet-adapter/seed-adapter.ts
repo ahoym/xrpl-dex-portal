@@ -5,6 +5,8 @@ import type {
   CreateOfferParams,
   CancelOfferParams,
   TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
 } from "./types";
 
 /**
@@ -75,6 +77,24 @@ export class SeedWalletAdapter implements WalletAdapter {
       currency: params.currency,
       issuer: params.issuer,
       limit: params.limit,
+      network: params.network,
+    });
+  }
+
+  async acceptCredential(params: AcceptCredentialParams): Promise<TxResult> {
+    return this.postAndParse("/api/credentials/accept", {
+      seed: this.getSeed(),
+      issuer: params.issuer,
+      credentialType: params.credentialType,
+      network: params.network,
+    });
+  }
+
+  async deleteCredential(params: DeleteCredentialParams): Promise<TxResult> {
+    return this.postAndParse("/api/credentials/delete", {
+      seed: this.getSeed(),
+      issuer: params.issuer,
+      credentialType: params.credentialType,
       network: params.network,
     });
   }

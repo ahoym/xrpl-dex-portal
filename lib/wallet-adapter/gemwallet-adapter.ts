@@ -6,7 +6,17 @@
  * injected page globals — no network requests leave the browser.
  */
 
-import type { WalletAdapter, TxResult, PaymentParams, CreateOfferParams, CancelOfferParams, TrustlineParams } from "./types";
+import type {
+  WalletAdapter,
+  TxResult,
+  PaymentParams,
+  CreateOfferParams,
+  CancelOfferParams,
+  TrustlineParams,
+  AcceptCredentialParams,
+  DeleteCredentialParams,
+} from "./types";
+import { buildCredentialAcceptTx, buildCredentialDeleteTx } from "./build-transactions";
 import { toXrplAmount } from "../xrpl/currency";
 import { encodeXrplCurrency } from "../xrpl/currency";
 import { resolveOfferFlags } from "../xrpl/offers";
@@ -131,6 +141,26 @@ export class GemWalletAdapter implements WalletAdapter {
         issuer: params.issuer,
         value: params.limit,
       },
+    });
+    return this.parseHashResponse(resp);
+  }
+
+  async acceptCredential(params: AcceptCredentialParams): Promise<TxResult> {
+    this.requireConnected();
+    const api = await getApi();
+    const tx = buildCredentialAcceptTx(params, this.address!);
+    const resp = await api.submitTransaction({
+      transaction: tx as Parameters<GemWalletApi["submitTransaction"]>[0]["transaction"],
+    });
+    return this.parseHashResponse(resp);
+  }
+
+  async deleteCredential(params: DeleteCredentialParams): Promise<TxResult> {
+    this.requireConnected();
+    const api = await getApi();
+    const tx = buildCredentialDeleteTx(params, this.address!);
+    const resp = await api.submitTransaction({
+      transaction: tx as Parameters<GemWalletApi["submitTransaction"]>[0]["transaction"],
     });
     return this.parseHashResponse(resp);
   }

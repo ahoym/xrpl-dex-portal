@@ -4,6 +4,7 @@ import {
   validateRequired,
   validateAddress,
   validatePositiveAmount,
+  validateCredentialType,
   validateDexAmount,
   getTransactionResult,
   isAccountNotFound,
@@ -207,6 +208,36 @@ describe("validatePositiveAmount", () => {
 });
 
 // ---------------------------------------------------------------------------
+// validateCredentialType
+// ---------------------------------------------------------------------------
+
+describe("validateCredentialType", () => {
+  it("returns null for a valid credential type", () => {
+    expect(validateCredentialType("KYC")).toBeNull();
+  });
+
+  it("returns null for a max-length credential type", () => {
+    expect(validateCredentialType("a".repeat(128))).toBeNull();
+  });
+
+  it("returns 400 for an empty string", async () => {
+    const resp = validateCredentialType("");
+    expect(resp).not.toBeNull();
+    expect(resp!.status).toBe(400);
+    const body = await resp!.json();
+    expect(body.error).toContain("credentialType is required");
+  });
+
+  it("returns 400 for a too-long string", async () => {
+    const resp = validateCredentialType("a".repeat(129));
+    expect(resp).not.toBeNull();
+    expect(resp!.status).toBe(400);
+    const body = await resp!.json();
+    expect(body.error).toContain("exceeds maximum length");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // validateDexAmount
 // ---------------------------------------------------------------------------
 
@@ -300,15 +331,11 @@ describe("validateDexAmount", () => {
 
 describe("getTransactionResult", () => {
   it("extracts TransactionResult string for tesSUCCESS", () => {
-    expect(getTransactionResult({ TransactionResult: "tesSUCCESS" })).toBe(
-      "tesSUCCESS",
-    );
+    expect(getTransactionResult({ TransactionResult: "tesSUCCESS" })).toBe("tesSUCCESS");
   });
 
   it("extracts TransactionResult string for tecPATH_DRY", () => {
-    expect(getTransactionResult({ TransactionResult: "tecPATH_DRY" })).toBe(
-      "tecPATH_DRY",
-    );
+    expect(getTransactionResult({ TransactionResult: "tecPATH_DRY" })).toBe("tecPATH_DRY");
   });
 
   it("returns undefined for null", () => {
