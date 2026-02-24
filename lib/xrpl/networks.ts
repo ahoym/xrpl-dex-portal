@@ -21,7 +21,7 @@ export const NETWORKS = {
   },
   mainnet: {
     name: "Mainnet",
-    url: "wss://xrplcluster.com",
+    url: "wss://s1.ripple.com",
     faucet: null,
   },
 } as const;
