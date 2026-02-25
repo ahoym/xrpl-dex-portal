@@ -50,11 +50,7 @@ export function AmmPoolPanel({
           Pool is empty — all liquidity has been withdrawn
         </p>
       ) : (
-        <PoolDetails
-          pool={pool}
-          baseCurrency={baseCurrency!}
-          quoteCurrency={quoteCurrency!}
-        />
+        <PoolDetails pool={pool} baseCurrency={baseCurrency!} quoteCurrency={quoteCurrency!} />
       )}
     </div>
   );
@@ -90,20 +86,11 @@ function PoolDetails({
       />
 
       {/* Reserves */}
-      <Row
-        label={`${baseCurrency} Reserve`}
-        value={new BigNumber(pool.asset1Value).toFormat(4)}
-      />
-      <Row
-        label={`${quoteCurrency} Reserve`}
-        value={new BigNumber(pool.asset2Value).toFormat(4)}
-      />
+      <Row label={`${baseCurrency} Reserve`} value={new BigNumber(pool.asset1Value).toFormat(4)} />
+      <Row label={`${quoteCurrency} Reserve`} value={new BigNumber(pool.asset2Value).toFormat(4)} />
 
       {/* LP Tokens */}
-      <Row
-        label="LP Tokens"
-        value={new BigNumber(pool.lpTokenValue).toFormat(4)}
-      />
+      <Row label="LP Tokens" value={new BigNumber(pool.lpTokenValue).toFormat(4)} />
 
       {/* Trading Fee */}
       <Row label="Trading Fee" value={formatAmmFee(pool.tradingFee)} />

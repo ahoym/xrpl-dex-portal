@@ -30,8 +30,7 @@ export async function GET(request: NextRequest) {
       // AMM does not exist for this pair
       if (
         err instanceof Error &&
-        (err.message.includes("actNotFound") ||
-          err.message.includes("ammNotFound"))
+        (err.message.includes("actNotFound") || err.message.includes("ammNotFound"))
       ) {
         return Response.json(
           {
@@ -74,10 +73,9 @@ export async function GET(request: NextRequest) {
     const quoteFrozen = amount1IsBase ? amm.asset2_frozen : amm.asset_frozen;
 
     // Compute spot price = quote reserves / base reserves
-    const spotPrice =
-      new BigNumber(base.value).isZero()
-        ? "0"
-        : new BigNumber(quote.value).div(base.value).toFixed();
+    const spotPrice = new BigNumber(base.value).isZero()
+      ? "0"
+      : new BigNumber(quote.value).div(base.value).toFixed();
 
     // Build auction slot info
     const auctionSlot = amm.auction_slot

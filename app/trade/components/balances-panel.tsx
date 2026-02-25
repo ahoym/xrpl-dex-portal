@@ -16,9 +16,7 @@ export function BalancesPanel({ balances, loading, onRefresh }: BalancesPanelPro
   return (
     <div className={cardClass}>
       <div className="flex items-center gap-2">
-        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-          Balances
-        </h3>
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Balances</h3>
         {onRefresh && (
           <button
             onClick={onRefresh}
@@ -39,9 +37,7 @@ export function BalancesPanel({ balances, loading, onRefresh }: BalancesPanelPro
           ))}
         </div>
       ) : balances.length === 0 ? (
-        <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
-          No balances
-        </p>
+        <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">No balances</p>
       ) : (
         <div className="mt-3 space-y-1.5">
           {balances.map((b, i) => {
@@ -53,9 +49,7 @@ export function BalancesPanel({ balances, loading, onRefresh }: BalancesPanelPro
                 key={i}
                 className="flex items-center justify-between px-2 py-1 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
               >
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  {cur}
-                </span>
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">{cur}</span>
                 <span className="font-mono text-zinc-600 dark:text-zinc-400">
                   {new BigNumber(b.value).toFixed(4)}
                 </span>

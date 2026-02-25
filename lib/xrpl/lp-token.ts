@@ -11,10 +11,7 @@ const LP_TOKEN_PREFIX = "03";
  * LP tokens use a 40-char hex code starting with "03".
  */
 export function isLpTokenCurrency(currency: string): boolean {
-  return (
-    currency.length === HEX_CURRENCY_CODE_LENGTH &&
-    currency.startsWith(LP_TOKEN_PREFIX)
-  );
+  return currency.length === HEX_CURRENCY_CODE_LENGTH && currency.startsWith(LP_TOKEN_PREFIX);
 }
 
 /**
