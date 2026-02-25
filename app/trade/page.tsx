@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { useTradingData } from "@/lib/hooks/use-trading-data";
+import { useAmmPool } from "@/lib/hooks/use-amm-pool";
 import { useDomainMode } from "@/lib/hooks/use-domain-mode";
 import { useDomainAuthorization } from "@/lib/hooks/use-domain-authorization";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
@@ -94,6 +95,16 @@ function TradePageInner() {
     customCurrencies,
     activeDomainID: domainActive ? domainID! : undefined,
   });
+
+  // AMM pool data
+  const { pool: ammPool, loading: ammLoading } = useAmmPool(
+    sellingCurrency?.currency,
+    sellingCurrency?.issuer,
+    buyingCurrency?.currency,
+    buyingCurrency?.issuer,
+    state.network,
+    refreshKey,
+  );
 
   // Filter offers to selected pair (shared by TradeGrid + OrdersSheet)
   // Shows ALL user offers for the pair regardless of domain — these are the user's own orders.
@@ -212,6 +223,8 @@ function TradePageInner() {
         depth={depth}
         onDepthChange={setDepth}
         depthSummary={depthSummary}
+        ammPool={ammPool}
+        ammLoading={ammLoading}
         activeDomainID={domainActive ? domainID! : undefined}
         domainAuthStatus={domainActive ? domainAuthStatus : undefined}
         credentialExpiresAtMs={domainActive ? credentialExpiresAtMs : undefined}

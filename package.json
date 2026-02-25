@@ -14,6 +14,7 @@
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:report": "playwright show-report",
+    "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {

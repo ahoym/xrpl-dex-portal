@@ -66,3 +66,40 @@ export interface AcceptedCredentialInfo {
   issuer: string;
   credentialType: string; // decoded from hex
 }
+
+// ---------------------------------------------------------------------------
+// AMM Pool types
+// ---------------------------------------------------------------------------
+
+export interface AmmAuctionSlot {
+  account: string;
+  discountedFee: number;
+  expiration: string; // ISO timestamp
+  price: string;
+}
+
+export interface AmmVoteSlot {
+  account: string;
+  tradingFee: number;
+  voteWeight: number;
+}
+
+export interface AmmPoolInfo {
+  exists: boolean;
+  account?: string;
+  asset1Currency: string;
+  asset1Issuer?: string;
+  asset1Value: string;
+  asset2Currency: string;
+  asset2Issuer?: string;
+  asset2Value: string;
+  lpTokenCurrency: string;
+  lpTokenIssuer: string;
+  lpTokenValue: string;
+  tradingFee: number;
+  spotPrice: string;
+  auctionSlot?: AmmAuctionSlot;
+  voteSlots?: AmmVoteSlot[];
+  asset1Frozen?: boolean;
+  asset2Frozen?: boolean;
+}

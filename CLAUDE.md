@@ -24,6 +24,8 @@ pnpm dev      # Start dev server (http://localhost:3000)
 pnpm build    # Production build (also serves as type-check — no separate tsc)
 pnpm start    # Serve production build
 pnpm lint     # ESLint (flat config, v9)
+pnpm format        # Auto-fix Prettier formatting
+pnpm format:check  # Prettier formatting check (CI runs this on changed files vs main)
 ```
 
 ```bash
