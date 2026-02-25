@@ -1,9 +1,4 @@
-import {
-  test,
-  expect,
-  type Page,
-  type BrowserContext,
-} from "@playwright/test";
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 
 // This project uses storageState: ".auth/wallet.json" (configured in playwright.config.ts)
 // The global setup generates a testnet wallet with an RLUSD trust line.
@@ -34,18 +29,38 @@ test.describe.serial("Trade page", () => {
     await context.close();
   });
 
+  test("AMM pool panel renders", async () => {
+    await page.goto("/trade");
+
+    // The "AMM Pool" heading should appear once the panel mounts
+    const heading = page.getByRole("heading", { name: "AMM Pool" });
+    await expect(heading).toBeVisible({ timeout: 15_000 });
+
+    // The pair label should show RLUSD/XRP (testnet default)
+    await expect(heading).toContainText("RLUSD/XRP");
+
+    // The panel should resolve to a final state — either pool data or "no pool".
+    // Testnet state is unpredictable, so accept any non-loading outcome.
+    const poolData = page.getByText("Spot Price");
+    const noPool = page.getByText("No AMM pool exists for this pair");
+    const emptyPool = page.getByText("Pool is empty");
+
+    // Wait for one of the three terminal states
+    await expect(poolData.or(noPool).or(emptyPool)).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+
   test("currency pair loads", async () => {
     await page.goto("/trade");
 
     // The "Order Book" heading should be visible once the pair is loaded
-    await expect(
-      page.getByRole("heading", { name: "Order Book" }),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Order Book" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // The "Place Order" heading confirms the trade form rendered
-    await expect(
-      page.getByRole("heading", { name: "Place Order" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Place Order" })).toBeVisible();
 
     // Base and Quote comboboxes should have values selected.
     // On testnet the default pair is RLUSD / XRP.
@@ -64,9 +79,9 @@ test.describe.serial("Trade page", () => {
     await page.goto("/trade");
 
     // Wait for the trade form to load
-    await expect(
-      page.getByRole("heading", { name: "Place Order" }),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Place Order" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // The default pair on testnet is RLUSD/XRP — verify Buy tab is present
     const buyTab = page.getByRole("button", { name: /Buy RLUSD/ });
@@ -99,9 +114,9 @@ test.describe.serial("Trade page", () => {
     await page.goto("/trade");
 
     // Wait for the order book to load, confirming the pair is active
-    await expect(
-      page.getByRole("heading", { name: "Order Book" }),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Order Book" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // The open order from the previous test should appear in the orders section.
     // On desktop, the OrdersSheet is a fixed bottom bar that starts collapsed.
@@ -109,18 +124,12 @@ test.describe.serial("Trade page", () => {
     const expandButton = page.getByRole("button", {
       name: "Expand orders",
     });
-    if (
-      await expandButton
-        .isVisible({ timeout: 3_000 })
-        .catch(() => false)
-    ) {
+    if (await expandButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await expandButton.click();
     }
 
     // Wait for a Cancel button to appear (from the open order we placed)
-    const cancelButton = page
-      .getByRole("button", { name: "Cancel" })
-      .first();
+    const cancelButton = page.getByRole("button", { name: "Cancel" }).first();
     await expect(cancelButton).toBeVisible({ timeout: 15_000 });
 
     // Click cancel
@@ -135,9 +144,9 @@ test.describe.serial("Trade page", () => {
     await page.goto("/trade");
 
     // Wait for the order book to render
-    await expect(
-      page.getByRole("heading", { name: "Order Book" }),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Order Book" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // Clickable order book rows have role="button".
     // These are ask or bid rows from other accounts (not the wallet's own orders).
