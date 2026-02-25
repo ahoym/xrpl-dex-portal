@@ -3,6 +3,7 @@
 import type { BalanceEntry } from "@/lib/types";
 import BigNumber from "bignumber.js";
 import { decodeCurrency } from "@/lib/xrpl/decode-currency-client";
+import { isLpTokenCurrency, formatLpTokenLabel } from "@/lib/xrpl/lp-token";
 import { cardClass } from "@/lib/ui/ui";
 
 interface BalancesPanelProps {
@@ -44,7 +45,9 @@ export function BalancesPanel({ balances, loading, onRefresh }: BalancesPanelPro
       ) : (
         <div className="mt-3 space-y-1.5">
           {balances.map((b, i) => {
-            const cur = decodeCurrency(b.currency);
+            const cur = isLpTokenCurrency(b.currency)
+              ? formatLpTokenLabel()
+              : decodeCurrency(b.currency);
             return (
               <div
                 key={i}
