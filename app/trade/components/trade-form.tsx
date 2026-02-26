@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import BigNumber from "bignumber.js";
-import type { WalletInfo, BalanceEntry } from "@/lib/types";
+import type { WalletInfo, BalanceEntry, OrderBookEntry, AmmPoolInfo } from "@/lib/types";
 import type { DomainAuthStatus } from "@/lib/hooks/use-domain-authorization";
 import { useAppState } from "@/lib/hooks/use-app-state";
 import { matchesCurrency } from "@/lib/xrpl/match-currency";
@@ -12,6 +12,9 @@ import type { OfferFlag } from "@/lib/xrpl/types";
 import { toRippleEpoch } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass, SUCCESS_MESSAGE_DURATION_MS } from "@/lib/ui/ui";
 import { CustomSelect } from "@/app/components/custom-select";
+import { buildAsks, buildBids } from "@/lib/xrpl/order-book-levels";
+import { estimateFillCombined } from "@/lib/xrpl/estimate-fill-combined";
+import { buildAmmPoolParams } from "@/lib/xrpl/amm-math";
 
 interface CurrencyOption {
   currency: string;
@@ -33,6 +36,8 @@ interface TradeFormProps {
   balances: BalanceEntry[];
   prefill?: TradeFormPrefill;
   onSubmitted: () => void;
+  orderBook?: { buy: OrderBookEntry[]; sell: OrderBookEntry[] } | null;
+  ammPool?: AmmPoolInfo | null;
   activeDomainID?: string;
   domainAuthStatus?: DomainAuthStatus;
   credentialExpiresAtMs?: number;
@@ -54,6 +59,8 @@ export function TradeForm({
   balances,
   prefill,
   onSubmitted,
+  orderBook,
+  ammPool,
   activeDomainID,
   domainAuthStatus,
   credentialExpiresAtMs,
@@ -91,6 +98,26 @@ export function TradeForm({
   }, [activeDomainID]);
 
   const total = amount && price ? new BigNumber(amount).times(new BigNumber(price)).toFixed(6) : "";
+
+  const fillEstimate = useMemo(() => {
+    if (!amount) return null;
+    const parsedAmount = new BigNumber(amount);
+    if (parsedAmount.isNaN() || parsedAmount.lte(0)) return null;
+
+    const allOffers = [...(orderBook?.buy ?? []), ...(orderBook?.sell ?? [])];
+    const asks = buildAsks(allOffers, sellingCurrency.currency, sellingCurrency.issuer);
+    const bids = buildBids(allOffers, sellingCurrency.currency, sellingCurrency.issuer);
+
+    const bestAsk = asks.length > 0 ? asks[asks.length - 1].price : null;
+    const bestBid = bids.length > 0 ? bids[0].price : null;
+    const mid = bestAsk && bestBid ? bestAsk.plus(bestBid).div(2) : null;
+
+    // Buy: walk asks ascending (best ask first); Sell: walk bids descending (best bid first)
+    const levels = tab === "buy" ? [...asks].reverse() : bids;
+    const ammParams = buildAmmPoolParams(ammPool);
+
+    return estimateFillCombined(levels, parsedAmount, mid, ammParams, tab);
+  }, [orderBook, amount, tab, sellingCurrency, ammPool]);
 
   // Determine what currency and how much the user is spending
   const spendCurrency = tab === "buy" ? buyingCurrency : sellingCurrency;
@@ -325,6 +352,66 @@ export function TradeForm({
                     {total} {buyingCurrency.currency}
                   </span>
                 </>
+              )}
+            </div>
+          )}
+
+          {fillEstimate && (
+            <div className="bg-zinc-100 px-3 py-2.5 text-xs dark:bg-zinc-800">
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                Estimated Fill
+              </p>
+              <div className="space-y-1 text-zinc-600 dark:text-zinc-300">
+                <div className="flex justify-between">
+                  <span>Avg price</span>
+                  <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
+                    {fillEstimate.avgPrice.toFixed(6)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Worst price</span>
+                  <span className="font-mono text-zinc-700 dark:text-zinc-300">
+                    {fillEstimate.worstPrice.toFixed(6)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{tab === "buy" ? "Total cost" : "Total proceeds"}</span>
+                  <span className="font-mono text-zinc-700 dark:text-zinc-300">
+                    {fillEstimate.totalCost.toFixed(6)} {buyingCurrency.currency}
+                  </span>
+                </div>
+                {fillEstimate.slippage !== null && (
+                  <div className="flex justify-between">
+                    <span>Slippage vs mid</span>
+                    <span
+                      className={`font-mono ${
+                        fillEstimate.slippage.gte(1)
+                          ? "font-semibold text-amber-600 dark:text-amber-400"
+                          : "text-zinc-700 dark:text-zinc-300"
+                      }`}
+                    >
+                      {fillEstimate.slippage.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
+                {(fillEstimate.clobFilled.gt(0) || fillEstimate.ammFilled.gt(0)) && (
+                  <div className="flex justify-between">
+                    <span>Source</span>
+                    <span className="font-mono text-zinc-700 dark:text-zinc-300">
+                      {fillEstimate.clobFilled.gt(0) && fillEstimate.ammFilled.gt(0)
+                        ? `${fillEstimate.clobFilled.toFixed(4)} via order book \u00B7 ${fillEstimate.ammFilled.toFixed(4)} via AMM`
+                        : fillEstimate.clobFilled.gt(0)
+                          ? `${fillEstimate.clobFilled.toFixed(4)} via order book`
+                          : `${fillEstimate.ammFilled.toFixed(4)} via AMM`}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {!fillEstimate.fullFill && (
+                <p className="mt-2 text-amber-600 dark:text-amber-400">
+                  Insufficient depth — only {fillEstimate.filledAmount.toFixed(6)}{" "}
+                  {sellingCurrency.currency} of {amount} can be filled
+                </p>
               )}
             </div>
           )}

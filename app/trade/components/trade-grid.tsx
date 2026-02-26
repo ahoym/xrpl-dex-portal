@@ -130,6 +130,8 @@ export function TradeGrid({
               balances={balances}
               prefill={prefill}
               onSubmitted={onRefresh}
+              orderBook={orderBook}
+              ammPool={ammPool}
               activeDomainID={activeDomainID}
               domainAuthStatus={domainAuthStatus}
               credentialExpiresAtMs={credentialExpiresAtMs}
