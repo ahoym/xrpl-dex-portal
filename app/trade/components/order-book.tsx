@@ -95,6 +95,30 @@ export function OrderBook({
   const spread = bestAsk !== null && bestBid !== null ? bestAsk.minus(bestBid) : null;
   const mid = bestAsk !== null && bestBid !== null ? bestAsk.plus(bestBid).div(2) : null;
 
+  // Micro-price: volume-weighted at top of book
+  const microPrice =
+    bestAsk !== null && bestBid !== null && visibleAsks.length > 0 && visibleBids.length > 0
+      ? (() => {
+          const bestAskVol = visibleAsks[visibleAsks.length - 1].amount;
+          const bestBidVol = visibleBids[0].amount;
+          const denom = bestBidVol.plus(bestAskVol);
+          return denom.gt(0) ? bestBid.times(bestAskVol).plus(bestAsk.times(bestBidVol)).div(denom) : null;
+        })()
+      : null;
+
+  // Weighted midprice: VWAP across all visible levels
+  const weightedMid = (() => {
+    const all = [...visibleAsks, ...visibleBids];
+    if (all.length === 0) return null;
+    let sumPriceVol = new BigNumber(0);
+    let sumVol = new BigNumber(0);
+    for (const level of all) {
+      sumPriceVol = sumPriceVol.plus(level.price.times(level.amount));
+      sumVol = sumVol.plus(level.amount);
+    }
+    return sumVol.gt(0) ? sumPriceVol.div(sumVol) : null;
+  })();
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -198,13 +222,20 @@ export function OrderBook({
 
         <div className="my-2 border border-dashed border-zinc-200 bg-zinc-50/50 py-2 text-center text-xs dark:border-zinc-700 dark:bg-zinc-800/30">
           {spread !== null && mid !== null ? (
-            <span className="text-zinc-600 dark:text-zinc-300">
+            <span className="group relative text-zinc-600 dark:text-zinc-300">
               <span className="font-bold text-zinc-900 dark:text-zinc-100">{mid.toFixed(6)}</span>
               <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
               <span className="text-zinc-400 dark:text-zinc-500">
                 Spread: {spread.toFixed(6)} (
                 {new BigNumber(spread).div(mid).times(10_000).toFixed(1)} bps)
               </span>
+              {(microPrice || weightedMid) && (
+                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-zinc-800 px-2.5 py-1.5 text-[11px] leading-relaxed text-zinc-100 shadow-lg group-hover:block dark:bg-zinc-700">
+                  {microPrice && <>Micro-price: {microPrice.toFixed(6)}</>}
+                  {microPrice && weightedMid && <br />}
+                  {weightedMid && <>Weighted mid: {weightedMid.toFixed(6)}</>}
+                </span>
+              )}
             </span>
           ) : (
             <span className="text-zinc-400 dark:text-zinc-500">
