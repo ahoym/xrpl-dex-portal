@@ -92,10 +92,14 @@ function PoolDetails({
         </div>
       )}
 
-      {/* Spot Price */}
+      {/* Prices */}
       <Row
         label="Spot Price"
         value={`${new BigNumber(pool.spotPrice).toFixed(6)} ${quoteCurrency}/${baseCurrency}`}
+      />
+      <Row
+        label="Effective Price (incl. fee)"
+        value={`${new BigNumber(pool.effectivePrice).toFixed(6)} ${quoteCurrency}/${baseCurrency}`}
       />
 
       {/* Reserves */}

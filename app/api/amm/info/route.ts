@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
             lpTokenValue: "0",
             tradingFee: 0,
             spotPrice: "0",
+            effectivePrice: "0",
           },
           {
             headers: { "Cache-Control": "s-maxage=10, stale-while-revalidate=20" },
@@ -72,10 +73,19 @@ export async function GET(request: NextRequest) {
     const baseFrozen = amount1IsBase ? amm.asset_frozen : amm.asset2_frozen;
     const quoteFrozen = amount1IsBase ? amm.asset2_frozen : amm.asset_frozen;
 
-    // Compute spot price = quote reserves / base reserves
-    const spotPrice = new BigNumber(base.value).isZero()
+    // Spot price = quote reserves / base reserves (raw mid-price)
+    const midPrice = new BigNumber(base.value).isZero()
+      ? new BigNumber(0)
+      : new BigNumber(quote.value).div(base.value);
+    const spotPrice = midPrice.toFixed();
+
+    // Effective price = midPrice / (1 - fee), reflecting cost a taker pays.
+    // XRPL AMM trading fee is in units of 1/100,000.
+    const FEE_DIVISOR = 100_000;
+    const feeRate = new BigNumber(amm.trading_fee).div(FEE_DIVISOR);
+    const effectivePrice = midPrice.isZero()
       ? "0"
-      : new BigNumber(quote.value).div(base.value).toFixed();
+      : midPrice.div(new BigNumber(1).minus(feeRate)).toFixed();
 
     // Build auction slot info
     const auctionSlot = amm.auction_slot
@@ -110,6 +120,7 @@ export async function GET(request: NextRequest) {
         tradingFee: amm.trading_fee,
         tradingFeeFormatted: formatAmmFee(amm.trading_fee),
         spotPrice,
+        effectivePrice,
         auctionSlot,
         voteSlots,
         asset1Frozen: baseFrozen,
