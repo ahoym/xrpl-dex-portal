@@ -1,10 +1,20 @@
 import BigNumber from "bignumber.js";
 import type { AmmPoolInfo } from "@/lib/types";
 
+/**
+ * AMM constant-product math for XRPL fill estimation.
+ *
+ * Formulas derived from the XRP Ledger's constant-product (x * y = k) AMM,
+ * with trading fees applied to the input asset per the XLS-30d spec.
+ *
+ * @see https://xrpl.org/docs/concepts/tokens/decentralized-exchange/automated-market-makers
+ * @see https://github.com/XRPLF/XRPL-Standards/discussions/78
+ */
+
 export interface AmmPoolParams {
   baseReserves: BigNumber;
   quoteReserves: BigNumber;
-  /** tradingFee / 100_000 */
+  /** tradingFee / 100_000 — see https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/amm */
   feeRate: BigNumber;
 }
 
@@ -33,9 +43,10 @@ export function buildAmmPoolParams(pool: AmmPoolInfo | null | undefined): AmmPoo
 /**
  * Marginal buy price (quote/base) after `consumed` base has already been bought.
  *
+ * Derived from the constant-product invariant (k = B * Q) with fee on quote input.
  * Formula: Q*B / ((B - consumed)^2 * (1-f))
  *
- * Fee is on quote input, so the marginal cost is higher than the no-fee price.
+ * @see https://xrpl.org/docs/concepts/tokens/decentralized-exchange/automated-market-makers
  */
 export function ammMarginalBuyPrice(pool: AmmPoolParams, consumed: BigNumber): BigNumber {
   const oneMinusF = new BigNumber(1).minus(pool.feeRate);
@@ -46,9 +57,10 @@ export function ammMarginalBuyPrice(pool: AmmPoolParams, consumed: BigNumber): B
 /**
  * Marginal sell price (quote/base) after `consumed` base has already been sold.
  *
+ * Derived from the constant-product invariant (k = B * Q) with fee on base input.
  * Formula: Q*B*(1-f) / (B + consumed*(1-f))^2
  *
- * Fee is on base input, so the marginal proceeds are lower than the no-fee price.
+ * @see https://xrpl.org/docs/concepts/tokens/decentralized-exchange/automated-market-makers
  */
 export function ammMarginalSellPrice(pool: AmmPoolParams, consumed: BigNumber): BigNumber {
   const oneMinusF = new BigNumber(1).minus(pool.feeRate);
@@ -59,7 +71,10 @@ export function ammMarginalSellPrice(pool: AmmPoolParams, consumed: BigNumber): 
 /**
  * Max base that can be bought before the marginal buy price reaches `priceLimit`.
  *
+ * Solving ammMarginalBuyPrice(pool, consumed) = P for consumed.
  * Formula: B - sqrt(Q*B / (P*(1-f))), clamped to 0
+ *
+ * @see https://github.com/XRPLF/XRPL-Standards/discussions/78
  */
 export function ammMaxBuyBeforePrice(pool: AmmPoolParams, priceLimit: BigNumber): BigNumber {
   const oneMinusF = new BigNumber(1).minus(pool.feeRate);
@@ -71,7 +86,10 @@ export function ammMaxBuyBeforePrice(pool: AmmPoolParams, priceLimit: BigNumber)
 /**
  * Max base that can be sold before the marginal sell price drops to `priceLimit`.
  *
+ * Solving ammMarginalSellPrice(pool, consumed) = P for consumed.
  * Formula: (sqrt(Q*B*(1-f) / P) - B) / (1-f), clamped to 0
+ *
+ * @see https://github.com/XRPLF/XRPL-Standards/discussions/78
  */
 export function ammMaxSellBeforePrice(pool: AmmPoolParams, priceLimit: BigNumber): BigNumber {
   const oneMinusF = new BigNumber(1).minus(pool.feeRate);
@@ -84,9 +102,11 @@ export function ammMaxSellBeforePrice(pool: AmmPoolParams, priceLimit: BigNumber
  * Quote cost of buying `delta` base from the AMM, starting after `consumed` base
  * has already been bought.
  *
+ * Integrates the marginal buy price over the delta interval.
  * Fee is on quote input (gross cost = effective / (1-f)).
- *
  * Formula: Q*B*delta / ((B-consumed-delta)*(B-consumed)*(1-f))
+ *
+ * @see https://xrpl.org/docs/concepts/tokens/decentralized-exchange/automated-market-makers
  */
 export function ammBuyCost(pool: AmmPoolParams, delta: BigNumber, consumed: BigNumber): BigNumber {
   const oneMinusF = new BigNumber(1).minus(pool.feeRate);
@@ -104,9 +124,11 @@ export function ammBuyCost(pool: AmmPoolParams, delta: BigNumber, consumed: BigN
  * Quote received for selling `delta` base to the AMM, starting after `consumed` base
  * has already been sold.
  *
+ * Integrates the marginal sell price over the delta interval.
  * Fee is on base input (effective base = delta*(1-f)).
- *
  * Formula: Q*B*delta*(1-f) / ((B+consumed*(1-f)) * (B+(consumed+delta)*(1-f)))
+ *
+ * @see https://xrpl.org/docs/concepts/tokens/decentralized-exchange/automated-market-makers
  */
 export function ammSellProceeds(
   pool: AmmPoolParams,
