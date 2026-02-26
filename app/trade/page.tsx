@@ -180,7 +180,9 @@ function TradePageInner() {
   return (
     <div className="px-4 py-6 lg:pb-[calc(33vh+1.5rem)]">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Trade</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          Trade
+        </h1>
         <DomainSelector
           domainID={domainID}
           onDomainChange={setDomainID}

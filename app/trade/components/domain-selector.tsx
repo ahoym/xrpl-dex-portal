@@ -90,9 +90,7 @@ export function DomainSelector({
         onClick={() => onToggleExpanded(!expanded)}
         className="flex items-center gap-2 border border-zinc-200/80 bg-white px-3 py-1.5 text-sm shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80 dark:hover:bg-zinc-800/80"
       >
-        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-          Domain
-        </span>
+        <span className="font-semibold text-zinc-700 dark:text-zinc-300">Domain</span>
         {domainID && (
           <>
             <span
