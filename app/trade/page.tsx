@@ -97,7 +97,7 @@ function TradePageInner() {
   });
 
   // AMM pool data
-  const { pool: ammPool, loading: ammLoading } = useAmmPool(
+  const { pool: ammPool, loading: ammLoading, refresh: ammRefresh } = useAmmPool(
     sellingCurrency?.currency,
     sellingCurrency?.issuer,
     buyingCurrency?.currency,
@@ -225,6 +225,7 @@ function TradePageInner() {
         depthSummary={depthSummary}
         ammPool={ammPool}
         ammLoading={ammLoading}
+        onAmmRefresh={ammRefresh}
         activeDomainID={domainActive ? domainID! : undefined}
         domainAuthStatus={domainActive ? domainAuthStatus : undefined}
         credentialExpiresAtMs={domainActive ? credentialExpiresAtMs : undefined}

@@ -11,6 +11,7 @@ interface AmmPoolPanelProps {
   pairSelected: boolean;
   baseCurrency?: string;
   quoteCurrency?: string;
+  onRefresh?: () => void;
 }
 
 export function AmmPoolPanel({
@@ -19,17 +20,29 @@ export function AmmPoolPanel({
   pairSelected,
   baseCurrency,
   quoteCurrency,
+  onRefresh,
 }: AmmPoolPanelProps) {
   return (
     <div className={cardClass}>
-      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-        AMM Pool
-        {pairSelected && baseCurrency && quoteCurrency && (
-          <span className="ml-2 text-sm font-normal text-zinc-400 dark:text-zinc-500">
-            {baseCurrency}/{quoteCurrency}
-          </span>
+      <div className="flex items-center gap-2">
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          AMM Pool
+          {pairSelected && baseCurrency && quoteCurrency && (
+            <span className="ml-2 text-sm font-normal text-zinc-400 dark:text-zinc-500">
+              {baseCurrency}/{quoteCurrency}
+            </span>
+          )}
+        </h3>
+        {onRefresh && pairSelected && (
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className="px-1.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+          >
+            {loading ? "Loading..." : "Refresh"}
+          </button>
         )}
-      </h3>
+      </div>
 
       {loading ? (
         <div className="mt-4 space-y-2">

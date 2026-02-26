@@ -32,6 +32,7 @@ interface TradeGridProps {
   depthSummary: DepthSummary | null;
   ammPool: AmmPoolInfo | null;
   ammLoading: boolean;
+  onAmmRefresh?: () => void;
   activeDomainID?: string;
   domainAuthStatus?: DomainAuthStatus;
   credentialExpiresAtMs?: number;
@@ -53,6 +54,7 @@ export function TradeGrid({
   depthSummary,
   ammPool,
   ammLoading,
+  onAmmRefresh,
   activeDomainID,
   domainAuthStatus,
   credentialExpiresAtMs,
@@ -71,6 +73,7 @@ export function TradeGrid({
           pairSelected={pairSelected}
           baseCurrency={sellingCurrency?.currency}
           quoteCurrency={buyingCurrency?.currency}
+          onRefresh={onAmmRefresh}
         />
         <RecentTrades
           trades={recentTrades}
