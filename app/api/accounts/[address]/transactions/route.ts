@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 import { DEFAULT_TRANSACTION_LIMIT, MAX_API_LIMIT } from "@/lib/xrpl/constants";
-import { getXrplClient, getAndValidateAddress, apiErrorResponse, parseIntQueryParam } from "@/lib/api";
+import {
+  getXrplClient,
+  getAndValidateAddress,
+  apiErrorResponse,
+  parseIntQueryParam,
+} from "@/lib/api";
 
 export async function GET(
   request: NextRequest,
@@ -11,7 +16,12 @@ export async function GET(
     if (addressOrError instanceof Response) return addressOrError;
     const address = addressOrError;
 
-    const limit = parseIntQueryParam(request.nextUrl.searchParams, "limit", DEFAULT_TRANSACTION_LIMIT, MAX_API_LIMIT);
+    const limit = parseIntQueryParam(
+      request.nextUrl.searchParams,
+      "limit",
+      DEFAULT_TRANSACTION_LIMIT,
+      MAX_API_LIMIT,
+    );
     const client = await getXrplClient(request);
 
     const response = await client.request({

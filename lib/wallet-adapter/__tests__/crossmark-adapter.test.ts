@@ -43,7 +43,9 @@ describe("CrossmarkAdapter", () => {
   });
 
   it("isAvailable returns false when SDK throws", async () => {
-    mockIsInstalled.mockImplementation(() => { throw new Error("no extension"); });
+    mockIsInstalled.mockImplementation(() => {
+      throw new Error("no extension");
+    });
     expect(await adapter.isAvailable()).toBe(false);
   });
 
@@ -83,12 +85,14 @@ describe("CrossmarkAdapter", () => {
     adapter.disconnect();
 
     // After disconnect, operations should throw
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "10",
-      network: "testnet",
-    })).rejects.toThrow("not connected");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "10",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("not connected");
   });
 
   it("sendPayment builds a Payment tx and signs via SDK", async () => {
@@ -226,11 +230,13 @@ describe("CrossmarkAdapter", () => {
       },
     });
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "1",
-      network: "testnet",
-    })).rejects.toThrow("rejected");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "1",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("rejected");
   });
 });

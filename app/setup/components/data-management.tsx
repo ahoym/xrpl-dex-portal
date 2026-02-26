@@ -7,7 +7,11 @@ import { secondaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
 interface DataManagementProps {
   state: PersistedState;
   contacts: Contact[];
-  onImport: (data: { network: PersistedState["network"]; wallet: WalletInfo | null; contacts?: Contact[] }) => void;
+  onImport: (data: {
+    network: PersistedState["network"];
+    wallet: WalletInfo | null;
+    contacts?: Contact[];
+  }) => void;
   onClear: () => void;
 }
 
@@ -42,11 +46,15 @@ export function DataManagement({ state, contacts, onImport, onClear }: DataManag
 
           if (
             !parsed ||
-            (parsed.network !== "testnet" && parsed.network !== "devnet" && parsed.network !== "mainnet") ||
+            (parsed.network !== "testnet" &&
+              parsed.network !== "devnet" &&
+              parsed.network !== "mainnet") ||
             !("wallet" in parsed) ||
             (parsed.wallet !== null && !isWallet(parsed.wallet))
           ) {
-            alert("Invalid file: network must be testnet, devnet, or mainnet, and wallet must have address and publicKey.");
+            alert(
+              "Invalid file: network must be testnet, devnet, or mainnet, and wallet must have address and publicKey.",
+            );
             return;
           }
 

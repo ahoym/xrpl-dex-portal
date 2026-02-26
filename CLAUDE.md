@@ -52,16 +52,17 @@ The suite uses a **setup project** pattern: `e2e/global-setup.ts` generates a te
 
 ### Pages
 
-| Route | Purpose |
-|-------|---------|
-| `/` | Redirects to `/setup` |
-| `/setup` | Wallet generation/import, trust line management, data import/export |
-| `/transact` | Contacts manager, send XRP/tokens to contacts or ad-hoc addresses |
-| `/trade` | DEX trading: order book, place orders, cancel orders, make-market ladder |
+| Route       | Purpose                                                                  |
+| ----------- | ------------------------------------------------------------------------ |
+| `/`         | Redirects to `/setup`                                                    |
+| `/setup`    | Wallet generation/import, trust line management, data import/export      |
+| `/transact` | Contacts manager, send XRP/tokens to contacts or ad-hoc addresses        |
+| `/trade`    | DEX trading: order book, place orders, cancel orders, make-market ladder |
 
 ### App Shell
 
 `app/layout.tsx` → `<Providers>` → `<NavBar>` → page content
+
 - `Providers` (`app/components/providers.tsx`) wraps `AppStateProvider` (React Context)
 - `NavBar` (`app/components/nav-bar.tsx`) — nav links: Setup, Trade, Transact + NetworkSelector
 - No nested layouts — single flat layout for all routes
@@ -69,6 +70,7 @@ The suite uses a **setup project** pattern: `e2e/global-setup.ts` generates a te
 ### State Flow
 
 All client state flows through `AppStateProvider` (via `useAppState()` hook):
+
 - Network selection → drives which localStorage keys are read
 - `wallet` and `contacts` are per-network, stored in localStorage
 - No server state / no database — everything is client-side localStorage
@@ -81,20 +83,20 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 
 ### API Routes (`app/api/`)
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `accounts/generate` | POST | Generate wallet (keypair on mainnet, funded on testnet/devnet) |
-| `accounts/[address]` | GET | Account info |
-| `accounts/[address]/balances` | GET | Account balances |
-| `accounts/[address]/offers` | GET | Account's open offers |
-| `accounts/[address]/transactions` | GET | Transaction history |
-| `accounts/[address]/trustlines` | POST | Set trust line |
-| `transfers` | POST | Send payment (supports DestinationTag) |
-| `dex/offers` | POST | Create DEX offer |
-| `dex/offers/cancel` | POST | Cancel DEX offer |
-| `dex/orderbook` | GET | Order book for a currency pair |
-| `dex/trades` | GET | Recent trades for a pair |
-| `dex/market-data` | GET | Market data for a pair |
+| Route                             | Method | Purpose                                                        |
+| --------------------------------- | ------ | -------------------------------------------------------------- |
+| `accounts/generate`               | POST   | Generate wallet (keypair on mainnet, funded on testnet/devnet) |
+| `accounts/[address]`              | GET    | Account info                                                   |
+| `accounts/[address]/balances`     | GET    | Account balances                                               |
+| `accounts/[address]/offers`       | GET    | Account's open offers                                          |
+| `accounts/[address]/transactions` | GET    | Transaction history                                            |
+| `accounts/[address]/trustlines`   | POST   | Set trust line                                                 |
+| `transfers`                       | POST   | Send payment (supports DestinationTag)                         |
+| `dex/offers`                      | POST   | Create DEX offer                                               |
+| `dex/offers/cancel`               | POST   | Cancel DEX offer                                               |
+| `dex/orderbook`                   | GET    | Order book for a currency pair                                 |
+| `dex/trades`                      | GET    | Recent trades for a pair                                       |
+| `dex/market-data`                 | GET    | Market data for a pair                                         |
 
 ### API Conventions
 
@@ -133,11 +135,11 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 
 ## localStorage Keys
 
-| Key | Shape | Purpose |
-|-----|-------|---------|
-| `xrpl-dex-portal-network` | `"devnet" \| "testnet" \| "mainnet"` | Selected network |
-| `xrpl-dex-portal-state-{network}` | `{ wallet: WalletInfo \| null }` | Per-network wallet |
-| `xrpl-dex-portal-contacts-{network}` | `Contact[]` | Per-network contacts |
+| Key                                  | Shape                                | Purpose              |
+| ------------------------------------ | ------------------------------------ | -------------------- |
+| `xrpl-dex-portal-network`            | `"devnet" \| "testnet" \| "mainnet"` | Selected network     |
+| `xrpl-dex-portal-state-{network}`    | `{ wallet: WalletInfo \| null }`     | Per-network wallet   |
+| `xrpl-dex-portal-contacts-{network}` | `Contact[]`                          | Per-network contacts |
 
 ## Gotchas
 
@@ -149,3 +151,4 @@ Reusable UI components live in `app/components/`. Before creating a new componen
 - **Single wallet model**: One wallet per network, not the multi-wallet issuer/recipient model from the source project.
 - **CSP headers**: `next.config.ts` sets strict Content-Security-Policy (self-only for scripts, styles, connections; no iframes). If adding external resources (CDN, analytics, WebSocket URLs), update the CSP or requests will be silently blocked.
 - **XRPL WebSocket not in CSP**: The `connect-src 'self'` CSP directive does not include the XRPL WebSocket URLs. This works because API routes (server-side) make the WebSocket connections, not the browser. If you move XRPL calls to the client, you must add the WSS URLs to `connect-src`.
+- **Prettier before commit**: CI runs `prettier --check` on changed files vs main. Always run `pnpm format` on changed files before committing — don't wait for CI to catch it.

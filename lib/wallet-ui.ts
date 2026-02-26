@@ -36,9 +36,7 @@ export function getSigningLoadingText(
   adapter: { type: WalletType; displayName: string } | null,
   fallback: string = "Creating...",
 ): string {
-  return adapter && adapter.type !== "seed"
-    ? `Confirm in ${adapter.displayName}...`
-    : fallback;
+  return adapter && adapter.type !== "seed" ? `Confirm in ${adapter.displayName}...` : fallback;
 }
 
 /**

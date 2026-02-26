@@ -9,7 +9,14 @@ import { useWalletAdapter } from "@/lib/hooks/use-wallet-adapter";
 import { ExplorerLink } from "@/app/components/explorer-link";
 import { SecretField } from "./secret-field";
 import { WalletConnector } from "./wallet-connector";
-import { inputClass, labelClass, errorTextClass, cardClass, primaryButtonClass, dangerButtonClass } from "@/lib/ui/ui";
+import {
+  inputClass,
+  labelClass,
+  errorTextClass,
+  cardClass,
+  primaryButtonClass,
+  dangerButtonClass,
+} from "@/lib/ui/ui";
 import { getWalletLogo, getWalletDisplayName, extractErrorMessage } from "@/lib/wallet-ui";
 
 interface WalletSetupProps {
@@ -91,15 +98,30 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
               className="inline-flex shrink-0 items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
               title={showQR ? "Hide QR code" : "Show QR code"}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4">
-                <path fillRule="evenodd" d="M3 4.25A1.25 1.25 0 0 1 4.25 3h2.5A1.25 1.25 0 0 1 8 4.25v2.5A1.25 1.25 0 0 1 6.75 8h-2.5A1.25 1.25 0 0 1 3 6.75v-2.5Zm1.5.25v2h2v-2h-2ZM3 13.25A1.25 1.25 0 0 1 4.25 12h2.5A1.25 1.25 0 0 1 8 13.25v2.5A1.25 1.25 0 0 1 6.75 17h-2.5A1.25 1.25 0 0 1 3 15.75v-2.5Zm1.5.25v2h2v-2h-2ZM12 4.25A1.25 1.25 0 0 1 13.25 3h2.5A1.25 1.25 0 0 1 17 4.25v2.5A1.25 1.25 0 0 1 15.75 8h-2.5A1.25 1.25 0 0 1 12 6.75v-2.5Zm1.5.25v2h2v-2h-2ZM12 13.25a1.25 1.25 0 0 1 1-1.22v3.94a1.25 1.25 0 0 1-1-1.22v-1.5ZM14.5 12h1.25A1.25 1.25 0 0 1 17 13.25V14h-2.5v-2ZM14.5 15.5H17v.25A1.25 1.25 0 0 1 15.75 17H14.5v-1.5ZM10 3v2.5h-.5A1.5 1.5 0 0 1 8 4V3h2ZM10 8v2H8V8h2ZM10 12v2H8v-2h2ZM10 16v1H8v-1h2Z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="size-4"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 4.25A1.25 1.25 0 0 1 4.25 3h2.5A1.25 1.25 0 0 1 8 4.25v2.5A1.25 1.25 0 0 1 6.75 8h-2.5A1.25 1.25 0 0 1 3 6.75v-2.5Zm1.5.25v2h2v-2h-2ZM3 13.25A1.25 1.25 0 0 1 4.25 12h2.5A1.25 1.25 0 0 1 8 13.25v2.5A1.25 1.25 0 0 1 6.75 17h-2.5A1.25 1.25 0 0 1 3 15.75v-2.5Zm1.5.25v2h2v-2h-2ZM12 4.25A1.25 1.25 0 0 1 13.25 3h2.5A1.25 1.25 0 0 1 17 4.25v2.5A1.25 1.25 0 0 1 15.75 8h-2.5A1.25 1.25 0 0 1 12 6.75v-2.5Zm1.5.25v2h2v-2h-2ZM12 13.25a1.25 1.25 0 0 1 1-1.22v3.94a1.25 1.25 0 0 1-1-1.22v-1.5ZM14.5 12h1.25A1.25 1.25 0 0 1 17 13.25V14h-2.5v-2ZM14.5 15.5H17v.25A1.25 1.25 0 0 1 15.75 17H14.5v-1.5ZM10 3v2.5h-.5A1.5 1.5 0 0 1 8 4V3h2ZM10 8v2H8V8h2ZM10 12v2H8v-2h2ZM10 16v1H8v-1h2Z"
+                  clipRule="evenodd"
+                />
               </svg>
               {showQR ? "Hide QR" : "QR"}
             </button>
           </div>
           {showQR && qrDataUrl && (
             <div className="mt-2">
-              <img src={qrDataUrl} alt={`QR code for ${wallet.address}`} width={200} height={200} className="rounded" />
+              <img
+                src={qrDataUrl}
+                alt={`QR code for ${wallet.address}`}
+                width={200}
+                height={200}
+                className="rounded"
+              />
             </div>
           )}
           {wallet.seed && <SecretField label="Seed" value={wallet.seed} />}
@@ -161,16 +183,21 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
             >
               {funding ? "Requesting..." : "Fund from Faucet"}
             </button>
-            {fundResult && <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">{fundResult}</span>}
+            {fundResult && (
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                {fundResult}
+              </span>
+            )}
             {fundError && <span className={`text-xs ${errorTextClass}`}>{fundError}</span>}
           </div>
         )}
         {children}
         <button
           onClick={() => {
-            const msg = wallet.type === "seed"
-              ? "Remove wallet? This cannot be undone."
-              : "Disconnect wallet?";
+            const msg =
+              wallet.type === "seed"
+                ? "Remove wallet? This cannot be undone."
+                : "Disconnect wallet?";
             if (window.confirm(msg)) {
               onSetWallet(null);
             }
@@ -201,7 +228,8 @@ export function WalletSetup({ wallet, network, onSetWallet, children }: WalletSe
       </div>
       {network === "mainnet" && (
         <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-          Mainnet wallets are generated locally and are not funded. You must send XRP to activate them.
+          Mainnet wallets are generated locally and are not funded. You must send XRP to activate
+          them.
         </p>
       )}
       {generateError && <p className={`mt-2 ${errorTextClass}`}>{generateError}</p>}

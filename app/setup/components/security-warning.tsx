@@ -15,8 +15,8 @@ export function SecurityWarning({ network }: SecurityWarningProps) {
     return (
       <div className="border border-green-200 bg-green-50 px-5 py-4 shadow-sm dark:border-green-800 dark:bg-green-950/50">
         <p className="text-sm text-green-800 dark:text-green-200">
-          <strong>Connected via {adapter.displayName}.</strong> Your keys are managed
-          by the wallet extension — no seed is stored in this browser.
+          <strong>Connected via {adapter.displayName}.</strong> Your keys are managed by the wallet
+          extension — no seed is stored in this browser.
         </p>
       </div>
     );
@@ -29,9 +29,9 @@ export function SecurityWarning({ network }: SecurityWarningProps) {
           WARNING: You are on Mainnet. Real funds are at risk.
         </p>
         <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-          Wallet seeds are stored in your browser&apos;s localStorage. This storage is not
-          encrypted and can be accessed by browser extensions or XSS attacks. Only store
-          funds you can afford to lose.
+          Wallet seeds are stored in your browser&apos;s localStorage. This storage is not encrypted
+          and can be accessed by browser extensions or XSS attacks. Only store funds you can afford
+          to lose.
         </p>
       </div>
     );

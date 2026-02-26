@@ -42,8 +42,14 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
   function handleSave() {
     const trimLabel = label.trim();
     const trimAddress = address.trim();
-    if (!trimLabel) { setFormError("Label is required"); return; }
-    if (!trimAddress) { setFormError("Address is required"); return; }
+    if (!trimLabel) {
+      setFormError("Label is required");
+      return;
+    }
+    if (!trimAddress) {
+      setFormError("Address is required");
+      return;
+    }
 
     const contact: Contact = { label: trimLabel, address: trimAddress };
     const tagResult = parseDestinationTag(destTag);
@@ -69,7 +75,10 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Contacts</h2>
         {!showForm && (
           <button
-            onClick={() => { resetForm(); setShowForm(true); }}
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
             className="text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             + Add Contact
@@ -92,9 +101,13 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
             >
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{c.label}</p>
-                <p className="truncate font-mono text-xs text-zinc-400 dark:text-zinc-500">{c.address}</p>
+                <p className="truncate font-mono text-xs text-zinc-400 dark:text-zinc-500">
+                  {c.address}
+                </p>
                 {c.destinationTag !== undefined && (
-                  <p className="text-xs text-zinc-400 dark:text-zinc-500">Tag: {c.destinationTag}</p>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                    Tag: {c.destinationTag}
+                  </p>
                 )}
               </div>
               <div className="ml-3 flex gap-2">
@@ -156,10 +169,7 @@ export function ContactsManager({ contacts, onAdd, onUpdate, onRemove }: Contact
           </div>
           {formError && <p className={errorTextClass}>{formError}</p>}
           <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className={`${primaryButtonClass} px-3 py-1.5 text-xs`}
-            >
+            <button onClick={handleSave} className={`${primaryButtonClass} px-3 py-1.5 text-xs`}>
               {editIndex !== null ? "Update" : "Add"}
             </button>
             <button

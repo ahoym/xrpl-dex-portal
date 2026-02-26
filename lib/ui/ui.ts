@@ -23,12 +23,10 @@ export const cardClass =
   "border border-zinc-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80";
 
 /** Card section header. */
-export const cardHeaderClass =
-  "text-base font-semibold text-zinc-900 dark:text-zinc-100";
+export const cardHeaderClass = "text-base font-semibold text-zinc-900 dark:text-zinc-100";
 
 /** Red error text for form errors. */
-export const errorTextClass =
-  "text-sm font-medium text-red-600 dark:text-red-400";
+export const errorTextClass = "text-sm font-medium text-red-600 dark:text-red-400";
 
 /** Green success banner. */
 export const successBannerClass =

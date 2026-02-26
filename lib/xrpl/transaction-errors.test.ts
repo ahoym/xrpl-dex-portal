@@ -14,7 +14,9 @@ describe("friendlyTxError", () => {
   });
 
   it("returns the specific message for tecNO_LINE_INSUF_RESERVE", () => {
-    expect(friendlyTxError("tecNO_LINE_INSUF_RESERVE")).toBe(TEC_MESSAGES["tecNO_LINE_INSUF_RESERVE"]);
+    expect(friendlyTxError("tecNO_LINE_INSUF_RESERVE")).toBe(
+      TEC_MESSAGES["tecNO_LINE_INSUF_RESERVE"],
+    );
   });
 
   it("returns the specific message for tecUNFUNDED_PAYMENT", () => {
@@ -48,15 +50,11 @@ describe("friendlyTxError", () => {
   });
 
   it("returns fallback for empty string", () => {
-    expect(friendlyTxError("")).toBe(
-      "The transaction was rejected by the ledger.",
-    );
+    expect(friendlyTxError("")).toBe("The transaction was rejected by the ledger.");
   });
 
   it("returns fallback for tesSUCCESS (not in the map)", () => {
-    expect(friendlyTxError("tesSUCCESS")).toBe(
-      "The transaction was rejected by the ledger.",
-    );
+    expect(friendlyTxError("tesSUCCESS")).toBe("The transaction was rejected by the ledger.");
   });
 });
 

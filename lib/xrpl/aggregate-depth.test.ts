@@ -36,10 +36,7 @@ describe("aggregateDepth", () => {
       { taker_gets: { value: "20" } },
       { taker_gets: { value: "30" } },
     ];
-    const sell = [
-      { taker_gets: { value: "5" } },
-      { taker_gets: { value: "15" } },
-    ];
+    const sell = [{ taker_gets: { value: "5" } }, { taker_gets: { value: "15" } }];
     const { depth } = aggregateDepth(buy, sell);
 
     expect(depth.bidVolume).toBe("60");
@@ -49,12 +46,8 @@ describe("aggregateDepth", () => {
   });
 
   it("uses taker_gets_funded when available instead of taker_gets", () => {
-    const buy = [
-      { taker_gets: { value: "100" }, taker_gets_funded: { value: "75" } },
-    ];
-    const sell = [
-      { taker_gets: { value: "200" }, taker_gets_funded: { value: "150" } },
-    ];
+    const buy = [{ taker_gets: { value: "100" }, taker_gets_funded: { value: "75" } }];
+    const sell = [{ taker_gets: { value: "200" }, taker_gets_funded: { value: "150" } }];
     const { depth } = aggregateDepth(buy, sell);
 
     expect(depth.bidVolume).toBe("75");
@@ -64,10 +57,7 @@ describe("aggregateDepth", () => {
   });
 
   it("skips offers with zero taker_gets value", () => {
-    const buy = [
-      { taker_gets: { value: "50" } },
-      { taker_gets: { value: "0" } },
-    ];
+    const buy = [{ taker_gets: { value: "50" } }, { taker_gets: { value: "0" } }];
     const { depth } = aggregateDepth(buy, []);
 
     expect(depth.bidVolume).toBe("50");
@@ -99,10 +89,7 @@ describe("aggregateDepth", () => {
   });
 
   it("handles decimal precision correctly with BigNumber", () => {
-    const buy = [
-      { taker_gets: { value: "0.1" } },
-      { taker_gets: { value: "0.2" } },
-    ];
+    const buy = [{ taker_gets: { value: "0.1" } }, { taker_gets: { value: "0.2" } }];
     const { depth } = aggregateDepth(buy, []);
 
     // BigNumber avoids floating-point issues: 0.1 + 0.2 = 0.3 exactly

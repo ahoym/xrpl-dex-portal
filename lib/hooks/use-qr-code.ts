@@ -43,7 +43,9 @@ export function useQRCode(
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [value, width, margin]);
 
   return { qrDataUrl, qrError };

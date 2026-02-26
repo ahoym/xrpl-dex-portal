@@ -24,9 +24,7 @@ export function CurrencyPairSelector({
   return (
     <div className="mt-4 flex flex-wrap items-end gap-3">
       <div className="min-w-[180px] flex-1">
-        <label className={labelClass}>
-          Base
-        </label>
+        <label className={labelClass}>Base</label>
         <CustomSelect
           value={sellingValue}
           onChange={onSellingChange}
@@ -39,9 +37,7 @@ export function CurrencyPairSelector({
         />
       </div>
       <div className="min-w-[180px] flex-1">
-        <label className={labelClass}>
-          Quote
-        </label>
+        <label className={labelClass}>Quote</label>
         <CustomSelect
           value={buyingValue}
           onChange={onBuyingChange}

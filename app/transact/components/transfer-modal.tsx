@@ -20,15 +20,13 @@ interface TransferModalProps {
   onClose: () => void;
 }
 
-const inputFieldClass = "w-full border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80";
+const inputFieldClass =
+  "w-full border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80";
 
-export function TransferModal({
-  sender,
-  contacts,
-  onComplete,
-  onClose,
-}: TransferModalProps) {
-  const { state: { network } } = useAppState();
+export function TransferModal({ sender, contacts, onComplete, onClose }: TransferModalProps) {
+  const {
+    state: { network },
+  } = useAppState();
   const { adapter, sendPayment: adapterSendPayment } = useWalletAdapter();
   const { balances, loading: loadingBalances } = useBalances(sender.address, network);
   const [selectedCurrency, setSelectedCurrency] = useState("");
@@ -51,14 +49,11 @@ export function TransferModal({
 
   const selectedBalance = balances[parseInt(selectedCurrency)] || null;
 
-  const selectedContact = recipientMode === "contact" && contacts.length > 0
-    ? contacts[selectedContactIdx]
-    : null;
+  const selectedContact =
+    recipientMode === "contact" && contacts.length > 0 ? contacts[selectedContactIdx] : null;
 
   const destinationAddress =
-    recipientMode === "contact"
-      ? selectedContact?.address ?? ""
-      : customRecipient.trim();
+    recipientMode === "contact" ? (selectedContact?.address ?? "") : customRecipient.trim();
 
   const destinationTag =
     recipientMode === "contact"
@@ -86,12 +81,18 @@ export function TransferModal({
     parseFloat(amount) <= parseFloat(selectedBalance.value);
 
   const isIssuedCurrency = selectedBalance !== null && selectedBalance.currency !== Assets.XRP;
-  const isBurn = isIssuedCurrency && !!destinationAddress && destinationAddress === selectedBalance?.issuer;
+  const isBurn =
+    isIssuedCurrency && !!destinationAddress && destinationAddress === selectedBalance?.issuer;
   const trustLineBlocked = isIssuedCurrency && trustLineOk === false;
   const ripplingBlocked = isIssuedCurrency && trustLineOk === true && ripplingOk === false;
 
   const canSubmit =
-    !submitting && amountValid && destinationAddress.length > 0 && selectedBalance !== null && !trustLineBlocked && !ripplingBlocked;
+    !submitting &&
+    amountValid &&
+    destinationAddress.length > 0 &&
+    selectedBalance !== null &&
+    !trustLineBlocked &&
+    !ripplingBlocked;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -176,11 +177,7 @@ export function TransferModal({
               min="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder={
-                selectedBalance
-                  ? `Max: ${selectedBalance.value}`
-                  : "0.00"
-              }
+              placeholder={selectedBalance ? `Max: ${selectedBalance.value}` : "0.00"}
               className={`mt-1 ${inputFieldClass}`}
             />
             {amount !== "" && !amountValid && (
@@ -252,10 +249,12 @@ export function TransferModal({
             )}
           </div>
 
-          {isIssuedCurrency && destinationAddress && (
-            isBurn ? (
+          {isIssuedCurrency &&
+            destinationAddress &&
+            (isBurn ? (
               <p className="bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                Recipient is the issuer. This will burn {selectedBalance?.currency} and reduce the outstanding supply.
+                Recipient is the issuer. This will burn {selectedBalance?.currency} and reduce the
+                outstanding supply.
               </p>
             ) : checkingTrustLine ? (
               <p className="text-xs text-zinc-400">Checking trust line...</p>
@@ -269,23 +268,20 @@ export function TransferModal({
                   Trust line exists, but the issuer does not have rippling enabled.
                 </p>
               ) : (
-                <p className="text-xs font-medium text-green-600 dark:text-green-400">Trust line verified</p>
+                <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                  Trust line verified
+                </p>
               )
-            ) : null
-          )}
+            ) : null)}
 
-          {error && (
-            <p className={errorTextClass}>{error}</p>
-          )}
+          {error && <p className={errorTextClass}>{error}</p>}
 
           <button
             type="submit"
             disabled={!canSubmit}
             className="w-full bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-500 hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:hover:shadow-sm disabled:active:scale-100"
           >
-            {submitting
-              ? getSigningLoadingText(adapter, "Sending...")
-              : "Send"}
+            {submitting ? getSigningLoadingText(adapter, "Sending...") : "Send"}
           </button>
         </form>
       )}

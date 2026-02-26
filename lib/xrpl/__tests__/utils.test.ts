@@ -9,67 +9,41 @@ import { normalizeOffer } from "@/lib/xrpl/normalize-offer";
 // ---------------------------------------------------------------------------
 describe("matchesCurrency", () => {
   it("XRP matches XRP (no issuer needed)", () => {
-    expect(
-      matchesCurrency({ currency: "XRP", value: "10" }, "XRP", undefined),
-    ).toBe(true);
+    expect(matchesCurrency({ currency: "XRP", value: "10" }, "XRP", undefined)).toBe(true);
   });
 
   it("XRP does not match USD", () => {
-    expect(
-      matchesCurrency({ currency: "XRP", value: "10" }, "USD", undefined),
-    ).toBe(false);
+    expect(matchesCurrency({ currency: "XRP", value: "10" }, "USD", undefined)).toBe(false);
   });
 
   it("issued currency matches with same issuer", () => {
-    expect(
-      matchesCurrency(
-        { currency: "USD", value: "10", issuer: "rABC" },
-        "USD",
-        "rABC",
-      ),
-    ).toBe(true);
+    expect(matchesCurrency({ currency: "USD", value: "10", issuer: "rABC" }, "USD", "rABC")).toBe(
+      true,
+    );
   });
 
   it("issued currency does not match with different issuer", () => {
-    expect(
-      matchesCurrency(
-        { currency: "USD", value: "10", issuer: "rABC" },
-        "USD",
-        "rDEF",
-      ),
-    ).toBe(false);
+    expect(matchesCurrency({ currency: "USD", value: "10", issuer: "rABC" }, "USD", "rDEF")).toBe(
+      false,
+    );
   });
 
   it("issued currency does not match different currency", () => {
-    expect(
-      matchesCurrency(
-        { currency: "USD", value: "10", issuer: "rABC" },
-        "EUR",
-        "rABC",
-      ),
-    ).toBe(false);
+    expect(matchesCurrency({ currency: "USD", value: "10", issuer: "rABC" }, "EUR", "rABC")).toBe(
+      false,
+    );
   });
 
   it("hex-encoded currency matches decoded name", () => {
     // "RLUSD" hex-encoded right-padded to 40 chars
     const hex = "524C555344000000000000000000000000000000";
-    expect(
-      matchesCurrency(
-        { currency: hex, value: "10", issuer: "rABC" },
-        "RLUSD",
-        "rABC",
-      ),
-    ).toBe(true);
+    expect(matchesCurrency({ currency: hex, value: "10", issuer: "rABC" }, "RLUSD", "rABC")).toBe(
+      true,
+    );
   });
 
   it("raw currency code also matches (fallback)", () => {
-    expect(
-      matchesCurrency(
-        { currency: "USD", value: "5", issuer: "rX" },
-        "USD",
-        "rX",
-      ),
-    ).toBe(true);
+    expect(matchesCurrency({ currency: "USD", value: "5", issuer: "rX" }, "USD", "rX")).toBe(true);
   });
 });
 
@@ -88,10 +62,7 @@ describe("aggregateDepth", () => {
   });
 
   it("single buy offer", () => {
-    const { depth } = aggregateDepth(
-      [{ taker_gets: { value: "100" } }],
-      [],
-    );
+    const { depth } = aggregateDepth([{ taker_gets: { value: "100" } }], []);
     expect(depth.bidVolume).toBe("100");
     expect(depth.bidLevels).toBe(1);
     expect(depth.askVolume).toBe("0");
@@ -99,10 +70,7 @@ describe("aggregateDepth", () => {
   });
 
   it("single sell offer", () => {
-    const { depth } = aggregateDepth(
-      [],
-      [{ taker_gets: { value: "250.5" } }],
-    );
+    const { depth } = aggregateDepth([], [{ taker_gets: { value: "250.5" } }]);
     expect(depth.bidVolume).toBe("0");
     expect(depth.bidLevels).toBe(0);
     expect(depth.askVolume).toBe("250.5");
@@ -116,10 +84,7 @@ describe("aggregateDepth", () => {
         { taker_gets: { value: "20" } },
         { taker_gets: { value: "30" } },
       ],
-      [
-        { taker_gets: { value: "5" } },
-        { taker_gets: { value: "15" } },
-      ],
+      [{ taker_gets: { value: "5" } }, { taker_gets: { value: "15" } }],
     );
     expect(depth.bidVolume).toBe("60");
     expect(depth.askVolume).toBe("20");

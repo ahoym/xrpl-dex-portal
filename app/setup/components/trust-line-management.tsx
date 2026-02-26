@@ -33,9 +33,7 @@ export function TrustLineManagement({
   const [trustError, setTrustError] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
 
-  const xrpBalance = parseFloat(
-    balances.find((b) => b.currency === Assets.XRP)?.value ?? "0",
-  );
+  const xrpBalance = parseFloat(balances.find((b) => b.currency === Assets.XRP)?.value ?? "0");
   const hasSufficientXrp = xrpBalance >= 2;
 
   const wellKnown = WELL_KNOWN_CURRENCIES[network] ?? {};
@@ -81,22 +79,24 @@ export function TrustLineManagement({
     <div className={cardClass}>
       <div>
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Trust Lines</h2>
-        <p className={`mt-0.5 text-xs ${hasSufficientXrp ? "text-zinc-400 dark:text-zinc-500" : "text-amber-600 dark:text-amber-400"}`}>
+        <p
+          className={`mt-0.5 text-xs ${hasSufficientXrp ? "text-zinc-400 dark:text-zinc-500" : "text-amber-600 dark:text-amber-400"}`}
+        >
           {hasSufficientXrp
             ? "Manage trust lines for issued currencies"
             : "Wallet needs at least 2 XRP before adding trust lines"}
         </p>
       </div>
 
-      {error && (
-        <p className={`mt-2 ${errorTextClass}`}>{error}</p>
-      )}
+      {error && <p className={`mt-2 ${errorTextClass}`}>{error}</p>}
 
       <TrustLineList badges={badges} />
 
       {Object.keys(wellKnown).length > 0 && (
         <div className="mt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Quick Trust</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            Quick Trust
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {Object.entries(wellKnown).map(([currency, issuer]) => {
               const exists = hasTrustLine(currency, issuer);
@@ -121,9 +121,7 @@ export function TrustLineManagement({
               );
             })}
           </div>
-          {trustError && (
-            <p className={`mt-2 ${errorTextClass}`}>{trustError}</p>
-          )}
+          {trustError && <p className={`mt-2 ${errorTextClass}`}>{trustError}</p>}
         </div>
       )}
 

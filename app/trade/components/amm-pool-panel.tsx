@@ -104,14 +104,8 @@ function PoolDetails({
       )}
 
       {/* Prices */}
-      <Row
-        label="Spot Price"
-        value={invertedSpot.toFixed(6)}
-      />
-      <Row
-        label="Effective Price (incl. fee)"
-        value={effectivePrice.toFixed(6)}
-      />
+      <Row label="Spot Price" value={invertedSpot.toFixed(6)} />
+      <Row label="Effective Price (incl. fee)" value={effectivePrice.toFixed(6)} />
 
       {/* Reserves */}
       <Row label={`${baseCurrency} Reserve`} value={new BigNumber(pool.asset1Value).toFormat(4)} />

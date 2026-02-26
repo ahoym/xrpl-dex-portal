@@ -41,11 +41,7 @@ export function useTrustLineValidation({
   const [ripplingOk, setRipplingOk] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (
-      !selectedBalance ||
-      selectedBalance.currency === Assets.XRP ||
-      !destinationAddress
-    ) {
+    if (!selectedBalance || selectedBalance.currency === Assets.XRP || !destinationAddress) {
       setTrustLineOk(null);
       setRipplingOk(null);
       return;
@@ -74,8 +70,7 @@ export function useTrustLineValidation({
           return;
         }
         const data = await res.json();
-        const lines: { currency: string; account: string }[] =
-          data.trustLines ?? [];
+        const lines: { currency: string; account: string }[] = data.trustLines ?? [];
         const match = lines.some(
           (l) =>
             l.account === selectedBalance.issuer &&
@@ -86,11 +81,7 @@ export function useTrustLineValidation({
         if (!cancelled) setTrustLineOk(match);
 
         // If trust line exists and sender is not the issuer, check rippling
-        if (
-          match &&
-          selectedBalance.issuer &&
-          senderAddress !== selectedBalance.issuer
-        ) {
+        if (match && selectedBalance.issuer && senderAddress !== selectedBalance.issuer) {
           try {
             const issuerRes = await fetch(
               `/api/accounts/${encodeURIComponent(selectedBalance.issuer)}?network=${network}`,
@@ -98,8 +89,7 @@ export function useTrustLineValidation({
             if (issuerRes.ok && !cancelled) {
               const issuerData = await issuerRes.json();
               const flags: number = issuerData.account_data?.Flags ?? 0;
-              if (!cancelled)
-                setRipplingOk((flags & LSF_DEFAULT_RIPPLE) !== 0);
+              if (!cancelled) setRipplingOk((flags & LSF_DEFAULT_RIPPLE) !== 0);
             }
           } catch {
             // non-fatal — leave as null

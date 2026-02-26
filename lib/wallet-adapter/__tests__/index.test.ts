@@ -54,6 +54,8 @@ describe("loadExtensionAdapter", () => {
   it("throws for unregistered types", async () => {
     // All known types are registered — test a completely unknown type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await expect(loadExtensionAdapter("unknown-wallet" as any)).rejects.toThrow("No adapter registered");
+    await expect(loadExtensionAdapter("unknown-wallet" as any)).rejects.toThrow(
+      "No adapter registered",
+    );
   });
 });

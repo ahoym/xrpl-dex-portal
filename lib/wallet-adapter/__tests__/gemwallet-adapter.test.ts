@@ -184,20 +184,24 @@ describe("GemWalletAdapter", () => {
 
     mockSendPayment.mockResolvedValue({ type: "reject" });
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "1",
-      network: "testnet",
-    })).rejects.toThrow("rejected");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "1",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("rejected");
   });
 
   it("throws when not connected", async () => {
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "1",
-      network: "testnet",
-    })).rejects.toThrow("not connected");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "1",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("not connected");
   });
 });

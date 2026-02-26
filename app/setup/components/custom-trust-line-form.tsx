@@ -28,8 +28,14 @@ export function CustomTrustLineForm({
     if (customTrusting) return;
     const issuerAddr = customIssuer.trim();
     const currency = customCurrency.trim();
-    if (!issuerAddr) { setCustomTrustError("Issuer address is required"); return; }
-    if (!currency) { setCustomTrustError("Currency code is required"); return; }
+    if (!issuerAddr) {
+      setCustomTrustError("Issuer address is required");
+      return;
+    }
+    if (!currency) {
+      setCustomTrustError("Currency code is required");
+      return;
+    }
     setCustomTrusting(true);
     setCustomTrustError(null);
     try {
@@ -93,13 +99,9 @@ export function CustomTrustLineForm({
         disabled={customTrusting}
         className={`${primaryButtonClass} px-3 py-1.5 text-xs`}
       >
-        {customTrusting
-          ? getSigningLoadingText(adapter)
-          : "Create Trust Line"}
+        {customTrusting ? getSigningLoadingText(adapter) : "Create Trust Line"}
       </button>
-      {customTrustError && (
-        <p className={errorTextClass}>{customTrustError}</p>
-      )}
+      {customTrustError && <p className={errorTextClass}>{customTrustError}</p>}
     </div>
   );
 }
