@@ -98,7 +98,6 @@ export interface AmmPoolInfo {
   lpTokenValue: string;
   tradingFee: number;
   spotPrice: string;
-  effectivePrice: string;
   auctionSlot?: AmmAuctionSlot;
   voteSlots?: AmmVoteSlot[];
   asset1Frozen?: boolean;

@@ -78,6 +78,17 @@ function PoolDetails({
   baseCurrency: string;
   quoteCurrency: string;
 }) {
+  const spotBN = new BigNumber(pool.spotPrice);
+  const invertedSpot = spotBN.isZero() ? new BigNumber(0) : new BigNumber(1).div(spotBN);
+
+  // Apply fee after inverting: effectivePrice = invertedSpot / (1 - fee)
+  // XRPL trading fee is in units of 1/100,000
+  const FEE_DIVISOR = 100_000;
+  const feeRate = new BigNumber(pool.tradingFee).div(FEE_DIVISOR);
+  const effectivePrice = invertedSpot.isZero()
+    ? new BigNumber(0)
+    : invertedSpot.div(new BigNumber(1).minus(feeRate));
+
   return (
     <div className="mt-4 space-y-3">
       {/* Frozen warnings */}
@@ -95,11 +106,11 @@ function PoolDetails({
       {/* Prices */}
       <Row
         label="Spot Price"
-        value={`${new BigNumber(pool.spotPrice).toFixed(6)} ${quoteCurrency}/${baseCurrency}`}
+        value={invertedSpot.toFixed(6)}
       />
       <Row
         label="Effective Price (incl. fee)"
-        value={`${new BigNumber(pool.effectivePrice).toFixed(6)} ${quoteCurrency}/${baseCurrency}`}
+        value={effectivePrice.toFixed(6)}
       />
 
       {/* Reserves */}
