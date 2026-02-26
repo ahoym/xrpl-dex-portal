@@ -38,8 +38,15 @@ function groupBalances(balances: BalanceEntry[]): GroupedBalance[] {
 }
 
 export function BalanceDisplay({ address, refreshKey }: BalanceDisplayProps) {
-  const { state: { network } } = useAppState();
-  const { balances, loading, error, refresh: fetchBalances } = useBalances(address, network, refreshKey);
+  const {
+    state: { network },
+  } = useAppState();
+  const {
+    balances,
+    loading,
+    error,
+    refresh: fetchBalances,
+  } = useBalances(address, network, refreshKey);
   const [expandedCurrency, setExpandedCurrency] = useState<string | null>(null);
 
   const grouped = useMemo(() => groupBalances(balances), [balances]);
@@ -47,7 +54,9 @@ export function BalanceDisplay({ address, refreshKey }: BalanceDisplayProps) {
   return (
     <div className="mt-3">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Balances</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+          Balances
+        </span>
         <button
           onClick={fetchBalances}
           disabled={loading}
@@ -62,14 +71,25 @@ export function BalanceDisplay({ address, refreshKey }: BalanceDisplayProps) {
           {grouped.map((g) => (
             <div key={g.currency}>
               <span
-                onClick={g.entries.length > 1 ? () => setExpandedCurrency(
-                  expandedCurrency === g.currency ? null : g.currency,
-                ) : undefined}
+                onClick={
+                  g.entries.length > 1
+                    ? () => setExpandedCurrency(expandedCurrency === g.currency ? null : g.currency)
+                    : undefined
+                }
                 role={g.entries.length > 1 ? "button" : undefined}
                 tabIndex={g.entries.length > 1 ? 0 : undefined}
-                onKeyDown={g.entries.length > 1 ? (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") setExpandedCurrency(expandedCurrency === g.currency ? null : g.currency); } : undefined}
+                onKeyDown={
+                  g.entries.length > 1
+                    ? (e: React.KeyboardEvent) => {
+                        if (e.key === "Enter" || e.key === " ")
+                          setExpandedCurrency(expandedCurrency === g.currency ? null : g.currency);
+                      }
+                    : undefined
+                }
                 className={`inline-flex items-center bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200 ${
-                  g.entries.length > 1 ? "cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700" : ""
+                  g.entries.length > 1
+                    ? "cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    : ""
                 }`}
               >
                 {g.total} {g.currency}
@@ -92,11 +112,7 @@ export function BalanceDisplay({ address, refreshKey }: BalanceDisplayProps) {
                       className="inline-flex items-center text-xs text-zinc-600 dark:text-zinc-400"
                     >
                       {e.value}
-                      {e.issuer && (
-                        <span className="ml-1 font-mono">
-                          {e.issuer}
-                        </span>
-                      )}
+                      {e.issuer && <span className="ml-1 font-mono">{e.issuer}</span>}
                     </span>
                   ))}
                 </div>

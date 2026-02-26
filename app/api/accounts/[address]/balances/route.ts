@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { dropsToXrp } from "xrpl";
 import { decodeCurrency } from "@/lib/xrpl/currency";
-import { getXrplClient, getAndValidateAddress, apiErrorResponse, isAccountNotFound } from "@/lib/api";
+import {
+  getXrplClient,
+  getAndValidateAddress,
+  apiErrorResponse,
+  isAccountNotFound,
+} from "@/lib/api";
 import type { CurrencyBalance } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -44,13 +49,11 @@ export async function GET(
       value: String(dropsToXrp(accountInfo.result.account_data.Balance)),
     };
 
-    const issuedBalances: CurrencyBalance[] = accountLines.result.lines.map(
-      (line) => ({
-        currency: decodeCurrency(line.currency),
-        value: line.balance,
-        issuer: line.account,
-      }),
-    );
+    const issuedBalances: CurrencyBalance[] = accountLines.result.lines.map((line) => ({
+      currency: decodeCurrency(line.currency),
+      value: line.balance,
+      issuer: line.account,
+    }));
 
     return Response.json({
       address,

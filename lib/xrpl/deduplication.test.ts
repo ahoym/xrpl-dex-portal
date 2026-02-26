@@ -18,18 +18,8 @@ describe("deduplicateByHash", () => {
   });
 
   it("preserves order", () => {
-    const items = [
-      { hash: "c" },
-      { hash: "a" },
-      { hash: "b" },
-      { hash: "a" },
-      { hash: "c" },
-    ];
-    expect(deduplicateByHash(items)).toEqual([
-      { hash: "c" },
-      { hash: "a" },
-      { hash: "b" },
-    ]);
+    const items = [{ hash: "c" }, { hash: "a" }, { hash: "b" }, { hash: "a" }, { hash: "c" }];
+    expect(deduplicateByHash(items)).toEqual([{ hash: "c" }, { hash: "a" }, { hash: "b" }]);
   });
 
   it("works with extra properties beyond hash", () => {

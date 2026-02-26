@@ -11,22 +11,23 @@ We're building `xrpl-dex-portal` by adapting the existing `xrpl-issued-currencie
 
 ## Phase 1: Project Scaffolding
 
-| File | Action | Notes |
-|------|--------|-------|
-| `package.json` | Adapt | Name → `xrpl-dex-portal`, same deps |
-| `tsconfig.json` | Copy | |
-| `next.config.ts` | Copy | CSP headers fine as-is |
-| `postcss.config.mjs` | Copy | |
-| `eslint.config.mjs` | Copy | |
-| `.gitignore` | Adapt | Remove `examples/setup-state-*.json` line |
-| `app/globals.css` | Copy | |
-| `app/favicon.ico` | Copy | |
-| `public/*` | Copy | SVG assets |
-| Run `pnpm install` | | |
+| File                 | Action | Notes                                     |
+| -------------------- | ------ | ----------------------------------------- |
+| `package.json`       | Adapt  | Name → `xrpl-dex-portal`, same deps       |
+| `tsconfig.json`      | Copy   |                                           |
+| `next.config.ts`     | Copy   | CSP headers fine as-is                    |
+| `postcss.config.mjs` | Copy   |                                           |
+| `eslint.config.mjs`  | Copy   |                                           |
+| `.gitignore`         | Adapt  | Remove `examples/setup-state-*.json` line |
+| `app/globals.css`    | Copy   |                                           |
+| `app/favicon.ico`    | Copy   |                                           |
+| `public/*`           | Copy   | SVG assets                                |
+| Run `pnpm install`   |        |                                           |
 
 ## Phase 2: Shared Libraries
 
 ### Copy as-is
+
 - `lib/xrpl/client.ts`
 - `lib/xrpl/currency.ts`
 - `lib/xrpl/decode-currency-client.ts`
@@ -38,6 +39,7 @@ We're building `xrpl-dex-portal` by adapting the existing `xrpl-issued-currencie
 ### Adapt
 
 **`lib/types.ts`** — New state model:
+
 ```typescript
 interface PersistedState {
   network: "devnet" | "testnet" | "mainnet";
@@ -49,19 +51,23 @@ interface Contact {
   destinationTag?: number;
 }
 ```
+
 - Keep: `WalletInfo`, `TrustLine`, `BalanceEntry`, `OrderBookAmount`, `OrderBookEntry`
 - Remove: `CredentialInfo`, `DomainInfo`, old `PersistedState` shape
 
 **`lib/xrpl/types.ts`**:
+
 - Remove: `IssueCurrencyRequest`, all credential/domain request types
 - Remove `"hybrid"` from `OfferFlag`, `domainID` from `CreateOfferRequest`
 - Add `destinationTag?: number` to `TransferRequest`
 
 **`lib/xrpl/networks.ts`** — Add mainnet:
+
 - `mainnet: { name: "Mainnet", url: "wss://xrplcluster.com", faucet: null }`
 - Explorer: `mainnet: "https://livenet.xrpl.org"`
 
 **`lib/assets.ts`** — Add BBRL + mainnet issuers:
+
 - `Assets`: add `BBRL: "BBRL"`
 - `WELL_KNOWN_CURRENCIES.mainnet`: `{ RLUSD: "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De", BBRL: "rH5CJsqvNqZGxrMyGaqLEoMWRYcVTAPZMt" }`
 
@@ -72,11 +78,13 @@ interface Contact {
 **`lib/api.ts`** — Remove `validateCredentialType` function + its import
 
 ### Exclude
+
 - `lib/xrpl/credentials.ts`
 
 ## Phase 3: Hooks
 
 ### Copy as-is
+
 - `lib/hooks/use-local-storage.ts`
 - `lib/hooks/use-api-fetch.ts`
 - `lib/hooks/use-api-mutation.ts`
@@ -88,6 +96,7 @@ interface Contact {
 ### Adapt
 
 **`lib/hooks/use-app-state.tsx`** — Major rewrite for single wallet + contacts:
+
 - Keys: `xrpl-dex-portal-network`, `xrpl-dex-portal-state-{network}`, `xrpl-dex-portal-contacts-{network}`
 - Remove legacy migration, all issuer/recipient/credential/domain methods
 - Add: `setWallet`, `addContact`, `updateContact`, `removeContact`, `setContacts`
@@ -98,11 +107,13 @@ interface Contact {
 **`lib/hooks/use-make-market-execution.ts`** — Remove `activeDomainID` from options and payload
 
 ### Exclude
+
 - `use-domain-mode.ts`, `use-account-domains.ts`, `use-account-credentials.ts`, `use-issuer-currencies.ts`
 
 ## Phase 4: API Routes
 
 ### Copy as-is
+
 - `app/api/accounts/[address]/route.ts`
 - `app/api/accounts/[address]/balances/route.ts`
 - `app/api/accounts/[address]/trustlines/route.ts` (GET + POST)
@@ -124,11 +135,13 @@ interface Contact {
 **`app/api/dex/trades/route.ts`** — Remove `domain` query param and domain filtering logic.
 
 ### Exclude
+
 - `currencies/issue/`, `credentials/*`, `domains/*`, `accounts/[address]/credentials/`, `accounts/[address]/domains/`, `accounts/[address]/rippling/`
 
 ## Phase 5: Shared Components
 
 ### Copy as-is
+
 - `app/components/providers.tsx`
 - `app/components/explorer-link.tsx`
 - `app/components/loading-screen.tsx`
@@ -150,6 +163,7 @@ interface Contact {
 ## Phase 6: Setup Page
 
 **`app/setup/page.tsx`** — New, single-wallet layout:
+
 1. Security warning (amber for testnet/devnet, **critical red** for mainnet)
 2. Wallet section: generate (testnet/devnet only) or import via seed (paste seed into input, derive address/publicKey via `Wallet.fromSeed()`)
 3. Trust lines section (if wallet exists): existing trust lines, one-click buttons from `WELL_KNOWN_CURRENCIES[network]`, custom trust line form
@@ -169,6 +183,7 @@ interface Contact {
 ## Phase 7: Transact (Transfer) Page
 
 **`app/transact/page.tsx`** — New:
+
 - Sender is always `state.wallet`
 - Contacts manager section (add/edit/remove contacts with label + address + optional dest tag)
 - Send button opens transfer modal
@@ -182,6 +197,7 @@ interface Contact {
 ## Phase 8: Trade Page
 
 ### Copy as-is
+
 - `order-book.tsx`, `my-open-orders.tsx`, `recent-trades.tsx`
 - `balances-panel.tsx`, `currency-pair-selector.tsx`, `custom-currency-form.tsx`
 
@@ -196,6 +212,7 @@ interface Contact {
 **`make-market-modal.tsx`** — Single wallet (remove wallet selection). Both bids + asks from `wallet` prop.
 
 ### Exclude
+
 - `domain-selector.tsx`, `wallet-selector.tsx`
 
 ---
@@ -215,6 +232,7 @@ Batch 5: Phase 9 (CLAUDE.md + pnpm build verification)
 ## Phase 9: CLAUDE.md
 
 Create a `CLAUDE.md` at the project root documenting:
+
 - Project overview and stack
 - Commands (`pnpm dev`, `pnpm build`, `pnpm lint`)
 - Architecture (pages, API routes, lib module map, hooks)

@@ -40,10 +40,7 @@ export function CustomSelect({
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
@@ -131,9 +128,7 @@ export function CustomSelect({
         aria-haspopup="listbox"
         aria-controls={listId}
         aria-activedescendant={
-          open && highlightedIndex >= 0
-            ? `${id ?? "cs"}-option-${highlightedIndex}`
-            : undefined
+          open && highlightedIndex >= 0 ? `${id ?? "cs"}-option-${highlightedIndex}` : undefined
         }
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}

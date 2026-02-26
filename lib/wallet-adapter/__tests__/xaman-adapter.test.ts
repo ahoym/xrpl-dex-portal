@@ -63,12 +63,14 @@ describe("XamanAdapter", () => {
 
     adapter.disconnect();
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "10",
-      network: "testnet",
-    })).rejects.toThrow("not connected");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "10",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("not connected");
   });
 
   it("sendPayment creates payload and waits for signing", async () => {
@@ -127,12 +129,14 @@ describe("XamanAdapter", () => {
       resolved: Promise.resolve({ signed: false }),
     });
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "1",
-      network: "testnet",
-    })).rejects.toThrow("rejected or expired");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "1",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("rejected or expired");
   });
 
   it("createOffer builds and submits via payload", async () => {
@@ -147,7 +151,9 @@ describe("XamanAdapter", () => {
       },
       resolved: Promise.resolve({ signed: true }),
     });
-    mockGet.mockResolvedValue({ response: { txid: "OFFER_HASH", dispatched_result: "tesSUCCESS" } });
+    mockGet.mockResolvedValue({
+      response: { txid: "OFFER_HASH", dispatched_result: "tesSUCCESS" },
+    });
 
     const result = await adapter.createOffer({
       takerGets: { currency: "XRP", value: "100" },

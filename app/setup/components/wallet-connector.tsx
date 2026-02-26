@@ -33,7 +33,7 @@ export function WalletConnector({ network }: WalletConnectorProps) {
           const adapter = new Cls();
           const available = await adapter.isAvailable();
           return { type: info.type, displayName: info.displayName, available };
-        })
+        }),
       );
 
       if (!cancelled) {
@@ -41,13 +41,15 @@ export function WalletConnector({ network }: WalletConnectorProps) {
           results.map((r, i) =>
             r.status === "fulfilled"
               ? r.value
-              : { type: adapters[i].type, displayName: adapters[i].displayName, available: false }
-          )
+              : { type: adapters[i].type, displayName: adapters[i].displayName, available: false },
+          ),
         );
       }
     }
     detect();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleConnect(type: WalletType) {
@@ -82,11 +84,7 @@ export function WalletConnector({ network }: WalletConnectorProps) {
             }`}
             title={w.available ? `Connect ${w.displayName}` : `${w.displayName} not detected`}
           >
-            <img
-              src={getWalletLogo(w.type)}
-              alt={`${w.displayName} logo`}
-              className="h-5 w-5"
-            />
+            <img src={getWalletLogo(w.type)} alt={`${w.displayName} logo`} className="h-5 w-5" />
             {connectingType === w.type
               ? "Connecting..."
               : w.available

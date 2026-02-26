@@ -13,7 +13,14 @@ describe("decodeCurrency", () => {
 
   it("decodes 40-char hex for BBRL", () => {
     // "BBRL" = 42 42 52 4C
-    expect(decodeCurrency("4242524C000000000000000000000000000000000000000000000000000000000000000000000000".slice(0, 40))).toBe("BBRL");
+    expect(
+      decodeCurrency(
+        "4242524C000000000000000000000000000000000000000000000000000000000000000000000000".slice(
+          0,
+          40,
+        ),
+      ),
+    ).toBe("BBRL");
     // More precisely: "BBRL" hex-encoded + zero-padded to 40 chars
     const bbrlHex = "4242524C" + "0".repeat(32);
     expect(decodeCurrency(bbrlHex)).toBe("BBRL");
@@ -58,9 +65,7 @@ describe("decodeCurrency", () => {
   it("handles 40-char hex that is all non-zero valid printable ASCII", () => {
     // 20 printable ASCII characters encoded as 40 hex chars with no trailing zeros
     // "ABCDEFGHIJKLMNOPQRST" = 20 chars
-    const hex = Array.from("ABCDEFGHIJKLMNOPQRST", (ch) =>
-      ch.charCodeAt(0).toString(16),
-    ).join("");
+    const hex = Array.from("ABCDEFGHIJKLMNOPQRST", (ch) => ch.charCodeAt(0).toString(16)).join("");
     expect(hex).toHaveLength(40);
     expect(decodeCurrency(hex)).toBe("ABCDEFGHIJKLMNOPQRST");
   });

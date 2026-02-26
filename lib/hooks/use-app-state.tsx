@@ -34,7 +34,11 @@ interface AppStateValue {
   readonly updateContact: (index: number, contact: Contact) => void;
   readonly removeContact: (index: number) => void;
   readonly setContacts: (contacts: Contact[]) => void;
-  readonly importState: (imported: { network: PersistedState["network"]; wallet: WalletInfo | null; contacts?: Contact[] }) => void;
+  readonly importState: (imported: {
+    network: PersistedState["network"];
+    wallet: WalletInfo | null;
+    contacts?: Contact[];
+  }) => void;
   readonly clearAll: () => void;
 }
 
@@ -81,17 +85,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     wallet: migratedWallet,
   };
 
-  const setNetwork = useCallback(
-    (next: PersistedState["network"]) => {
-      setNetworkRaw(next);
-      try {
-        localStorage.setItem(NETWORK_KEY, next);
-      } catch {
-        // ignore
-      }
-    },
-    [],
-  );
+  const setNetwork = useCallback((next: PersistedState["network"]) => {
+    setNetworkRaw(next);
+    try {
+      localStorage.setItem(NETWORK_KEY, next);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const setWallet = useCallback(
     (wallet: WalletInfo | null) => {
@@ -133,7 +134,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   );
 
   const importState = useCallback(
-    (imported: { network: PersistedState["network"]; wallet: WalletInfo | null; contacts?: Contact[] }) => {
+    (imported: {
+      network: PersistedState["network"];
+      wallet: WalletInfo | null;
+      contacts?: Contact[];
+    }) => {
       const importedNetwork = imported.network;
       const data: NetworkData = { wallet: imported.wallet };
       const importedContacts = imported.contacts ?? [];
@@ -173,14 +178,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       importState,
       clearAll,
     }),
-    [state, hydrated, contacts, setNetwork, setWallet, addContact, updateContact, removeContact, setContacts, importState, clearAll],
+    [
+      state,
+      hydrated,
+      contacts,
+      setNetwork,
+      setWallet,
+      addContact,
+      updateContact,
+      removeContact,
+      setContacts,
+      importState,
+      clearAll,
+    ],
   );
 
-  return (
-    <AppStateContext.Provider value={value}>
-      {children}
-    </AppStateContext.Provider>
-  );
+  return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }
 
 export function useAppState() {

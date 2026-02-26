@@ -3,7 +3,14 @@ import { Payment, xrpToDrops } from "xrpl";
 import { getClient } from "@/lib/xrpl/client";
 import { resolveNetwork } from "@/lib/xrpl/networks";
 import { encodeXrplCurrency } from "@/lib/xrpl/currency";
-import { validateRequired, requireWallet, validateAddress, validateDexAmount, submitTxAndRespond, apiErrorResponse } from "@/lib/api";
+import {
+  validateRequired,
+  requireWallet,
+  validateAddress,
+  validateDexAmount,
+  submitTxAndRespond,
+  apiErrorResponse,
+} from "@/lib/api";
 import type { TransferRequest } from "@/lib/xrpl/types";
 import { Assets } from "@/lib/assets";
 
@@ -11,7 +18,12 @@ export async function POST(request: NextRequest) {
   try {
     const body: TransferRequest = await request.json();
 
-    const invalid = validateRequired(body as unknown as Record<string, unknown>, ["senderSeed", "recipientAddress", "currencyCode", "amount"]);
+    const invalid = validateRequired(body as unknown as Record<string, unknown>, [
+      "senderSeed",
+      "recipientAddress",
+      "currencyCode",
+      "amount",
+    ]);
     if (invalid) return invalid;
 
     const walletResult = requireWallet(body.senderSeed);

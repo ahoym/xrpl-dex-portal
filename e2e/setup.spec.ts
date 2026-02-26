@@ -44,9 +44,7 @@ test.describe.serial("Setup page", () => {
     await expect(page.getByText(/^\d[\d,.]*\s*XRP$/)).toBeVisible();
 
     // "Fund from Faucet" button should be visible on testnet
-    await expect(
-      page.getByRole("button", { name: /Fund from Faucet/ }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /Fund from Faucet/ })).toBeVisible();
   });
 
   test("import from seed — reveal seed, remove wallet, paste seed, import, assert same address", async () => {
@@ -70,9 +68,9 @@ test.describe.serial("Setup page", () => {
     await page.getByRole("button", { name: /Remove Wallet/ }).click();
 
     // After removal, "Generate Wallet" should reappear
-    await expect(
-      page.getByRole("button", { name: /Generate Wallet/ }),
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: /Generate Wallet/ })).toBeVisible({
+      timeout: 10_000,
+    });
 
     // Import from seed — fill the import input and click Import
     const seedInput = page.getByPlaceholder("sXXXXXXXX...");
@@ -127,8 +125,8 @@ test.describe.serial("Setup page", () => {
     await page.getByRole("button", { name: "Clear All Data" }).click();
 
     // After clearing, "Generate Wallet" should reappear
-    await expect(
-      page.getByRole("button", { name: /Generate Wallet/ }),
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: /Generate Wallet/ })).toBeVisible({
+      timeout: 10_000,
+    });
   });
 });

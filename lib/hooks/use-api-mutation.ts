@@ -4,11 +4,7 @@ interface UseApiMutationResult<T> {
   loading: boolean;
   error: string | null;
   clearError: () => void;
-  mutate: (
-    url: string,
-    body: Record<string, unknown>,
-    errorFallback?: string,
-  ) => Promise<T | null>;
+  mutate: (url: string, body: Record<string, unknown>, errorFallback?: string) => Promise<T | null>;
 }
 
 export function useApiMutation<T = Record<string, unknown>>(): UseApiMutationResult<T> {

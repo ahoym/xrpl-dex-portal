@@ -7,7 +7,10 @@
  */
 export function parseDestinationTag(
   value: string,
-): { tag: number; error?: undefined } | { tag: undefined; error?: undefined } | { tag?: undefined; error: string } {
+):
+  | { tag: number; error?: undefined }
+  | { tag: undefined; error?: undefined }
+  | { tag?: undefined; error: string } {
   const trimmed = value.trim();
   if (!trimmed) return { tag: undefined };
   const parsed = parseInt(trimmed, 10);

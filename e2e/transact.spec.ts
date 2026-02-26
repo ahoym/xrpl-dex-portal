@@ -1,9 +1,4 @@
-import {
-  test,
-  expect,
-  type Page,
-  type BrowserContext,
-} from "@playwright/test";
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 
 // This project uses storageState: ".auth/wallet.json" (configured in playwright.config.ts)
 
@@ -12,19 +7,13 @@ test.describe("Transact page", () => {
     await page.goto("/transact");
 
     // Assert "Transact" heading visible
-    await expect(
-      page.getByRole("heading", { name: "Transact", level: 1 }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Transact", level: 1 })).toBeVisible();
 
     // Assert wallet address visible (rendered as a link by ExplorerLink)
-    await expect(
-      page.getByRole("link", { name: /^r[a-zA-Z0-9]{24,}/ }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /^r[a-zA-Z0-9]{24,}/ })).toBeVisible();
 
     // Assert "Send" button visible
-    await expect(
-      page.getByRole("button", { name: "Send" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Send" })).toBeVisible();
   });
 
   test.describe.serial("contacts", () => {
@@ -50,14 +39,10 @@ test.describe("Transact page", () => {
       await page.getByRole("button", { name: "+ Add Contact" }).click();
 
       // Fill in Label (uses placeholder-based input, not <label> element)
-      await page
-        .getByPlaceholder("e.g. Exchange Hot Wallet")
-        .fill("Test Contact");
+      await page.getByPlaceholder("e.g. Exchange Hot Wallet").fill("Test Contact");
 
       // Fill in Address
-      await page
-        .getByPlaceholder("rXXXXXXXX...")
-        .fill("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe");
+      await page.getByPlaceholder("rXXXXXXXX...").fill("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe");
 
       // Fill in Destination Tag
       await page.getByRole("spinbutton").fill("12345");
@@ -67,9 +52,7 @@ test.describe("Transact page", () => {
 
       // Assert contact appears in the list
       await expect(page.getByText("Test Contact")).toBeVisible();
-      await expect(
-        page.getByText("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe"),
-      ).toBeVisible();
+      await expect(page.getByText("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe")).toBeVisible();
       await expect(page.getByText("Tag: 12345")).toBeVisible();
     });
 
@@ -109,9 +92,7 @@ test.describe("Transact page", () => {
       // Assert contact is removed from list
       await expect(page.getByText("Updated Contact")).not.toBeVisible();
       await expect(
-        page.getByText(
-          "No contacts yet. Add a contact to quickly send funds.",
-        ),
+        page.getByText("No contacts yet. Add a contact to quickly send funds."),
       ).toBeVisible();
     });
   });
@@ -128,9 +109,7 @@ test.describe("Transact page", () => {
     await page.getByRole("button", { name: "Send" }).click();
 
     // Assert the modal title is visible
-    await expect(
-      page.getByRole("heading", { name: "Send Currency" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Send Currency" })).toBeVisible();
 
     // Scope subsequent selectors to the modal form
     const modal = page.locator("form");
@@ -145,9 +124,7 @@ test.describe("Transact page", () => {
     await modal.getByRole("button", { name: "Other" }).click();
 
     // Enter recipient address
-    await page
-      .getByPlaceholder("rXXXXXXXX...")
-      .fill("rfh837S6GLYasyHmaMDhiVvBajBQDzxSap");
+    await page.getByPlaceholder("rXXXXXXXX...").fill("rfh837S6GLYasyHmaMDhiVvBajBQDzxSap");
 
     // Click "Send" to submit the form (the submit button inside the modal)
     await modal.getByRole("button", { name: "Send" }).click();

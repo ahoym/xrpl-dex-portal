@@ -18,9 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AppStateProvider>
       <WalletAdapterProvider>
-        <XamanModalBridge>
-          {children}
-        </XamanModalBridge>
+        <XamanModalBridge>{children}</XamanModalBridge>
       </WalletAdapterProvider>
     </AppStateProvider>
   );

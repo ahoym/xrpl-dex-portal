@@ -72,8 +72,8 @@ describe("MetaMaskSnapAdapter", () => {
 
   it("connect throws when snap returns no account", async () => {
     mockRequest
-      .mockResolvedValueOnce({})  // wallet_requestSnaps
-      .mockResolvedValueOnce({})  // xrpl_changeNetwork
+      .mockResolvedValueOnce({}) // wallet_requestSnaps
+      .mockResolvedValueOnce({}) // xrpl_changeNetwork
       .mockResolvedValueOnce({}); // xrpl_getAccount with no account
 
     await expect(adapter.connect("testnet")).rejects.toThrow("did not return an account");
@@ -88,12 +88,14 @@ describe("MetaMaskSnapAdapter", () => {
 
     adapter.disconnect();
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "10",
-      network: "testnet",
-    })).rejects.toThrow("not connected");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "10",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("not connected");
   });
 
   it("sendPayment signs and submits via snap", async () => {
@@ -207,11 +209,13 @@ describe("MetaMaskSnapAdapter", () => {
 
     mockRequest.mockRejectedValueOnce({ code: 4001, message: "User rejected" });
 
-    await expect(adapter.sendPayment({
-      recipientAddress: "rDEST",
-      currencyCode: "XRP",
-      amount: "1",
-      network: "testnet",
-    })).rejects.toThrow("rejected by the user");
+    await expect(
+      adapter.sendPayment({
+        recipientAddress: "rDEST",
+        currencyCode: "XRP",
+        amount: "1",
+        network: "testnet",
+      }),
+    ).rejects.toThrow("rejected by the user");
   });
 });

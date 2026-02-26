@@ -13,10 +13,9 @@ export async function POST(request: NextRequest) {
     if (invalid) return invalid;
 
     if (body.offerSequence === undefined) {
-      return Response.json(
-        { error: "Missing required fields: offerSequence" } satisfies ApiError,
-        { status: 400 },
-      );
+      return Response.json({ error: "Missing required fields: offerSequence" } satisfies ApiError, {
+        status: 400,
+      });
     }
 
     const walletResult = requireWallet(body.seed);

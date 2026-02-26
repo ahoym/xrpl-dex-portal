@@ -26,9 +26,7 @@ export function CustomCurrencyForm({ onAdd, onClose }: CustomCurrencyFormProps) 
   return (
     <div className="mt-3 flex items-end gap-2 border border-zinc-200/80 bg-zinc-50/50 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
       <div className="flex-1">
-        <label className={labelClass}>
-          Currency Code
-        </label>
+        <label className={labelClass}>Currency Code</label>
         <input
           type="text"
           value={currency}
@@ -39,9 +37,7 @@ export function CustomCurrencyForm({ onAdd, onClose }: CustomCurrencyFormProps) 
         />
       </div>
       <div className="flex-[2]">
-        <label className={labelClass}>
-          Issuer Address
-        </label>
+        <label className={labelClass}>Issuer Address</label>
         <input
           type="text"
           value={issuer}
