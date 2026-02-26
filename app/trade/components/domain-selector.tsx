@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DOMAIN_ID_REGEX } from "@/lib/xrpl/constants";
 import { inputClass, labelClass, errorTextClass } from "@/lib/ui/ui";
 
@@ -28,6 +28,7 @@ export function DomainSelector({
   const [inputValue, setInputValue] = useState(domainID ?? "");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [prevDomainID, setPrevDomainID] = useState(domainID);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Sync input value when domainID changes externally (e.g. cleared)
   if (prevDomainID !== domainID) {
@@ -35,6 +36,18 @@ export function DomainSelector({
     setInputValue(domainID ?? "");
     setValidationError(null);
   }
+
+  // Close panel on outside click
+  useEffect(() => {
+    if (!expanded) return;
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onToggleExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [expanded, onToggleExpanded]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value.toUpperCase();
@@ -70,43 +83,41 @@ export function DomainSelector({
   }
 
   return (
-    <div className="mt-3 border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
-      {/* Header / collapsed button */}
+    <div ref={panelRef} className="relative">
+      {/* Compact trigger button */}
       <button
         type="button"
         onClick={() => onToggleExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-4 py-2.5 text-left"
+        className="flex items-center gap-2 border border-zinc-200/80 bg-white px-3 py-1.5 text-sm shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80 dark:hover:bg-zinc-800/80"
       >
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-            Permissioned Domain
-          </span>
-          {domainID && (
-            <>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  isActive
-                    ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
-                    : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-                }`}
-              >
-                {isActive ? "Active" : "Disabled"}
-              </span>
-              <span
-                className={`break-all text-[10px] font-mono ${
-                  isActive ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-500"
-                }`}
-              >
-                {domainID}
-              </span>
-            </>
-          )}
-        </div>
+        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+          Domain
+        </span>
+        {domainID && (
+          <>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                isActive
+                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                  : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+              }`}
+            >
+              {isActive ? "Active" : "Disabled"}
+            </span>
+            <span
+              className={`font-mono text-[10px] ${
+                isActive ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-500"
+              }`}
+            >
+              {domainID}
+            </span>
+          </>
+        )}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 16 16"
           fill="currentColor"
-          className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+          className={`h-3 w-3 text-zinc-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
         >
           <path
             fillRule="evenodd"
@@ -116,9 +127,9 @@ export function DomainSelector({
         </svg>
       </button>
 
-      {/* Expanded panel */}
+      {/* Dropdown panel */}
       {expanded && (
-        <div className="border-t border-zinc-100 px-4 pb-4 pt-3 dark:border-zinc-800">
+        <div className="absolute right-0 top-full z-50 mt-1 w-[28rem] border border-zinc-200/80 bg-white p-4 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
           <div>
             <label className={labelClass}>Domain ID (64-char hex)</label>
             <input
@@ -134,6 +145,12 @@ export function DomainSelector({
             />
             {validationError && <p className={`mt-1 ${errorTextClass}`}>{validationError}</p>}
           </div>
+
+          {domainID && (
+            <p className="mt-2 break-all text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
+              {domainID}
+            </p>
+          )}
 
           <div className="mt-3 flex items-center gap-2">
             <button
